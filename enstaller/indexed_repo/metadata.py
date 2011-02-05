@@ -117,8 +117,8 @@ def parse_data(data, index=False):
 
 def parse_depend_index(data):
     """
-    Given the data of index-depend.bz2, return a dict mapping each distname
-    to a dict mapping variable names to their values.
+    Given the (uncompressed) data of index-depend.bz2, return a dict mapping
+    each distname to a dict mapping variable names to their values.
     """
     d = parse_index(data)
     for fn in d.iterkeys():
