@@ -2,7 +2,6 @@ import sys
 from os.path import isfile, join
 
 
-
 def main(prefix=sys.prefix, verbose=False):
     """
     To bootstrap Enstaller into a Python environment, used the following
