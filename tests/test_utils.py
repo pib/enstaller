@@ -36,6 +36,7 @@ class TestUtils(unittest.TestCase):
              '1.4.0.dev7749', '1.4.0rc1', '1.4.0rc2', '1.4.0'],
             ['2008j', '2008k', '2009b', '2009h', '2010b'],
             ['0.99', '1.0a2', '1.0b1', '1.0rc1', '1.0', '1.0.1'],
+            ['2.0.8', '2.0.10', '2.0.10.1', '2.0.11'],
             ):
             org = list(versions)
             random.shuffle(versions)
