@@ -244,7 +244,7 @@ class EggInst(object):
         if not isfile(path):
             return
         from subprocess import call
-        call([sys.executable, path, '--prefix', self.prefix],
+        call([sys.executable, '-E', path, '--prefix', self.prefix],
              cwd=dirname(path))
 
     def rmdirs(self):
