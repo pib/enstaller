@@ -266,7 +266,7 @@ class Chain(object):
                     assert len(names_inst) == len(res)
             if len(res) == n:
                 # nothing was added
-                raise Exception("Loop in the dependency graph")
+                raise Exception("Loop in dependency graph")
         return res
 
 
