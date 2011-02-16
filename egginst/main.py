@@ -287,7 +287,7 @@ class EggInst(object):
         self.rm_dirs()
         rm_rf(self.meta_dir)
         rm_empty_dir(self.egginfo_dir)
-        sys.stdout.write('.' * (65-cur) + ']\n')
+        sys.stdout.write('.' * (65 - cur) + ']\n')
         sys.stdout.flush()
 
 
