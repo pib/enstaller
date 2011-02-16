@@ -30,7 +30,7 @@ def rm_empty_dir(path):
     """
     try:
         os.rmdir(path)
-    except OSError: # directory might not exist or be empty
+    except OSError: # directory might not exist or not be empty
         pass
 
 
