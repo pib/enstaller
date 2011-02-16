@@ -3,6 +3,8 @@
 * add commit message to egg repository index file, if
   EGG-INFO/spec/__commit__ exists
 
+* fix bug and simplified the egg directory removal
+
 
 
 2011-01-16   4.3.0:
