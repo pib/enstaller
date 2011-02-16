@@ -282,8 +282,7 @@ class EggInst(object):
                 sys.stdout.flush()
                 cur += 1
             rm_rf(p)
-            if p.endswith('.py') and isfile(p + 'c'):
-                # remove the corresponding .pyc
+            if p.endswith('.py'):
                 rm_rf(p + 'c')
         self.rm_dirs()
         rm_rf(self.meta_dir)
