@@ -1,3 +1,8 @@
+20??-??-??   4.3.2:
+-------------------
+
+
+
 2011-02-16   4.3.1:
 -------------------
 * add commit message to egg repository index file, if
