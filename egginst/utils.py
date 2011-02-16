@@ -1,10 +1,10 @@
 import sys
 import os
 import shutil
-from os.path import isdir, isfile, islink, join
+from os.path import isdir, isfile, islink
 
 
-on_win = sys.platform == 'win32'
+on_win = bool(sys.platform == 'win32')
 
 if on_win:
     bin_dir_name = 'Scripts'
@@ -21,19 +21,6 @@ def pprint_fn_action(fn, action):
     function below.
     """
     print "%-56s %20s" % (fn, '[%s]' % action)
-
-
-def rmdir_er(dn):
-    """
-    Remove empty directories recursively.
-    """
-    for name in os.listdir(dn):
-        path = join(dn, name)
-        if isdir(path):
-            rmdir_er(path)
-
-    if not os.listdir(dn):
-        os.rmdir(dn)
 
 
 def rm_rf(path, verbose=False):

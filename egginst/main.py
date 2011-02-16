@@ -15,7 +15,7 @@ import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
-                           pprint_fn_action, rmdir_er, rm_rf, human_bytes)
+                           pprint_fn_action, rm_rf, human_bytes)
 from egginst import scripts
 
 
@@ -247,13 +247,19 @@ class EggInst(object):
         call([sys.executable, '-E', path, '--prefix', self.prefix],
              cwd=dirname(path))
 
-    def rmdirs(self):
-        """
-        Remove empty directories for the files in self.files recursively
-        """
+
+    def rm_dirs(self):
+        dir_paths = set()
+        len_prefix = len(self.prefix)
         for path in set(dirname(p) for p in self.files):
-            if isdir(path):
-                rmdir_er(path)
+            while len(path) > len_prefix:
+                dir_paths.add(path)
+                path = dirname(path)
+
+        for path in sorted(dir_paths, key=lambda p: len(p), reverse=True):
+            print '\t', path
+            if isdir(path) and os.listdir(path) == []:
+                os.rmdir(path)
 
     def remove(self):
         if not isdir(self.meta_dir):
@@ -278,7 +284,7 @@ class EggInst(object):
             if p.endswith('.py') and isfile(p + 'c'):
                 # remove the corresponding .pyc
                 rm_rf(p + 'c')
-        self.rmdirs()
+        self.rm_dirs()
         rm_rf(self.meta_dir)
         sys.stdout.write('.' * (65-cur) + ']\n')
         sys.stdout.flush()
