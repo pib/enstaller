@@ -44,9 +44,8 @@ class EggInst(object):
         self.prefix = abspath(prefix)
         self.noapp = noapp
 
-        # This is the directory which contains the EGG-INFO directories of all
-        # installed packages
-        self.meta_dir = join(self.prefix, 'EGG-INFO', self.cname)
+        self.egginfo_dir = join(self.prefix, 'EGG-INFO')
+        self.meta_dir = join(self.egginfo_dir, self.cname)
         self.meta_txt = join(self.meta_dir, '__egginst__.txt')
 
         self.bin_dir = join(self.prefix, bin_dir_name)
@@ -252,7 +251,11 @@ class EggInst(object):
         dir_paths = set()
         len_prefix = len(self.prefix)
         for path in set(dirname(p) for p in self.files):
+            if path.startswith(self.egginfo_dir):
+                continue
             while len(path) > len_prefix:
+                if path == self.site_packages:
+                    break
                 dir_paths.add(path)
                 path = dirname(path)
 
@@ -286,6 +289,11 @@ class EggInst(object):
                 rm_rf(p + 'c')
         self.rm_dirs()
         rm_rf(self.meta_dir)
+
+        # remove the 'EGG-INFO' directory if it's empty
+        if isdir(self.egginfo_dir) and os.listdir(self.egginfo_dir) == []:
+            os.rmdir(self.egginfo_dir)
+
         sys.stdout.write('.' * (65-cur) + ']\n')
         sys.stdout.flush()
 
