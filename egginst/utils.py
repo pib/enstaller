@@ -23,6 +23,17 @@ def pprint_fn_action(fn, action):
     print "%-56s %20s" % (fn, '[%s]' % action)
 
 
+def rm_empty_dir(path):
+    """
+    Remove the directory `path` if it is a directory and empty.
+    If the directory does not exist or is not empty, do nothing.
+    """
+    try:
+        os.rmdir(path)
+    except OSError: # directory might not exist or be empty
+        pass
+
+
 def rm_rf(path, verbose=False):
     if not on_win and islink(path):
         # Note that we have to check if the destination is a link because

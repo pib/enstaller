@@ -15,7 +15,7 @@ import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
-                           pprint_fn_action, rm_rf, human_bytes)
+                           pprint_fn_action, rm_empty_dir, rm_rf, human_bytes)
 from egginst import scripts
 
 
@@ -260,9 +260,7 @@ class EggInst(object):
                 path = dirname(path)
 
         for path in sorted(dir_paths, key=lambda p: len(p), reverse=True):
-            print '\t', path
-            if isdir(path) and os.listdir(path) == []:
-                os.rmdir(path)
+            rm_empty_dir(path)
 
     def remove(self):
         if not isdir(self.meta_dir):
@@ -289,11 +287,7 @@ class EggInst(object):
                 rm_rf(p + 'c')
         self.rm_dirs()
         rm_rf(self.meta_dir)
-
-        # remove the 'EGG-INFO' directory if it's empty
-        if isdir(self.egginfo_dir) and os.listdir(self.egginfo_dir) == []:
-            os.rmdir(self.egginfo_dir)
-
+        rm_empty_dir(self.egginfo_dir)
         sys.stdout.write('.' * (65-cur) + ']\n')
         sys.stdout.flush()
 
