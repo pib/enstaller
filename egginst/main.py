@@ -162,7 +162,7 @@ class EggInst(object):
             self.write_arcname(name)
 
         self.installed_size = size
-        sys.stdout.write('.' * (65-cur) + ']\n')
+        sys.stdout.write('.' * (65 - cur) + ']\n')
         sys.stdout.flush()
 
 

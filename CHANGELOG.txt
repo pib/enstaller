@@ -3,7 +3,7 @@
 * add commit message to egg repository index file, if
   EGG-INFO/spec/__commit__ exists
 
-* fix bug and simplified the egg directory removal
+* fix bug and simplified directory removal (when eggs are uninstalled)
 
 
 
