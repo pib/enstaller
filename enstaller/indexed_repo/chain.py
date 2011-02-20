@@ -306,8 +306,8 @@ class Chain(object):
                 is forcefully downloaded, ignoring any existing file (as well
                 as the MD5).
         """
-        md5 = self.index[dist].get('md5', None)
-        size = self.index[dist].get('size', None)
+        md5 = self.index[dist].get('md5')
+        size = self.index[dist].get('size')
 
         fn = dist_naming.filename_dist(dist)
         dst = join(fetch_dir, fn)
