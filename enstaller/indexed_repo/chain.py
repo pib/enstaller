@@ -34,7 +34,7 @@ class Chain(object):
     def print_repos(self):
         print 'Repositories:'
         for r in self.repos:
-            print '\t%r' % r
+            print '  %r' % r
 
 
     def add_repo(self, repo, index_fn='index-depend.bz2'):
@@ -43,8 +43,8 @@ class Chain(object):
         parse it and update the index.
         """
         if self.verbose:
-            print "Adding repository:", repo
-
+            print "Adding repository:"
+            print "   URL:", repo
         repo = dist_naming.cleanup_reponame(repo)
 
         self.repos.append(repo)
@@ -55,14 +55,14 @@ class Chain(object):
             if isfile(index_url[7:]):
                 # A local url with index file
                 if self.verbose:
-                    print "\tfound index", index_url
+                    print "    found index", index_url
             else:
                 # A local url without index file
                 self.index_all_files(repo)
                 return
 
         if self.verbose:
-            print "\treading:", index_fn
+            print " index:", index_fn
 
         faux = StringIO()
         write_data_from_url(faux, index_url)
@@ -71,7 +71,8 @@ class Chain(object):
 
         if self.verbose:
             import hashlib
-            print "\t    md5:", hashlib.md5(index_data).hexdigest()
+            print "   md5:", hashlib.md5(index_data).hexdigest()
+            print
 
         if index_fn.endswith('.bz2'):
             index_data = bz2.decompress(index_data)
