@@ -499,7 +499,7 @@ def main():
     else:
         setup_proxy()
 
-    global prefix, dry_run, noapp, version        #  set globals
+    global prefix, dry_run, noapp, version, verbose    #  set globals
     if opts.sys_prefix:
         prefix = sys.prefix
     elif opts.prefix:
@@ -508,6 +508,7 @@ def main():
         prefix = conf['prefix']
     dry_run = opts.dry_run
     noapp = conf['noapp']
+    verbose = opts.verbose
     version = opts.version
 
     if opts.path:                                 #  --path
