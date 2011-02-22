@@ -62,12 +62,16 @@ class Chain(object):
                 return
 
         if self.verbose:
-            print "\treading:", index_url
+            print "\treading:", index_fn
 
         faux = StringIO()
         write_data_from_url(faux, index_url)
         index_data = faux.getvalue()
         faux.close()
+
+        if self.verbose:
+            import hashlib
+            print "\t    md5:", hashlib.md5(index_data).hexdigest()
 
         if index_fn.endswith('.bz2'):
             index_data = bz2.decompress(index_data)
