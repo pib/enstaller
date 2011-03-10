@@ -57,6 +57,34 @@ is essentially a compressed concatenation of the 'EGG-INFO/spec/depend' files
 for all eggs in a directory/repository.
 
 
+Egg file name format:
+---------------------
+
+Eggs follow the following naming convention::
+
+   <name>-<version>-<build>.egg
+
+``<name>``
+   The package name, which may contain the following characters:
+   Letters (both lower or uppercase), digits, underscore '_' and a dot '.'
+
+``<version>``
+   The version number, which is restricted to containing the
+   same characters as the package name, and which should
+   follow `PEP 386 <http://www.python.org/dev/peps/pep-0386/>`_.
+
+``<build>``
+   The build number, which may only contains digits (with no leading zeros).
+   This number is used to distinguish between different eggs which were build
+   from the same project source.  Having different build numbers becomes
+   necessary when, for example: eggs are build for different Python versions,
+   a build bug is fixed, a patch is applied to the source, etc. .
+
+The regular expression for a valid egg file name is::
+
+   r'([\w.]+)-([\w.]+)-(\d+)\.egg$'
+
+
 The metadata format:
 --------------------
 
