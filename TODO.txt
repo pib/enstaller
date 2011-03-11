@@ -3,4 +3,9 @@ Bugs:
     when only the package name is given as the requirement
 
 Enhancements:
+  * Add --add-url to enpkg:
+    This should check the URL (using the current authentication in
+    .enstaller4rc and then (if the URL can be accessed) prepend it
+    to the IndexedRepos list.
+
   * More Documentation and Examples
