@@ -11,7 +11,7 @@ d = {}
 execfile(convert_path('enstaller/__init__.py'), d)
 kwds['version'] = d['__version__']
 
-f = open('README.txt')
+f = open('README.rst')
 kwds['long_description'] = f.read()
 f.close()
 
