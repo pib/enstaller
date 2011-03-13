@@ -2,6 +2,8 @@
 -------------------
 * added section about egg file naming to readme
 
+* add --add-url option to enpkg
+
 
 
 2011-02-16   4.3.1:
