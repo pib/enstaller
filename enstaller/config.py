@@ -153,8 +153,7 @@ EPD_auth = %r
 def change_auth():
     path = get_path()
     if path is None:
-        print "The enstaller configuration file '.enstaller4rc' was not found."
-        sys.exit(1)
+        sys.exit("Error: config file '.enstaller4rc' not found")
     f = open(path, 'r+')
     data = f.read()
     auth = input_auth()
@@ -169,6 +168,21 @@ def change_auth():
             data = '\n'.join(lines) + '\n'
         f.seek(0)
         f.write(data)
+    f.close()
+
+
+def prepend_url(url):
+    path = get_path()
+    if path is None:
+        sys.exit("Error: config file '.enstaller4rc' not found")
+    f = open(path, 'r+')
+    data = f.read()
+    pat = re.compile(r'^IndexedRepos\s*=\s*\[\s*$', re.M)
+    if not pat.search(data):
+        sys.exit("Error: IndexedRepos section not found")
+    data = pat.sub(r"IndexedRepos = [\n  '%s'," % url, data)
+    f.seek(0)
+    f.write(data)
     f.close()
 
 
