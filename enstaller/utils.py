@@ -88,7 +88,7 @@ def open_with_auth(url):
                            url.startswith(custom_tools.epd_baseurl)):
         conf = config.read()
         if conf is None:
-            raise Exception("Could not locate Enstaller configuration file")
+            sys.exit("Error: config file '.enstaller4rc' not found")
         auth = conf.get('EPD_auth')
         if auth is None:
             userpass = conf.get('EPD_userpass')
@@ -126,7 +126,7 @@ def write_data_from_url(fo, url, md5=None, size=None):
         except urllib2.URLError, e:
             raise urllib2.URLError("\n%s\nCannot open URL:\n    %s" % (e, url))
     else:
-        raise Exception("Invalid url: %r" % url)
+        sys.exit("Error: invalid url: %r" % url)
 
     h = hashlib.new('md5')
 

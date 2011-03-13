@@ -370,6 +370,22 @@ def get_dists(c, req, recur):
     return dists
 
 
+def add_url(conf, url):
+    import urllib2
+    from utils import open_with_auth
+    from indexed_repo.dist_naming import cleanup_reponame
+
+    url = cleanup_reponame(url)
+
+    Chain([url], verbose)
+
+    if url in conf['IndexedRepos']:
+        print "Already in configured:", url
+        return
+
+    config.prepend_url(url)
+
+
 def iter_dists_excl(dists, exclude_fn):
     """
     Iterates over all dists, excluding the ones whose filename is an element
@@ -385,6 +401,11 @@ def iter_dists_excl(dists, exclude_fn):
 def main():
     p = OptionParser(usage="usage: %prog [options] [name] [version]",
                      description=__doc__)
+
+    p.add_option("--add-url",
+                 action="store",
+                 help="add a repository URL to the configuration file",
+                 metavar='URL')
 
     p.add_option("--config",
                  action="store_true",
@@ -510,6 +531,10 @@ def main():
     noapp = conf['noapp']
     verbose = opts.verbose
     version = opts.version
+
+    if opts.add_url:                              #  --add-url
+        add_url(conf, opts.add_url)
+        return
 
     if opts.path:                                 #  --path
         print_path()
