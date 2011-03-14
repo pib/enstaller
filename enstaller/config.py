@@ -15,6 +15,11 @@ CONFIG_FN = ".enstaller4rc"
 HOME_CONFIG_PATH = abs_expanduser("~/" + CONFIG_FN)
 SYSTEM_CONFIG_PATH = join(sys.prefix, CONFIG_FN)
 
+if '64' in platform.architecture()[0]:
+    ARCH = 'amd64'
+else:
+    ARCH = 'x86'
+
 
 def get_path():
     """
@@ -172,10 +177,7 @@ def change_auth():
 
 
 def prepend_url(url):
-    path = get_path()
-    if path is None:
-        sys.exit("Error: config file '.enstaller4rc' not found")
-    f = open(path, 'r+')
+    f = open(get_path(), 'r+')
     data = f.read()
     pat = re.compile(r'^IndexedRepos\s*=\s*\[\s*$', re.M)
     if not pat.search(data):
@@ -186,11 +188,10 @@ def prepend_url(url):
     f.close()
 
 
-def get_arch():
-    if '64' in platform.architecture()[0]:
-        return 'amd64'
-    else:
-        return 'x86'
+def arch_filled_url(url):
+    from indexed_repo.dist_naming import cleanup_reponame
+
+    return cleanup_reponame(url.replace('{ARCH}', ARCH))
 
 
 def read():
@@ -216,8 +217,7 @@ def read():
             continue
         v = d[k]
         if k == 'IndexedRepos':
-            arch = get_arch()
-            read.cache[k] = [url.replace('{ARCH}', arch) for url in v]
+            read.cache[k] = [arch_filled_url(url) for url in v]
         elif k in ['prefix', 'local']:
             read.cache[k] = abs_expanduser(v)
         else:

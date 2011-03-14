@@ -373,9 +373,10 @@ def get_dists(c, req, recur):
 def add_url(conf, url):
     url = dist_naming.cleanup_reponame(url)
 
-    Chain([url], verbose)
+    arch_url = config.arch_filled_url(url)
+    Chain([arch_url], verbose)
 
-    if url in [dist_naming.cleanup_reponame(u) for u in conf['IndexedRepos']]:
+    if arch_url in conf['IndexedRepos']:
         print "Already configured:", url
         return
 
