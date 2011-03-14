@@ -1,5 +1,6 @@
-2011-??-??   4.3.3:
+2011-03-04   4.3.3:
 -------------------
+* allow "{ARCH}" when adding url with add --add-url option
 
 
 
