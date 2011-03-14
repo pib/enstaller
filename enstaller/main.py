@@ -371,16 +371,12 @@ def get_dists(c, req, recur):
 
 
 def add_url(conf, url):
-    import urllib2
-    from utils import open_with_auth
-    from indexed_repo.dist_naming import cleanup_reponame
-
-    url = cleanup_reponame(url)
+    url = dist_naming.cleanup_reponame(url)
 
     Chain([url], verbose)
 
-    if url in conf['IndexedRepos']:
-        print "Already in configured:", url
+    if url in [dist_naming.cleanup_reponame(u) for u in conf['IndexedRepos']]:
+        print "Already configured:", url
         return
 
     config.prepend_url(url)
