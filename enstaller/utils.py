@@ -6,7 +6,7 @@ import urllib2
 from cStringIO import StringIO
 from os.path import abspath, expanduser
 
-from egginst.utils import human_bytes, rm_rf
+from egginst.utils import human_bytes
 from enstaller import __version__
 from enstaller.verlib import NormalizedVersion, IrrationalVersionError
 

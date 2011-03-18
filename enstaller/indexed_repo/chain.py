@@ -5,12 +5,11 @@ import zipfile
 from cStringIO import StringIO
 from os.path import basename, getsize, isfile, isdir, join
 
+from egginst.utils import pprint_fn_action, rm_rf
+from enstaller.utils import comparable_version, md5_file, write_data_from_url
 import metadata
 import dist_naming
 from requirement import Req, add_Reqs_to_spec, filter_name, dist_as_req
-from enstaller.utils import (comparable_version, md5_file,
-                             rm_rf, write_data_from_url)
-from egginst.utils import pprint_fn_action
 
 
 class Chain(object):
