@@ -259,7 +259,7 @@ class EggInst(object):
                 dir_paths.add(path)
                 path = dirname(path)
 
-        for path in sorted(dir_paths, key=lambda p: len(p), reverse=True):
+        for path in sorted(dir_paths, key=len, reverse=True):
             rm_empty_dir(path)
 
     def remove(self):
