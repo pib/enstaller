@@ -124,7 +124,7 @@ def write_data_from_url(fo, url, md5=None, size=None):
         try:
             fi = open_with_auth(url)
         except urllib2.URLError, e:
-            raise urllib2.URLError("\n%s\nCannot open URL:\n    %s" % (e, url))
+            sys.exit("%s %s" % (e, url))
     else:
         sys.exit("Error: invalid url: %r" % url)
 
