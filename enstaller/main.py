@@ -274,12 +274,13 @@ def search(c, pat=None):
         if pat and not pat.search(name):
             continue
         versions = c.list_versions(name)
-        if not versions:
-            continue
-        req = Req(name + ' ' + versions[-1])
-        dist = c.get_dist(req)
-        repo = dist_naming.repo_dist(dist)
-        print fmt % (name, ', '.join(versions),  shorten_repo(repo))
+        disp_name = name
+        for version in versions:
+            req = Req(name + ' ' + version)
+            dist = c.get_dist(req)
+            repo = dist_naming.repo_dist(dist)
+            print fmt % (disp_name, version,  shorten_repo(repo))
+            disp_name = ''
 
 
 def read_depend_files():
