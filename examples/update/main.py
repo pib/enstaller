@@ -25,6 +25,7 @@ def build_egg(name):
                '[console_scripts]\n'
                'update-%s = update_%s:main\n' % (name, name))
     z.write('update.ico', 'EGG-INFO/inst/update.ico')
+    z.write('update.icns', 'EGG-INFO/inst/update.icns')
     z.close()
 
     for ext in ('', 'c'):
