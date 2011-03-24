@@ -1,7 +1,13 @@
+"""\
+This program creates an egg package (called update_NAME-1.0.egg),
+for uptaing the package NAME.
+"""
 import os
 import zipfile
 from compiler import compileFile
 from os.path import join
+from optparse import OptionParser
+
 
 
 def build_egg(name):
@@ -32,5 +38,17 @@ def build_egg(name):
         os.unlink(py_module + ext)
 
 
+def main():
+    p = OptionParser(usage="usage: %prog [options] NAME",
+                     description=__doc__)
+
+    opts, args = p.parse_args()
+
+    if len(args) != 1:
+        p.error("exactly one argument expected, try -h")
+
+    build_egg(args[0])
+
+
 if __name__ == '__main__':
-    build_egg('foo')
+    main()
