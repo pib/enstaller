@@ -125,10 +125,9 @@ class Chain(object):
         from the first repository which contains any matches.
         """
         lst = list(self.get_matches(req))
-        lst.sort(key=self.get_version_build)
         if not lst:
             return None
-        return lst[-1]
+        return max(lst, key=self.get_version_build)
 
 
     def reqs_dist(self, dist):
