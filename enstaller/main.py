@@ -503,9 +503,7 @@ def main():
         return
 
     if opts.sys_config:                           #  --sys-config
-        def get_sys_path():
-            return config.SYSTEM_CONFIG_PATH
-        config.get_path = get_sys_path
+        config.get_path = lambda: config.SYSTEM_CONFIG_PATH
 
     if opts.config:                               #  --config
         config.print_config()

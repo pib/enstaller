@@ -8,6 +8,9 @@ from enstaller.main import get_installed_info
 from enstaller import config
 
 
+config.get_path = lambda: config.SYSTEM_CONFIG_PATH
+
+
 name = '@NAME@'
 enpkg_bin = join(sys.prefix, bin_dir_name, 'enpkg')
 
@@ -61,7 +64,7 @@ You have the following options:
         update_to = inp or versions[-1]
         if update_to in versions:
             print "Updating to: %s" % update_to
-            check_call([enpkg_bin, name, update_to])
+            check_call([enpkg_bin, '--sys-config', name, update_to])
             quit()
         print "You have entered %r, which is not an available version" % inp
 
