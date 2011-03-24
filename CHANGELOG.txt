@@ -2,6 +2,9 @@
 -------------------
 * add examples/update
 
+* add --sys-config option to enpkg
+
+
 
 2011-03-22   4.3.4:
 -------------------

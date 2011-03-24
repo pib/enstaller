@@ -460,6 +460,11 @@ def main():
                  help="search the index in the repo (chain) of packages "
                       "and display versions available.")
 
+    p.add_option("--sys-config",
+                 action="store_true",
+                 help="use <sys.prefix>/.enstaller4rc (even when "
+                      "~/.enstaller4rc exists")
+
     p.add_option("--sys-prefix",
                  action="store_true",
                  help="use sys.prefix as the install prefix")
@@ -496,6 +501,11 @@ def main():
         from enstaller import __version__
         print "Enstaller version:", __version__
         return
+
+    if opts.sys_config:                           #  --sys-config
+        def get_sys_path():
+            return config.SYSTEM_CONFIG_PATH
+        config.get_path = get_sys_path
 
     if opts.config:                               #  --config
         config.print_config()
