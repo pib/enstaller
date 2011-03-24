@@ -1,0 +1,9 @@
+SHORTCUTS = [{
+        'cmd': ['update-@NAME@'],
+        'comment': 'update @NAME@',
+        'icon': 'update.ico',
+        'name': 'update @NAME@',
+        'terminal': True,
+        'desktop': False,
+        'quicklaunch': False,
+}]
