@@ -97,8 +97,8 @@ class Chain(object):
         """
         matches = set()
         for dist in self.groups[req.name]:
-            spec = self.index[dist]
-            if dist_naming.repo_dist(dist) == repo and req.matches(spec):
+            if (dist_naming.repo_dist(dist) == repo  and
+                       req.matches(self.index[dist])):
                 matches.add(dist)
         return matches
 
