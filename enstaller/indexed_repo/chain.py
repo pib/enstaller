@@ -3,6 +3,7 @@ import sys
 import bz2
 import zipfile
 from cStringIO import StringIO
+from collections import defaultdict
 from os.path import basename, getsize, isfile, isdir, join
 
 from egginst.utils import pprint_fn_action, rm_rf
@@ -19,6 +20,9 @@ class Chain(object):
 
         # maps distributions to specs
         self.index = {}
+
+        # maps cnames to the set of distributions
+        self.groups = defaultdict(set)
 
         # Chain of repositories, either local or remote
         self.repos = []
@@ -81,7 +85,9 @@ class Chain(object):
             add_Reqs_to_spec(spec)
 
         for distname, spec in new_index.iteritems():
-            self.index[repo + distname] = spec
+            dist = repo + distname
+            self.index[dist] = spec
+            self.groups[spec['cname']].add(dist)
 
 
     def get_matches_repo(self, req, repo):
@@ -90,7 +96,8 @@ class Chain(object):
         specified repository.
         """
         matches = set()
-        for dist, spec in self.index.iteritems():
+        for dist in self.groups[req.name]:
+            spec = self.index[dist]
             if dist_naming.repo_dist(dist) == repo and req.matches(spec):
                 matches.add(dist)
         return matches
@@ -281,7 +288,8 @@ class Chain(object):
         versions = set()
 
         req = Req(name)
-        for spec in self.index.itervalues():
+        for dist in self.groups[req.name]:
+            spec = self.index[dist]
             if req.matches(spec):
                 versions.add(spec['version'])
 

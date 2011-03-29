@@ -265,8 +265,7 @@ def search(c, pat=None):
     print fmt % ('Project name', 'Versions', 'Repository')
     print 55 * '-'
 
-    names = set(spec['cname'] for spec in c.index.itervalues())
-    for name in sorted(names, key=string.lower):
+    for name in sorted(c.groups.keys(), key=string.lower):
         if pat and not pat.search(name):
             continue
         versions = c.list_versions(name)
