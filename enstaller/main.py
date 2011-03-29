@@ -40,11 +40,7 @@ def print_path():
         print '    %s%s' % (p, ['', ' (sys)'][p == sys.prefix])
     print
 
-    if sys.platform == 'win32':
-        cmd = 'set'
-    else:
-        cmd = 'export'
-
+    cmd = ('export', 'set')[sys.platform == 'win32']
     print "%s PATH=%s" % (cmd, os.pathsep.join(
                                  join(p, bin_dir_name) for p in prefixes))
     if prefix != sys.prefix:
