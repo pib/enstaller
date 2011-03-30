@@ -21,8 +21,8 @@ class Chain(object):
         # maps distributions to specs
         self.index = {}
 
-        # maps cnames to the set of distributions
-        self.groups = defaultdict(set)
+        # maps cnames to the list of distributions (in repository order)
+        self.groups = defaultdict(list)
 
         # Chain of repositories, either local or remote
         self.repos = []
@@ -87,7 +87,7 @@ class Chain(object):
         for distname, spec in new_index.iteritems():
             dist = repo + distname
             self.index[dist] = spec
-            self.groups[spec['cname']].add(dist)
+            self.groups[spec['cname']].append(dist)
 
 
     def get_matches_repo(self, req, repo):
