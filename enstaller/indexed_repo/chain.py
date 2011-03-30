@@ -90,6 +90,27 @@ class Chain(object):
             self.groups[spec['cname']].append(dist)
 
 
+    def get_version_build(self, dist):
+        """
+        Returns a tuple(version, build) for a distribution, version is a
+        RationalVersion object (see verlib).  This method is used below
+        for determining the distribution with the largest version and build
+        number.
+        """
+        return dist_naming.comparable_spec(self.index[dist])
+
+
+    def get_repo(self, req):
+        """
+        return the first repository in which the requirement matches at least
+        one distribution
+        """
+        for dist in self.groups[req.name]:
+            if req.matches(self.index[dist]):
+                return dist_naming.repo_dist(dist)
+        return None
+
+
     def get_matches_repo(self, req, repo):
         """
         Return the set of distributions which match the requirement from a
@@ -114,16 +135,6 @@ class Chain(object):
                 return matches
         # no matching distributions are found in any repo
         return set()
-
-
-    def get_version_build(self, dist):
-        """
-        Returns a tuple(version, build) for a distribution, version is a
-        RationalVersion object (see verlib).  This method is used below
-        for determining the distribution with the largest version and build
-        number.
-        """
-        return dist_naming.comparable_spec(self.index[dist])
 
 
     def get_dist(self, req):
