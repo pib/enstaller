@@ -69,11 +69,15 @@ class Req(object):
         """
         return 'Req(%r)' % str(self)
 
-    def __cmp__(self, other):
-        return cmp(str(self), str(other))
+    def __eq__(self, other):
+        return (self.name == other.name  and
+                self.version == other.version  and
+                self.build == other.build  and
+                self.strictness == other.strictness)
 
     def __hash__(self):
-        return hash(str(self))
+        return (hash(self.strictness) ^ hash(self.name) ^
+                hash(self.version) ^ hash(self.build))
 
 
 def add_Reqs_to_spec(spec):
