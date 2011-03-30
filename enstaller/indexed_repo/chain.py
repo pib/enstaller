@@ -100,57 +100,37 @@ class Chain(object):
         return dist_naming.comparable_spec(self.index[dist])
 
 
-    def get_repo(self, req):
+    def iter_dists(self, req):
         """
-        return the first repository in which the requirement matches at least
-        one distribution
+        iterate over all distributions matching the requirement
         """
+        assert req.strictness >= 1
         for dist in self.groups[req.name]:
             if req.matches(self.index[dist]):
-                return dist_naming.repo_dist(dist)
-        return None
-
-
-    def get_matches_repo(self, req, repo):
-        """
-        Return the set of distributions which match the requirement from a
-        specified repository.
-        """
-        matches = set()
-        for dist in self.groups[req.name]:
-            if (dist_naming.repo_dist(dist) == repo  and
-                       req.matches(self.index[dist])):
-                matches.add(dist)
-        return matches
-
-
-    def get_matches(self, req):
-        """
-        Return the set of distributions which match the requirement from the
-        first repository in the chain which contains at least one match.
-        """
-        for repo in self.repos:
-            matches = self.get_matches_repo(req, repo)
-            if matches:
-                return matches
-        # no matching distributions are found in any repo
-        return set()
+                yield dist
 
 
     def get_dist(self, req):
         """
-        Return the distributions with the largest version and build number
-        from the first repository which contains any matches.
+        return the distributions with the largest version and build number
+        from the first repository which contains any matches
         """
-        lst = list(self.get_matches(req))
-        if not lst:
+        for dist in self.iter_dists(req):
+            repo = dist_naming.repo_dist(dist)
+            break
+        else:
             return None
-        return max(lst, key=self.get_version_build)
+
+        matches = []
+        for dist in self.iter_dists(req):
+            if dist_naming.repo_dist(dist) == repo:
+                matches.append(dist)
+        return max(matches, key=self.get_version_build)
 
 
     def reqs_dist(self, dist):
         """
-        Return the set of requirement objects of the distribution.
+        return the set of requirement objects for the distribution
         """
         return self.index[dist]['Reqs']
 
@@ -185,7 +165,7 @@ class Chain(object):
         which is a dictionary mapping requirements to a
         tuple(recursion level, distribution which requires the requirement)
         """
-        for dist in self.get_matches(req):
+        for dist in self.iter_dists(req):
             for r in self.select_new_reqs(reqs, dist):
                 if r in reqs:
                     continue

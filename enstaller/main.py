@@ -173,10 +173,12 @@ def info_option(url, c, cname):
         print "No 'info_url' in .enstaller4rc"
     print
     print "In repositories:"
-    req = Req(cname)
-    for repo in c.repos:
-        if c.get_matches_repo(req, repo):
+    displayed = set()
+    for dist in c.iter_dists(Req(cname)):
+        repo = dist_naming.repo_dist(dist)
+        if repo not in displayed:
             print '    %s' % repo
+            displayed.add(repo)
     print
 
     dist = c.get_dist(Req(cname))
