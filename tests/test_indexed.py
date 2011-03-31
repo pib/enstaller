@@ -4,6 +4,7 @@ from os.path import abspath, dirname
 
 from enstaller.indexed_repo import Chain
 import enstaller.indexed_repo.dist_naming as dist_naming
+import enstaller.indexed_repo.requirement as requirement
 from enstaller.indexed_repo.requirement import (Req, dist_as_req,
                                                 add_Reqs_to_spec)
 
@@ -118,8 +119,6 @@ class TestReq(unittest.TestCase):
             self.assertEqual(Req(req_string).matches(spec), m, req_string)
 
     def test_matches_py(self):
-        import enstaller.indexed_repo.requirement as requirement
-
         spec = dict(metadata_version='1.1', cname='foo', version='2.4.1',
                     build=3, python=None)
         for py in ['2.4', '2.5', '2.6', '3.1']:
@@ -182,6 +181,7 @@ class TestChain(unittest.TestCase):
                              self.repos[repo_name])
 
     def test_get_dist(self):
+        requirement.PY_VER = '2.7'
         for req_string, dist in [
             ('MySQL_python',  self.repos['gpl'] + 'MySQL_python-1.2.3-2.egg'),
             ('numpy',         self.repos['epd'] + 'numpy-1.5.1-2.egg'),
@@ -192,6 +192,14 @@ class TestChain(unittest.TestCase):
             ('foobar', None),
             ]:
             self.assertEqual(self.c.get_dist(Req(req_string)), dist)
+
+    def test_reqs_dist(self):
+        dist = self.repos['epd'] + 'FiPy-2.1-1.egg'
+        self.assertEqual(self.c.reqs_dist(dist),
+                         set([Req('distribute'),
+                              Req('scipy'),
+                              Req('numpy'),
+                              Req('pysparse 1.2.dev203')]))
 
 
 if __name__ == '__main__':
