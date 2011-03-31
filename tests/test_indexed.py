@@ -181,6 +181,18 @@ class TestChain(unittest.TestCase):
             self.assertEqual(self.c.get_repo(Req(req_string)),
                              self.repos[repo_name])
 
+    def test_get_dist(self):
+        for req_string, dist in [
+            ('MySQL_python',  self.repos['gpl'] + 'MySQL_python-1.2.3-2.egg'),
+            ('numpy',         self.repos['epd'] + 'numpy-1.5.1-2.egg'),
+            ('swig',          self.repos['epd'] + 'swig-1.3.40-2.egg'),
+            ('swig 1.3.36',   self.repos['epd'] + 'swig-1.3.36-3.egg'),
+            ('swig 1.3.40-1', self.repos['epd'] + 'swig-1.3.40-1.egg'),
+            ('swig 1.3.40-2', self.repos['epd'] + 'swig-1.3.40-2.egg'),
+            ('foobar', None),
+            ]:
+            self.assertEqual(self.c.get_dist(Req(req_string)), dist)
+
 
 if __name__ == '__main__':
     unittest.main()
