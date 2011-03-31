@@ -110,15 +110,23 @@ class Chain(object):
                 yield dist
 
 
+    def get_repo(self, req):
+        """
+        return the first repository in which the requirement matches at least
+        one distribution
+        """
+        for dist in self.iter_dists(req):
+            return dist_naming.repo_dist(dist)
+        return None
+
+
     def get_dist(self, req):
         """
         return the distributions with the largest version and build number
         from the first repository which contains any matches
         """
-        for dist in self.iter_dists(req):
-            repo = dist_naming.repo_dist(dist)
-            break
-        else:
+        repo = self.get_repo(req)
+        if repo is None:
             return None
 
         matches = []

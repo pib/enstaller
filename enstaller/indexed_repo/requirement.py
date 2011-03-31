@@ -82,16 +82,16 @@ class Req(object):
 
 def add_Reqs_to_spec(spec):
     """
-    Add the 'Reqs' key, which maps to a set of requirement objects,
-    to a spec dictionary.
+    add the 'Reqs' key (which maps to the set of requirement objects),
+    as well as the 'cname' key, to a spec dictionary
     """
-    spec['cname'] = canonical(spec['name'])
     spec['Reqs'] = set(Req(s) for s in spec['packages'])
+    spec['cname'] = canonical(spec['name'])
 
 
 def spec_as_req(spec, strictness=3):
     """
-    Return a requirement object from a spec.
+    return a requirement object from a spec
     """
     assert 1 <= strictness <= 3
     req_string = spec['name']
@@ -104,8 +104,7 @@ def spec_as_req(spec, strictness=3):
 
 def filename_as_req(filename, strictness=3):
     """
-    Return the filename of a distribution in terms of the a requirement
-    object.
+    return the filename of a distribution in terms of the a requirement object
     """
     name, version, build = split_eggname(filename)
     return spec_as_req(locals(), strictness)

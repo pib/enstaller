@@ -160,5 +160,10 @@ class TestReq(unittest.TestCase):
         self.assertEqual(Reqs, set([Req('numpy 1.3.0')]))
 
 
+class TestChain(unittest.TestCase):
+
+    pass
+
+
 if __name__ == '__main__':
     unittest.main()
