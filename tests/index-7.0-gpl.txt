@@ -1,0 +1,130 @@
+==> mercurial-1.5.3-1.egg <==
+size = 1342401
+md5 = 'f3ac13b90324b48f108dc85b6f73cfe1'
+mtime = 1273860063.0
+
+metadata_version = '1.1'
+name = 'mercurial'
+version = '1.5.3'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.6'
+packages = []
+
+==> mercurial-1.7-1.egg <==
+size = 1479556
+md5 = '7053c55cbf705435af6a84f1045a9750'
+mtime = 1288906173.0
+
+metadata_version = '1.1'
+name = 'mercurial'
+version = '1.7'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.6'
+packages = []
+
+==> mercurial-1.7.5-1.egg <==
+size = 1479042
+md5 = '22523a696a48b56564bcdb9db7d218fc'
+mtime = 1297384505.0
+
+metadata_version = '1.1'
+name = 'mercurial'
+version = '1.7.5'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> MySQL_python-1.2.2-5.egg <==
+size = 814304
+md5 = '35a49be8a9a8768c8d5794dcfda3f720'
+mtime = 1269273991.0
+
+metadata_version = '1.1'
+name = 'MySQL-python'
+version = '1.2.2'
+build = 5
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.6'
+packages = []
+
+==> MySQL_python-1.2.3-1.egg <==
+size = 811983
+md5 = '3762ece4390d9adaf14ef77606dc4092'
+mtime = 1277251227.0
+
+metadata_version = '1.1'
+name = 'MySQL-python'
+version = '1.2.3'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.6'
+packages = []
+
+==> MySQL_python-1.2.3-2.egg <==
+size = 811871
+md5 = '20b5cd462959ee51ef4af9496351494e'
+mtime = 1295543187.0
+
+metadata_version = '1.1'
+name = 'MySQL_python'
+version = '1.2.3'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> MySQL_python-1.2.3c1-1.egg <==
+size = 815076
+md5 = 'a643e5f714608598e608fc6984a5f237'
+mtime = 1270666793.0
+
+metadata_version = '1.1'
+name = 'MySQL-python'
+version = '1.2.3c1'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.6'
+packages = []
+
+==> pyfits-2.2.2-1.egg <==
+size = 374628
+md5 = '2e3f57a501b644cf8d6e0b0b05a37e53'
+mtime = 1272483518.0
+
+metadata_version = '1.1'
+name = 'pyfits'
+version = '2.2.2'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.6'
+packages = [
+  'numpy 1.4.0',
+]
+
