@@ -1,6 +1,8 @@
 import sys
 import unittest
+from os.path import abspath, dirname
 
+from enstaller.indexed_repo import Chain
 import enstaller.indexed_repo.dist_naming as dist_naming
 from enstaller.indexed_repo.requirement import (Req, dist_as_req,
                                                 add_Reqs_to_spec)
@@ -162,7 +164,22 @@ class TestReq(unittest.TestCase):
 
 class TestChain(unittest.TestCase):
 
-    pass
+    def setUp(self):
+        self.repos = {None: None}
+        self.c = Chain(verbose=0)
+        for name in ('epd', 'gpl'):
+            repo = 'file://%s/%s/' % (abspath(dirname(__file__)), name)
+            self.c.add_repo(repo, 'index-7.0.txt')
+            self.repos[name] = repo
+
+    def test_get_repo(self):
+        for req_string, repo_name in [
+            ('MySQL_python', 'gpl'),
+            ('bitarray', 'epd'),
+            ('foobar', None),
+            ]:
+            self.assertEqual(self.c.get_repo(Req(req_string)),
+                             self.repos[repo_name])
 
 
 if __name__ == '__main__':
