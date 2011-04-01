@@ -163,13 +163,12 @@ class TestReq(unittest.TestCase):
 
 class TestChain(unittest.TestCase):
 
-    def setUp(self):
-        self.repos = {None: None}
-        self.c = Chain(verbose=0)
-        for name in ('epd', 'gpl'):
-            repo = 'file://%s/%s/' % (abspath(dirname(__file__)), name)
-            self.c.add_repo(repo, 'index-7.0.txt')
-            self.repos[name] = repo
+    repos = {None: None}
+    c = Chain(verbose=0)
+    for name in ('epd', 'gpl'):
+        repo = 'file://%s/%s/' % (abspath(dirname(__file__)), name)
+        c.add_repo(repo, 'index-7.0.txt')
+        repos[name] = repo
 
     def test_get_repo(self):
         for req_string, repo_name in [
