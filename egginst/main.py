@@ -19,6 +19,9 @@ from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
 from egginst import scripts
 
 
+REGISTRY = join(sys.prefix, 'registry.txt')
+
+
 NS_PKG_PAT = re.compile(
     r'\s*__import__\([\'"]pkg_resources[\'"]\)\.declare_namespace'
     r'\(__name__\)\s*$')
@@ -36,12 +39,36 @@ def name_version_fn(fn):
         return fn, ''
 
 
+def read_registry_file():
+    res = {}
+    if not isfile(REGISTRY):
+        return res
+    for line in open(REGISTRY):
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        k, v = line.split(None, 1)
+        res[k] = v
+    return res
+
+
+def update_registry_file(new_items):
+    items = read_registry_file()
+    fo = open(REGISTRY, 'a')
+    for k, v in new_items.iteritems():
+        if k not in items:
+            fo.write('%s  %s\n' % (k, v))
+    fo.close()       
+
+
+
 class EggInst(object):
 
-    def __init__(self, fpath, prefix, verbose=False, noapp=False):
+    def __init__(self, fpath, prefix, hook=None, verbose=False, noapp=False):
         self.fpath = fpath
         self.cname = name_version_fn(basename(fpath))[0].lower()
         self.prefix = abspath(prefix)
+        self.hook = hook
         self.noapp = noapp
 
         self.egginfo_dir = join(self.prefix, 'EGG-INFO')
@@ -50,7 +77,15 @@ class EggInst(object):
 
         self.bin_dir = join(self.prefix, bin_dir_name)
         self.site_packages = join(self.prefix, rel_site_packages)
+        if self.hook:
+            subdir = basename(fpath)
+            if subdir.endswith('.egg'):
+                subdir = subdir[:-4]
+            self.pyloc = join(self.hook, subdir)
+        else:
+            self.pyloc = self.site_packages
 
+        self.rt_arcs = []
         self.files = []
         self.verbose = verbose
 
@@ -88,6 +123,24 @@ class EggInst(object):
         self.install_app()
         self.write_meta()
 
+        if self.hook:
+            update_registry_file(self.create_hooks())
+
+
+    def create_hooks(self):
+        registry = {}
+        for arcname in self.rt_arcs:
+            base = basename(arcname)
+            name, ext = os.path.splitext(base)
+            if not ext:
+                continue
+            if '/' in arcname:
+                pkg = arcname.split('/')[0]
+                registry[pkg] = join(self.pyloc, pkg)
+            else:
+                registry[name] = join(self.pyloc, arcname)
+        return registry
+
 
     def entry_points(self):
         lines = list(self.lines_from_arcname('EGG-INFO/entry_points.txt',
@@ -118,8 +171,11 @@ class EggInst(object):
         fo.write('installed_size = %i\n' % self.installed_size)
         fo.write('rel_files = [\n')
         fo.write('  %r,\n' % self.rel_prefix(self.meta_txt))
-        for f in self.files:
-            fo.write('  %r,\n' % self.rel_prefix(f))
+        for p in self.files:
+            if abspath(p).startswith(self.prefix):
+                fo.write('  %r,\n' % self.rel_prefix(p))
+            else:
+                fo.write('  %r,\n' % p)
         fo.write(']\n')
         fo.close()
 
@@ -175,8 +231,10 @@ class EggInst(object):
             ('EGG-INFO/usr/',     not on_win, self.prefix),
             ('EGG-INFO/scripts/', True,       self.bin_dir),
             ('EGG-INFO/',         True,       self.meta_dir),
-            ('',                  True,       self.site_packages),
+            ('',                  True,       self.pyloc),
             ]:
+            if self.hook and start == '':
+                self.rt_arcs.append(arcname)
             if arcname.startswith(start) and cond:
                 return abspath(join(dst_dir, arcname[len(start):]))
         raise Exception("Didn't expect to get here")
@@ -335,7 +393,14 @@ def main():
     p.add_option("--prefix",
                  action="store",
                  default=sys.prefix,
-                 help="install prefix, defaults to %default")
+                 help="install prefix, defaults to %default",
+                 metavar='PATH')
+
+    p.add_option("--hook",
+                 action="store",
+                 help="install not into site-packages but the location "
+                      "specified (experimental)",
+                 metavar='PATH')
 
     p.add_option('-r', "--remove",
                  action="store_true",
@@ -361,7 +426,7 @@ def main():
         return
 
     for path in args:
-        ei = EggInst(path, prefix, opts.verbose, opts.noapp)
+        ei = EggInst(path, prefix, opts.hook, opts.verbose, opts.noapp)
         fn = basename(path)
         if opts.remove:
             pprint_fn_action(fn, 'removing')
