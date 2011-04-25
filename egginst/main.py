@@ -58,17 +58,17 @@ def update_registry_file(new_items):
     for k, v in new_items.iteritems():
         if k not in items:
             fo.write('%s  %s\n' % (k, v))
-    fo.close()       
+    fo.close()
 
 
 
 class EggInst(object):
 
-    def __init__(self, fpath, prefix, hook=None, verbose=False, noapp=False):
+    def __init__(self, fpath, prefix, hook=False, verbose=False, noapp=False):
         self.fpath = fpath
         self.cname = name_version_fn(basename(fpath))[0].lower()
         self.prefix = abspath(prefix)
-        self.hook = hook
+        self.hook = bool(hook)
         self.noapp = noapp
 
         self.egginfo_dir = join(self.prefix, 'EGG-INFO')
@@ -78,10 +78,7 @@ class EggInst(object):
         self.bin_dir = join(self.prefix, bin_dir_name)
         self.site_packages = join(self.prefix, rel_site_packages)
         if self.hook:
-            subdir = basename(fpath)
-            if subdir.endswith('.egg'):
-                subdir = subdir[:-4]
-            self.pyloc = join(self.hook, subdir)
+            self.pyloc = join(sys.prefix, 'pkgs', basename(fpath)[:-4])
         else:
             self.pyloc = self.site_packages
 
@@ -397,10 +394,8 @@ def main():
                  metavar='PATH')
 
     p.add_option("--hook",
-                 action="store",
-                 help="install not into site-packages but the location "
-                      "specified (experimental)",
-                 metavar='PATH')
+                 action="store_true",
+                 help="install into <sys.prefix>/pkgs (experimental)")
 
     p.add_option('-r', "--remove",
                  action="store_true",
