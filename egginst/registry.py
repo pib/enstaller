@@ -79,7 +79,7 @@ def create_hooks_dir(dir_path, namespace=''):
 def create_file(egg):
     reg, pth = create_hooks_dir(egg.pkg_dir)
 
-    fo = open(join(egg.pkg_dir, 'EGG-INFO', 'registry.txt'), 'w')
+    fo = open(egg.registry_txt, 'w')
     fo.write('# pkg: %s\n' % basename(egg.pkg_dir))
     for kv in reg.iteritems():
         fo.write('%s  %s\n' % kv)
