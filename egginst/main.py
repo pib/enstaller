@@ -20,6 +20,9 @@ import scripts
 
 
 
+PKGS_DIR = join(sys.prefix, 'pkgs')
+
+
 NS_PKG_PAT = re.compile(
     r'\s*__import__\([\'"]pkg_resources[\'"]\)\.declare_namespace'
     r'\(__name__\)\s*$')
@@ -46,14 +49,15 @@ class EggInst(object):
         self.hook = bool(hook)
         self.noapp = noapp
 
-        self.egginfo_dir = join(self.prefix, 'EGG-INFO')
-        self.meta_dir = join(self.egginfo_dir, self.cname)
-        self.meta_txt = join(self.meta_dir, '__egginst__.txt')
-
         self.bin_dir = join(self.prefix, bin_dir_name)
         self.site_packages = join(self.prefix, rel_site_packages)
+
+        self.pkg_dir = join(PKGS_DIR, basename(fpath)[:-4])
+        self.meta_dir = join(self.pkg_dir, 'EGG-INFO')
+        self.meta_txt = join(self.meta_dir, '__egginst__.txt')
+
         if self.hook:
-            self.pyloc = join(sys.prefix, 'pkgs', basename(fpath)[:-4])
+            self.pyloc = self.pkg_dir
         else:
             self.pyloc = self.site_packages
 
@@ -265,7 +269,7 @@ class EggInst(object):
         dir_paths = set()
         len_prefix = len(self.prefix)
         for path in set(dirname(p) for p in self.files):
-            if path.startswith(self.egginfo_dir):
+            if path.startswith(self.pkg_dir):
                 continue
             while len(path) > len_prefix:
                 if path == self.site_packages:
@@ -300,7 +304,7 @@ class EggInst(object):
                 rm_rf(p + 'c')
         self.rm_dirs()
         rm_rf(self.meta_dir)
-        rm_empty_dir(self.egginfo_dir)
+        rm_empty_dir(self.pkg_dir)
         sys.stdout.write('.' * (65 - cur) + ']\n')
         sys.stdout.flush()
 
@@ -311,12 +315,11 @@ def get_installed(prefix):
     Each element is the filename of the egg which was used to install the
     package.
     """
-    egg_info_dir = join(prefix, 'EGG-INFO')
-    if not isdir(egg_info_dir):
+    if not isdir(PKGS_DIR):
         return
 
-    for fn in sorted(os.listdir(egg_info_dir)):
-        meta_txt = join(egg_info_dir, fn, '__egginst__.txt')
+    for fn in sorted(os.listdir(PKGS_DIR)):
+        meta_txt = join(PKGS_DIR, fn, 'EGG-INFO', '__egginst__.txt')
         if not isfile(meta_txt):
             continue
         d = {}

@@ -38,9 +38,13 @@ def create_hooks_dir(dir_path):
     res = {}
     modules = defaultdict(set)
     for fn in os.listdir(dir_path):
+        if fn == 'EGG-INFO':
+            continue
+
         path = join(dir_path, fn)
         if isdir(path):
             res[fn] = path
+
         elif isfile(path):
             name, ext = os.path.splitext(basename(path))
             if ext in MODULE_EXTENSIONS_SET:
@@ -56,9 +60,4 @@ def create_hooks_dir(dir_path):
 
 
 def create_hooks(egg):
-    # FIXME: this should be removed once the EGG-INFO dirs are also
-    #        moved to self.pyloc
-    if not isdir(egg.pyloc):
-        return {}
-
     return create_hooks_dir(egg.pyloc)
