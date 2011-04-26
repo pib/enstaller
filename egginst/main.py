@@ -101,7 +101,7 @@ class EggInst(object):
         if self.hook:
             import registry
 
-            registry.update_file(registry.create_hooks(self))
+            registry.create_file(self)
 
 
     def entry_points(self):
