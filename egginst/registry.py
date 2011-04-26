@@ -12,9 +12,10 @@ MODULE_EXTENSIONS_SET = set(MODULE_EXTENSIONS)
 
 
 def read_file():
-    res = {}
     if not isfile(PATH):
-        return res
+        return {}
+
+    res = {}
     for line in open(PATH):
         line = line.strip()
         if not line or line.startswith('#'):
@@ -33,18 +34,13 @@ def update_file(new_items):
     fo.close()
 
 
-def create_hooks(egg):
-    # FIXME: this should be removed once the EGG-INFO dirs are also
-    #        moved to self.pyloc
-    if not isdir(egg.pyloc):
-        return {}
-
-    result = {}
+def create_hooks_dir(dir_path):
+    res = {}
     modules = defaultdict(set)
-    for fn in os.listdir(egg.pyloc):
-        path = join(egg.pyloc, fn)
+    for fn in os.listdir(dir_path):
+        path = join(dir_path, fn)
         if isdir(path):
-            result[fn] = path
+            res[fn] = path
         elif isfile(path):
             name, ext = os.path.splitext(basename(path))
             if ext in MODULE_EXTENSIONS_SET:
@@ -53,7 +49,16 @@ def create_hooks(egg):
     for name, exts in modules.iteritems():
         for mext in MODULE_EXTENSIONS:
             if mext in exts:
-                result[name] = join(egg.pyloc, name + mext)
+                res[name] = join(dir_path, name + mext)
                 break
 
-    return result
+    return res
+
+
+def create_hooks(egg):
+    # FIXME: this should be removed once the EGG-INFO dirs are also
+    #        moved to self.pyloc
+    if not isdir(egg.pyloc):
+        return {}
+
+    return create_hooks_dir(egg.pyloc)
