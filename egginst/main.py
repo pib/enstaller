@@ -17,13 +17,9 @@ from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
                            pprint_fn_action, rm_empty_dir, rm_rf, human_bytes)
-from egginst import scripts
+from egginst import scripts, registry
 
 
-REGISTRY = join(sys.prefix, 'registry.txt')
-
-MODULE_EXTENSIONS = ('.pyd', '.so', '.py', '.pyw', '.pyc', 'pyo')
-MODULE_EXTENSIONS_SET = set(MODULE_EXTENSIONS)
 
 NS_PKG_PAT = re.compile(
     r'\s*__import__\([\'"]pkg_resources[\'"]\)\.declare_namespace'
@@ -40,29 +36,6 @@ def name_version_fn(fn):
         return tuple(fn.split('-', 1))
     else:
         return fn, ''
-
-
-def read_registry_file():
-    res = {}
-    if not isfile(REGISTRY):
-        return res
-    for line in open(REGISTRY):
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
-        k, v = line.split(None, 1)
-        res[k] = v
-    return res
-
-
-def update_registry_file(new_items):
-    items = read_registry_file()
-    items.update(new_items)
-    fo = open(REGISTRY, 'w')
-    for k, v in items.iteritems():
-        fo.write('%s  %s\n' % (k, v))
-    fo.close()
-
 
 
 class EggInst(object):
@@ -123,7 +96,7 @@ class EggInst(object):
         self.write_meta()
 
         if self.hook:
-            update_registry_file(self.create_hooks())
+            registry.update_file(self.create_hooks())
 
 
     def create_hooks(self):
@@ -132,24 +105,24 @@ class EggInst(object):
         if not isdir(self.pyloc):
             return {}
 
-        registry = {}
+        result = {}
         modules = defaultdict(set)
         for fn in os.listdir(self.pyloc):
             path = join(self.pyloc, fn)
             if isdir(path):
-                registry[fn] = path
+                result[fn] = path
             elif isfile(path):
                 name, ext = os.path.splitext(basename(path))
-                if ext in MODULE_EXTENSIONS_SET:
+                if ext in registry.MODULE_EXTENSIONS_SET:
                     modules[name].add(ext)
 
         for name, exts in modules.iteritems():
-            for mext in MODULE_EXTENSIONS:
+            for mext in registry.MODULE_EXTENSIONS:
                 if mext in exts:
-                    registry[name] = join(self.pyloc, name + mext)
+                    result[name] = join(self.pyloc, name + mext)
                     break
 
-        return registry
+        return result
 
 
     def entry_points(self):
