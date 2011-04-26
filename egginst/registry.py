@@ -29,17 +29,32 @@ def read_file():
     return res
 
 
-def create_hooks_dir(dir_path):
+def is_namespace(dir_path):
+    modules = set()
+    for fn in os.listdir(dir_path):
+        path = join(dir_path, fn)
+        if isfile(path):
+            name, ext = os.path.splitext(basename(path))
+            if ext in MODULE_EXTENSIONS_SET:
+                modules.add(name)
+
+    return modules == set(['__init__'])
+
+
+def create_hooks_dir(dir_path, namespace=''):
     reg = {}
     modules = defaultdict(set)
     pth = []
     for fn in os.listdir(dir_path):
-        if fn == 'EGG-INFO':
+        if '-' in fn:
             continue
 
         path = join(dir_path, fn)
         if isdir(path):
-            reg[fn] = path
+            reg[namespace + fn] = path
+            if is_namespace(path):
+                add_reg, dummy = create_hooks_dir(path, fn + '.')
+                reg.update(add_reg)
 
         elif isfile(path):
             name, ext = os.path.splitext(basename(path))
@@ -51,9 +66,11 @@ def create_hooks_dir(dir_path):
                     pth.append(abspath(join(dir_path, line)))
 
     for name, exts in modules.iteritems():
+        if name == '__init__':
+            continue
         for mext in MODULE_EXTENSIONS:
             if mext in exts:
-                reg[name] = join(dir_path, name + mext)
+                reg[namespace + name] = join(dir_path, name + mext)
                 break
 
     return reg, pth
