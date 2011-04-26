@@ -12,12 +12,11 @@ import sys
 import re
 import zipfile
 import ConfigParser
-from collections import defaultdict
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
-from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
-                           pprint_fn_action, rm_empty_dir, rm_rf, human_bytes)
-from egginst import scripts, registry
+from utils import (on_win, bin_dir_name, rel_site_packages,
+                   pprint_fn_action, rm_empty_dir, rm_rf, human_bytes)
+import scripts
 
 
 
@@ -96,33 +95,9 @@ class EggInst(object):
         self.write_meta()
 
         if self.hook:
-            registry.update_file(self.create_hooks())
+            import registry
 
-
-    def create_hooks(self):
-        # FIXME: this should be removed once the EGG-INFO dirs are also
-        #        moved to self.pyloc
-        if not isdir(self.pyloc):
-            return {}
-
-        result = {}
-        modules = defaultdict(set)
-        for fn in os.listdir(self.pyloc):
-            path = join(self.pyloc, fn)
-            if isdir(path):
-                result[fn] = path
-            elif isfile(path):
-                name, ext = os.path.splitext(basename(path))
-                if ext in registry.MODULE_EXTENSIONS_SET:
-                    modules[name].add(ext)
-
-        for name, exts in modules.iteritems():
-            for mext in registry.MODULE_EXTENSIONS:
-                if mext in exts:
-                    result[name] = join(self.pyloc, name + mext)
-                    break
-
-        return result
+            registry.update_file(registry.create_hooks(self))
 
 
     def entry_points(self):

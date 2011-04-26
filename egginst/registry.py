@@ -1,5 +1,7 @@
+import os
 import sys
-from os.path import join, isfile
+from collections import defaultdict
+from os.path import basename, join, isdir, isfile
 
 
 
@@ -29,3 +31,29 @@ def update_file(new_items):
     for k, v in items.iteritems():
         fo.write('%s  %s\n' % (k, v))
     fo.close()
+
+
+def create_hooks(egg):
+    # FIXME: this should be removed once the EGG-INFO dirs are also
+    #        moved to self.pyloc
+    if not isdir(egg.pyloc):
+        return {}
+
+    result = {}
+    modules = defaultdict(set)
+    for fn in os.listdir(egg.pyloc):
+        path = join(egg.pyloc, fn)
+        if isdir(path):
+            result[fn] = path
+        elif isfile(path):
+            name, ext = os.path.splitext(basename(path))
+            if ext in MODULE_EXTENSIONS_SET:
+                modules[name].add(ext)
+
+    for name, exts in modules.iteritems():
+        for mext in MODULE_EXTENSIONS:
+            if mext in exts:
+                result[name] = join(egg.pyloc, name + mext)
+                break
+
+    return result
