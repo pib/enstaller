@@ -127,8 +127,11 @@ class EggInst(object):
 
 
     def create_hooks(self):
+        # FIXME: this should be removed once the EGG-INFO dirs are also
+        #        moved to self.pyloc
         if not isdir(self.pyloc):
             return {}
+
         registry = {}
         modules = defaultdict(set)
         for fn in os.listdir(self.pyloc):
