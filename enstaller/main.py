@@ -71,15 +71,12 @@ def egginst_subprocess(pkg_path, remove):
     subprocess.call(args)
 
 
-def get_installed_info(prefix, cname):
+def get_installed_info(prefix, fn):
     """
     Returns a dictionary with information about the package specified by the
     canonical name found in prefix, or None if the package is not found.
     """
-    egg_info_dir = join(prefix, 'EGG-INFO')
-    if not isdir(egg_info_dir):
-        return None
-    meta_txt = join(egg_info_dir, cname, '__egginst__.txt')
+    meta_txt = join(egginst.PKGS_DIR, fn[:-4], 'EGG-INFO', '__egginst__.txt')
     if not isfile(meta_txt):
         return
     d = {}
@@ -116,7 +113,7 @@ def egginst_install(conf, dist):
 
     ei = egginst.EggInst(pkg_path, prefix, noapp=noapp)
     ei.install()
-    info = get_installed_info(prefix, cname_fn(fn))
+    info = get_installed_info(prefix, fn)
     path = join(info['meta_dir'], '__enpkg__.txt')
     fo = open(path, 'w')
     fo.write("repo = %r\n" % repo)

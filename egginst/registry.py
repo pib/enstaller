@@ -86,3 +86,8 @@ def create_file(egg):
     for p in pth:
         fo.write('-pth-  %s\n' % p)
     fo.close()
+
+
+    fa = open(PATH, 'a')
+    fa.write(open(egg.registry_txt).read())
+    fa.close()

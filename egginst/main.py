@@ -58,6 +58,7 @@ class EggInst(object):
 
         if self.hook:
             self.pyloc = self.pkg_dir
+            self.registry_txt = join(self.meta_dir, 'registry.txt')
         else:
             self.pyloc = self.site_packages
 
@@ -101,7 +102,6 @@ class EggInst(object):
         if self.hook:
             import registry
 
-            self.registry_txt = join(self.meta_dir, 'registry.txt')
             registry.create_file(self)
 
 
