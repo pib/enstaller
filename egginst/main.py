@@ -12,6 +12,7 @@ import sys
 import re
 import zipfile
 import ConfigParser
+from collections import defaultdict
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
@@ -21,6 +22,8 @@ from egginst import scripts
 
 REGISTRY = join(sys.prefix, 'registry.txt')
 
+MODULE_EXTENSIONS = ('.pyd', '.so', '.py', '.pyw', '.pyc', 'pyo')
+MODULE_EXTENSIONS_SET = set(MODULE_EXTENSIONS)
 
 NS_PKG_PAT = re.compile(
     r'\s*__import__\([\'"]pkg_resources[\'"]\)\.declare_namespace'
@@ -64,7 +67,7 @@ def update_registry_file(new_items):
 
 class EggInst(object):
 
-    def __init__(self, fpath, prefix, hook=False, verbose=False, noapp=False):
+    def __init__(self, fpath, prefix, hook=True, verbose=False, noapp=False):
         self.fpath = fpath
         self.cname = name_version_fn(basename(fpath))[0].lower()
         self.prefix = abspath(prefix)
@@ -82,7 +85,6 @@ class EggInst(object):
         else:
             self.pyloc = self.site_packages
 
-        self.rt_arcs = []
         self.files = []
         self.verbose = verbose
 
@@ -126,16 +128,22 @@ class EggInst(object):
 
     def create_hooks(self):
         registry = {}
-        for arcname in self.rt_arcs:
-            base = basename(arcname)
-            name, ext = os.path.splitext(base)
-            if not ext:
-                continue
-            if '/' in arcname:
-                pkg = arcname.split('/')[0]
-                registry[pkg] = join(self.pyloc, pkg)
-            else:
-                registry[name] = join(self.pyloc, arcname)
+        modules = defaultdict(set)
+        for fn in os.listdir(self.pyloc):
+            path = join(self.pyloc, fn)
+            if isdir(path):
+                registry[fn] = path
+            elif isfile(path):
+                name, ext = os.path.splitext(basename(path))
+                if ext in MODULE_EXTENSIONS_SET:
+                    modules[name].add(ext)
+
+        for name, exts in modules.iteritems():
+            for mext in MODULE_EXTENSIONS:
+                if mext in exts:
+                    registry[name] = join(self.pyloc, name + mext)
+                    break
+
         return registry
 
 
@@ -230,8 +238,6 @@ class EggInst(object):
             ('EGG-INFO/',         True,       self.meta_dir),
             ('',                  True,       self.pyloc),
             ]:
-            if self.hook and start == '':
-                self.rt_arcs.append(arcname)
             if arcname.startswith(start) and cond:
                 return abspath(join(dst_dir, arcname[len(start):]))
         raise Exception("Didn't expect to get here")
@@ -393,9 +399,9 @@ def main():
                  help="install prefix, defaults to %default",
                  metavar='PATH')
 
-    p.add_option("--hook",
+    p.add_option("--no-hook",
                  action="store_true",
-                 help="install into <sys.prefix>/pkgs (experimental)")
+                 help="don't install into <sys.prefix>/pkgs")
 
     p.add_option('-r', "--remove",
                  action="store_true",
@@ -421,7 +427,7 @@ def main():
         return
 
     for path in args:
-        ei = EggInst(path, prefix, opts.hook, opts.verbose, opts.noapp)
+        ei = EggInst(path, prefix, not opts.no_hook, opts.verbose, opts.noapp)
         fn = basename(path)
         if opts.remove:
             pprint_fn_action(fn, 'removing')
