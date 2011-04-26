@@ -57,10 +57,10 @@ def read_registry_file():
 
 def update_registry_file(new_items):
     items = read_registry_file()
-    fo = open(REGISTRY, 'a')
-    for k, v in new_items.iteritems():
-        if k not in items:
-            fo.write('%s  %s\n' % (k, v))
+    items.update(new_items)
+    fo = open(REGISTRY, 'w')
+    for k, v in items.iteritems():
+        fo.write('%s  %s\n' % (k, v))
     fo.close()
 
 
@@ -127,6 +127,8 @@ class EggInst(object):
 
 
     def create_hooks(self):
+        if not isdir(self.pyloc):
+            return {}
         registry = {}
         modules = defaultdict(set)
         for fn in os.listdir(self.pyloc):
