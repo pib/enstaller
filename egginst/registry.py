@@ -53,7 +53,7 @@ def create_hooks_dir(dir_path, namespace=''):
         if isdir(path):
             reg[namespace + fn] = path
             if is_namespace(path):
-                add_reg, dummy = create_hooks_dir(path, fn + '.')
+                add_reg, dummy = create_hooks_dir(path, namespace + fn + '.')
                 reg.update(add_reg)
 
         elif isfile(path):
