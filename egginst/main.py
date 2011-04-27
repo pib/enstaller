@@ -43,7 +43,7 @@ def name_version_fn(fn):
 
 def join_registry_files():
     fo = open(join(sys.prefix, 'registry.txt'), 'w')
-    for path in glob(PKGS_DIR, '*', 'EGG-INFO', 'registry.txt'):
+    for path in glob(join(PKGS_DIR, '*', 'EGG-INFO', 'registry.txt')):
         fo.write(open(path).read())
     fo.close()
 
