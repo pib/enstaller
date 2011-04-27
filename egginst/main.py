@@ -12,6 +12,7 @@ import sys
 import re
 import zipfile
 import ConfigParser
+from glob import glob
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from utils import (on_win, bin_dir_name, rel_site_packages,
@@ -38,6 +39,13 @@ def name_version_fn(fn):
         return tuple(fn.split('-', 1))
     else:
         return fn, ''
+
+
+def join_registry_files():
+    fo = open(join(sys.prefix, 'registry.txt'), 'w')
+    for path in glob(PKGS_DIR, '*', 'EGG-INFO', 'registry.txt'):
+        fo.write(open(path).read())
+    fo.close()
 
 
 class EggInst(object):
@@ -103,6 +111,7 @@ class EggInst(object):
             import registry
 
             registry.create_file(self)
+            join_registry_files()
 
 
     def entry_points(self):

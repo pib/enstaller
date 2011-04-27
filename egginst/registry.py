@@ -1,11 +1,8 @@
 import os
-import sys
 from collections import defaultdict
-from os.path import abspath, basename, join, isdir, isfile
+from os.path import basename, join, isdir, isfile, normpath
 
 
-
-PATH = join(sys.prefix, 'registry.txt')
 
 MODULE_EXTENSIONS = ('.pyd', '.so', '.py', '.pyw', '.pyc', 'pyo')
 MODULE_EXTENSIONS_SET = set(MODULE_EXTENSIONS)
@@ -17,16 +14,6 @@ def stripped_lines(path):
         if not line or line.startswith('#'):
             continue
         yield line
-
-
-def read_file():
-    if not isfile(PATH):
-        return {}
-    res = {}
-    for line in stripped_lines(PATH):
-        k, v = line.split(None, 1)
-        res[k] = v
-    return res
 
 
 def is_namespace(dir_path):
@@ -63,7 +50,7 @@ def create_hooks_dir(dir_path, namespace=''):
 
             if ext == '.pth':
                 for line in stripped_lines(path):
-                    pth.append(abspath(join(dir_path, line)))
+                    pth.append(normpath(join(dir_path, line)))
 
     for name, exts in modules.iteritems():
         if name == '__init__':
@@ -86,8 +73,3 @@ def create_file(egg):
     for p in pth:
         fo.write('-pth-  %s\n' % p)
     fo.close()
-
-
-    fa = open(PATH, 'a')
-    fa.write(open(egg.registry_txt).read())
-    fa.close()
