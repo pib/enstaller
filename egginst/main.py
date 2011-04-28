@@ -38,13 +38,6 @@ def name_version_fn(fn):
         return fn, ''
 
 
-def join_registry_files():
-    fo = open(join(sys.prefix, 'registry.txt'), 'w')
-    for path in glob(join(PKGS_DIR, '*', 'EGG-INFO', 'registry.txt')):
-        fo.write(open(path).read())
-    fo.close()
-
-
 class EggInst(object):
 
     def __init__(self, fpath, prefix, hook=False, verbose=False, noapp=False):
@@ -198,7 +191,8 @@ class EggInst(object):
 
 
     def get_dst(self, arcname):
-        if arcname == 'EGG-INFO/PKG-INFO' and self.fpath.endswith('.egg'):
+        if (not self.hook and arcname == 'EGG-INFO/PKG-INFO' and
+                      self.fpath.endswith('.egg')):
             return join(self.site_packages, basename(self.fpath) + '-info')
 
         for start, cond, dst_dir in [
@@ -283,8 +277,6 @@ class EggInst(object):
         len_prefix = len(self.prefix)
         for path in set(dirname(p) for p in self.files):
             while len(path) > len_prefix:
-                if path == self.site_packages:
-                    break
                 dir_paths.add(path)
                 path = dirname(path)
 
@@ -372,7 +364,7 @@ def main():
 
     p.add_option("--hook",
                  action="store_true",
-                 help="don't install into site-packages")
+                 help="don't install into site-packages (experimental)")
 
     p.add_option('-r', "--remove",
                  action="store_true",
