@@ -21,9 +21,6 @@ import scripts
 
 
 
-PKGS_DIR = join(sys.prefix, 'pkgs')
-
-
 NS_PKG_PAT = re.compile(
     r'\s*__import__\([\'"]pkg_resources[\'"]\)\.declare_namespace'
     r'\(__name__\)\s*$')
@@ -50,7 +47,7 @@ def join_registry_files():
 
 class EggInst(object):
 
-    def __init__(self, fpath, prefix, hook=True, verbose=False, noapp=False):
+    def __init__(self, fpath, prefix, hook=False, verbose=False, noapp=False):
         self.fpath = fpath
         self.cname = name_version_fn(basename(fpath))[0].lower()
         self.prefix = abspath(prefix)
@@ -58,18 +55,20 @@ class EggInst(object):
         self.noapp = noapp
 
         self.bin_dir = join(self.prefix, bin_dir_name)
-        self.site_packages = join(self.prefix, rel_site_packages)
-
-        self.pkg_dir = join(PKGS_DIR, basename(fpath)[:-4])
-        self.meta_dir = join(self.pkg_dir, 'EGG-INFO')
-        self.meta_txt = join(self.meta_dir, '__egginst__.txt')
 
         if self.hook:
+            self.pkgs_dir = join(self.prefix, 'pkgs')
+            self.pkg_dir = join(self.pkgs_dir, basename(fpath)[:-4])
             self.pyloc = self.pkg_dir
+            self.meta_dir = join(self.pkg_dir, 'EGG-INFO')
             self.registry_txt = join(self.meta_dir, 'registry.txt')
         else:
+            self.site_packages = join(self.prefix, rel_site_packages)
             self.pyloc = self.site_packages
+            self.egginfo_dir = join(self.prefix, 'EGG-INFO')
+            self.meta_dir = join(self.egginfo_dir, self.cname)
 
+        self.meta_txt = join(self.meta_dir, '__egginst__.txt')
         self.files = []
         self.verbose = verbose
 
@@ -111,7 +110,11 @@ class EggInst(object):
             import registry
 
             registry.create_file(self)
-            join_registry_files()
+            fo = open(join(sys.prefix, 'registry.txt'), 'w')
+            for path in glob(join(self.pkgs_dir, '*', 'EGG-INFO',
+                                  'registry.txt')):
+                fo.write(open(path).read())
+            fo.close()
 
 
     def entry_points(self):
@@ -279,8 +282,6 @@ class EggInst(object):
         dir_paths = set()
         len_prefix = len(self.prefix)
         for path in set(dirname(p) for p in self.files):
-            if path.startswith(self.pkg_dir):
-                continue
             while len(path) > len_prefix:
                 if path == self.site_packages:
                     break
@@ -314,7 +315,10 @@ class EggInst(object):
                 rm_rf(p + 'c')
         self.rm_dirs()
         rm_rf(self.meta_dir)
-        rm_empty_dir(self.pkg_dir)
+        if self.hook:
+            rm_empty_dir(self.pkg_dir)
+        else:
+            rm_empty_dir(self.egginfo_dir)
         sys.stdout.write('.' * (65 - cur) + ']\n')
         sys.stdout.flush()
 
@@ -325,11 +329,12 @@ def get_installed(prefix):
     Each element is the filename of the egg which was used to install the
     package.
     """
-    if not isdir(PKGS_DIR):
+    egg_info_dir = join(prefix, 'EGG-INFO')
+    if not isdir(egg_info_dir):
         return
 
-    for fn in sorted(os.listdir(PKGS_DIR)):
-        meta_txt = join(PKGS_DIR, fn, 'EGG-INFO', '__egginst__.txt')
+    for fn in sorted(os.listdir(egg_info_dir)):
+        meta_txt = join(egg_info_dir, fn, '__egginst__.txt')
         if not isfile(meta_txt):
             continue
         d = {}
@@ -365,9 +370,9 @@ def main():
                  help="install prefix, defaults to %default",
                  metavar='PATH')
 
-    p.add_option("--no-hook",
+    p.add_option("--hook",
                  action="store_true",
-                 help="don't install into <sys.prefix>/pkgs")
+                 help="don't install into site-packages")
 
     p.add_option('-r', "--remove",
                  action="store_true",
@@ -393,7 +398,7 @@ def main():
         return
 
     for path in args:
-        ei = EggInst(path, prefix, not opts.no_hook, opts.verbose, opts.noapp)
+        ei = EggInst(path, prefix, opts.hook, opts.verbose, opts.noapp)
         fn = basename(path)
         if opts.remove:
             pprint_fn_action(fn, 'removing')
