@@ -1,4 +1,4 @@
-<html dir="ltr"> 
+<html> 
 <head>
   <title>Status</title>
   <link rel="stylesheet" href="static/enthought.css" type="text/css" />
@@ -16,23 +16,19 @@ function createRequestObject() {
 
 var http = createRequestObject();
 
-function handleResponse() {
-    if(http.readyState == 4) {
-        var response = http.responseText;
-	if(response) {
-            document.getElementById('ajaxout').innerHTML = response;
-        }
-    }
-}
-
 function action(caller) {
     http.open("POST", "action/" + caller.id, true);
-    http.onreadystatechange = handleResponse;
+    http.onreadystatechange = function() {
+        if(http.readyState == 4 && http.status == 200) {
+            var response = http.responseText;
+            document.getElementById(caller.id).innerHTML = response;
+        }
+    }
     http.send(null);
 }
   </script>
 </head>
-<body class=" claro ">
+<body>
   <h1>
     <img src="static/enthought.png" height="64" width="64" />
     EPD Installed Packages

@@ -38,24 +38,24 @@ Example
 This is an example::
 
     from bottle import route, run, request, response, static_file, abort
-    
+
     @route('/')
     def hello_world():
         return 'Hello World!'
-    
+
     @route('/hello/:name')
     def hello_name(name):
         return 'Hello %s!' % name
-    
+
     @route('/hello', method='POST')
     def hello_post():
         name = request.POST['name']
         return 'Hello %s!' % name
-    
+
     @route('/static/:filename#.*#')
     def static(filename):
         return static_file(filename, root='/path/to/static/files/')
-    
+
     run(host='localhost', port=8080)
 """
 
@@ -444,7 +444,7 @@ class Bottle(object):
             for details.
 
             The method parameter (default: GET) specifies the HTTP request
-            method to listen to. You can specify a list of methods too. 
+            method to listen to. You can specify a list of methods too.
         """
         def wrapper(callback):
             routes = [path] if path else yieldroutes(callback)
@@ -607,7 +607,7 @@ class Request(threading.local, DictMixin):
     """
     def __init__(self, environ=None, config=None):
         """ Create a new Request instance.
-        
+
             You usually don't do this but use the global `bottle.request`
             instance instead.
         """
@@ -615,7 +615,7 @@ class Request(threading.local, DictMixin):
 
     def bind(self, environ, config=None):
         """ Bind a new WSGI enviroment.
-            
+
             This is done automatically for the global `bottle.request`
             instance on every request.
         """
@@ -633,7 +633,7 @@ class Request(threading.local, DictMixin):
     def copy(self):
         ''' Returns a copy of self '''
         return Request(self.environ.copy(), self.config)
-        
+
     def path_shift(self, shift=1):
         ''' Shift path fragments from PATH_INFO to SCRIPT_NAME and vice versa.
 
@@ -677,7 +677,7 @@ class Request(threading.local, DictMixin):
         """ Full URL as requested by the client (computed).
 
             This value is constructed out of different environment variables
-            and includes scheme, host, port, scriptname, path and query string. 
+            and includes scheme, host, port, scriptname, path and query string.
         """
         scheme = self.environ.get('wsgi.url_scheme', 'http')
         host   = self.environ.get('HTTP_X_FORWARDED_HOST', self.environ.get('HTTP_HOST', None))
@@ -698,7 +698,7 @@ class Request(threading.local, DictMixin):
     def header(self):
         ''' :class:`HeaderDict` filled with request headers.
 
-            HeaderDict keys are case insensitive str.title()d 
+            HeaderDict keys are case insensitive str.title()d
         '''
         if 'bottle.headers' not in self.environ:
             header = self.environ['bottle.headers'] = HeaderDict()
@@ -767,7 +767,7 @@ class Request(threading.local, DictMixin):
         """ Property: HTTP POST file uploads parsed into a MultiDict. """
         if 'bottle.files' not in self.environ: self.POST
         return self.environ['bottle.files']
-        
+
     @property
     def params(self):
         """ A combined MultiDict with POST and GET parameters. """
@@ -779,7 +779,7 @@ class Request(threading.local, DictMixin):
     @property
     def body(self):
         """ The HTTP request body as a seekable buffer object.
-        
+
             This property returns a copy of the `wsgi.input` stream and should
             be used instead of `environ['wsgi.input']`.
          """
@@ -801,7 +801,7 @@ class Request(threading.local, DictMixin):
     @property
     def auth(self): #TODO: Tests and docs. Add support for digest. namedtuple?
         """ HTTP authorisation data as a (user, passwd) tuple. (experimental)
-        
+
             This implementation currently only supports basic auth and returns
             None on errors.
         """
@@ -810,7 +810,7 @@ class Request(threading.local, DictMixin):
     @property
     def COOKIES(self):
         """ Cookie information parsed into a dictionary.
-        
+
             Secure cookies are NOT decoded automatically. See
             Request.get_cookie() for details.
         """
@@ -883,7 +883,7 @@ class Response(threading.local):
     @property
     def charset(self):
         """ Return the charset specified in the content-type header.
-        
+
             This defaults to `UTF-8`.
         """
         if 'charset=' in self.content_type:
@@ -899,9 +899,9 @@ class Response(threading.local):
 
     def set_cookie(self, key, value, secret=None, **kargs):
         """ Add a new cookie with various options.
-        
+
         If the cookie value is not a string, a secure cookie is created.
-        
+
         Possible options are:
             expires, path, comment, domain, max_age, secure, version, httponly
             See http://de.wikipedia.org/wiki/HTTP-Cookie#Aufbau for details
@@ -1143,7 +1143,7 @@ def tonativefunc(enc='utf-8'):
 
 
 def yieldroutes(func):
-    """ Return a generator for routes that match the signature (name, args) 
+    """ Return a generator for routes that match the signature (name, args)
     of the func parameter. This may yield more than one route if the function
     takes optional keyword arguments. The output is best described by example:
       a()         -> '/a'
@@ -1245,7 +1245,7 @@ class ServerAdapter(object):
 
     def run(self, handler): # pragma: no cover
         pass
-        
+
     def __repr__(self):
         args = ', '.join(['%s=%s'%(k,repr(v)) for k, v in self.options.items()])
         return "%s(%s)" % (self.__class__.__name__, args)
@@ -1355,7 +1355,7 @@ class GunicornServer(ServerAdapter):
     def run(self, handler):
         import gunicorn.arbiter
         gunicorn.arbiter.Arbiter((self.host, self.port), 4, handler).run()
-    
+
 
 class EventletServer(ServerAdapter):
     """ Untested """
@@ -1371,8 +1371,8 @@ class RocketServer(ServerAdapter):
         from rocket import Rocket
         server = Rocket((self.host, self.port), 'wsgi', { 'wsgi_app' : handler })
         server.start()
-            
-        
+
+
 class AutoServer(ServerAdapter):
     """ Untested. """
     adapters = [CherryPyServer, PasteServer, TwistedServer, WSGIRefServer]
@@ -1522,7 +1522,7 @@ class BaseTemplate(object):
         self.lookup = map(os.path.abspath, lookup)
         self.encoding = encoding
         self.settings = self.settings.copy() # Copy from class variable
-        self.settings.update(settings) # Apply 
+        self.settings.update(settings) # Apply
         if not self.source and self.name:
             self.filename = self.search(self.name, self.lookup)
             if not self.filename:

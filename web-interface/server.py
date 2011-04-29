@@ -1,4 +1,5 @@
 import sys
+import time
 from os.path import isfile, join
 
 from bottle import get, post, put, run, view, debug, route, static_file
@@ -40,6 +41,7 @@ def main():
 @get('/update')
 @view('update')
 def update():
+    print "Called update"
     lst = []
     for i, (package, version, repo) in enumerate(get_installed(sys.prefix)):
         lst.append(('#fff' if i % 2 else '#ccc',
@@ -50,9 +52,12 @@ def update():
 
 @post('/action/:pkg')
 def action(pkg):
-    assert pkg.startswith('pkg_')
+    if not pkg.startswith('pkg_'):
+        return "Error: %s" % pkg
     pkg = pkg[4:]
     print "ACTION:", pkg
+    time.sleep(3)
+    return "OK"
 
 
 @route('/static/:path#.+#')
