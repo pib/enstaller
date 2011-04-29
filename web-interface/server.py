@@ -1,8 +1,9 @@
 import sys
 import time
+import subprocess
 from os.path import isfile, join
 
-from bottle import get, post, put, run, view, debug, route, static_file
+from bottle import get, post, request, put, run, view, debug, route, static_file
 
 from enstaller.main import get_installed_info, cname_fn, shorten_repo
 import egginst
@@ -31,15 +32,14 @@ def get_installed(prefix, pat=None):
     return results
 
 
-
 @get('/status')
 @view('status2')
 def main():
     return {'items': get_installed(sys.prefix)}
 
 
-@get('/update')
-@view('update')
+@get('/')
+@view('update2')
 def update():
     print "Called update"
     lst = []
@@ -58,6 +58,16 @@ def action(pkg):
     print "ACTION:", pkg
     time.sleep(3)
     return "OK"
+
+
+@post('/action')
+def action2():
+    for name in 'AppInst bitarray grin MKL numpy scipy traits'.split():
+        print '%s: %s' % (name, request.forms.get(name))
+
+#    subprocess.call(['enpkg
+
+    return update()
 
 
 @route('/static/:path#.+#')
