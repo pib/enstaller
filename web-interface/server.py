@@ -1,11 +1,11 @@
 import sys
-import os.path
-import csv
+from os.path import isfile, join
 
 from bottle import get, put, run, view, debug, route, static_file
 
 from enstaller.main import get_installed_info, cname_fn, shorten_repo
 import egginst
+
 
 debug(True)
 
@@ -19,8 +19,8 @@ def get_installed(prefix, pat=None):
         if info is None:
             lst.append('-')
         else:
-            path = os.path.join(info['meta_dir'], '__enpkg__.txt')
-            if os.path.isfile(path):
+            path = join(info['meta_dir'], '__enpkg__.txt')
+            if isfile(path):
                 d = {}
                 execfile(path, d)
                 lst.append(shorten_repo(d['repo']))
@@ -37,10 +37,22 @@ def main():
     return {'items': get_installed(sys.prefix)}
 
 
+@get('/update')
+@view('update')
+def update():
+    lst = []
+    for i, (package, version, repo) in enumerate(get_installed(sys.prefix)):
+        action = ('<span id="pkg_%s" '
+                  'onclick="javascript:sxf(this)">install</span>') % package
+        lst.append(('#fff' if i % 2 else '#ccc',
+                    package, version, repo, action))
+    print lst
+    return {'items': lst}
+
+
 @route('/static/:path#.+#')
 def server_static(path):
     return static_file(path, root='.')
-
 
 
 @get('/installed')
