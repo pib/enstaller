@@ -10,6 +10,7 @@
   </h1>
   <form method="post"
         action="/action">
+    <p><input type="submit" value="update"></p>
     <table style="width: 100%;">
       <thead>
         <tr>
