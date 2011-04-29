@@ -1,7 +1,7 @@
 import sys
 from os.path import isfile, join
 
-from bottle import get, put, run, view, debug, route, static_file
+from bottle import get, post, put, run, view, debug, route, static_file
 
 from enstaller.main import get_installed_info, cname_fn, shorten_repo
 import egginst
@@ -42,12 +42,17 @@ def main():
 def update():
     lst = []
     for i, (package, version, repo) in enumerate(get_installed(sys.prefix)):
-        action = ('<span id="pkg_%s" '
-                  'onclick="javascript:sxf(this)">install</span>') % package
         lst.append(('#fff' if i % 2 else '#ccc',
-                    package, version, repo, action))
+                    package, version, repo, 'install'))
     print lst
     return {'items': lst}
+
+
+@post('/action/:pkg')
+def action(pkg):
+    assert pkg.startswith('pkg_')
+    pkg = pkg[4:]
+    print "ACTION:", pkg
 
 
 @route('/static/:path#.+#')

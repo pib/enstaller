@@ -25,8 +25,8 @@ function handleResponse() {
     }
 }
 
-function sxf(caller) {
-    http.open('get', 'action/' + caller.id);
+function action(caller) {
+    http.open("POST", "action/" + caller.id, true);
     http.onreadystatechange = handleResponse;
     http.send(null);
 }
@@ -47,12 +47,13 @@ function sxf(caller) {
       </tr>
     </thead>
     <tbody>
-%for cls, package, version, repo, action in items:
+%for cls, pkg, version, repo, action in items:
       <tr style="background-color: {{cls}};">
-        <td>{{package}}</td>
+        <td>{{pkg}}</td>
         <td>{{version}}</td>
         <td>{{repo}}</td>
-        <td>{{!action}}</td>
+        <td><span id="pkg_{{pkg}}"
+                  onclick="javascript:action(this)">{{action}}</span></td>
       </tr>
 %end
     </tbody>
