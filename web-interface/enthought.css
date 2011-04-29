@@ -1,0 +1,18 @@
+body {
+    font-family: 'Verdana', 'Helvetica', 'Arial', sans-serif;
+    font-size: 100%;
+    background-color: #ffffff;
+    color: #000;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    background-color: #25356c;
+    color: #ffffff;
+    padding: 5;
+}
+
+tr.grey {
+    background-color: #bbbbbb;
+}
