@@ -40,9 +40,8 @@ def get_installed(prefix, pat=None):
 def update():
     print "Called update"
     lst = []
-    for i, (package, version, repo) in enumerate(get_installed(sys.prefix)):
-        lst.append(('#fff' if i % 2 else '#ccc',
-                    package, version, repo, 'install'))
+    for i, (pkg, version, repo) in enumerate(get_installed(sys.prefix)):
+        lst.append(('i%d' % (i % 2), pkg, version, repo, i % 3 == 2))
     return {'items': lst}
 
 

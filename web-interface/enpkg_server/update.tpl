@@ -6,7 +6,7 @@
 <body>
   <h1>EPD Installed Packages</h1>
   <form method="post" action="/action">
-    <p><input type="submit" value="update"></p>
+    <p><input type="submit" value="update" /></p>
     <table style="width: 100%;">
       <thead>
         <tr>
@@ -17,17 +17,21 @@
         </tr>
       </thead>
       <tbody>
-%for color, pkg, version, repo, action in items:
-        <tr style="background-color: {{color}};">
+%for cls, pkg, version, repo, checkbox in items:
+        <tr class="{{cls}}">
           <td>{{pkg}}</td>
           <td>{{version}}</td>
           <td>{{repo}}</td>
+    %if checkbox:
           <td><input type="checkbox" name="{{pkg}}" /></td>
+    %else:
+          <td></td>
+    %end
         </tr>
 %end
       </tbody>
     </table>
-    <p><input type="submit" value="update"></p>
+    <p><input type="submit" value="update" /></p>
   </form>
 </body>
 </html>
