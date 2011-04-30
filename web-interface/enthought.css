@@ -8,11 +8,7 @@ body {
 }
 
 h1 {
-    background-color: #25356c;
+    background-color: #3c467e;
     color: #ffffff;
     padding: 5;
-}
-
-tr.grey {
-    background-color: #bbbbbb;
 }
