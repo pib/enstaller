@@ -1,6 +1,10 @@
+"""\
+web-interface for enpkg command
+"""
 import sys
 import time
 import subprocess
+import socket
 from os.path import dirname, isfile, join
 
 this_dir = dirname(__file__)
@@ -56,13 +60,48 @@ def server_static(path):
     return static_file(path, root=this_dir)
 
 
+def create_static_html():
+    import tempfile
+
+    tmp_dir = tempfile.mkdtemp()
+    index_html = join(tmp_dir, 'index.html')
+
+    fo = open(index_html, 'w')
+    fo.write("I'm a static file\n")
+    fo.close()
+
+    return index_html
+
+
 def main():
+    from optparse import OptionParser
+
+    p = OptionParser(usage="usage: %prog [options]", description=__doc__)
+
+    p.add_option('-b', "--browser",
+                 action="store_true",
+                 help="lauch a web-browser")
+
+    p.add_option('-p', "--port",
+                 action="store",
+                 default=8080,
+                 help="defaults to %default")
+
+    opts, args = p.parse_args()
+
+    port = int(opts.port)
+
+    url = 'http://localhost:%d/' % port
+    try:
+        run(host='localhost', port=port)
+    except socket.error:
+        print "Could not start web server, creating static html file"
+        url = 'file://%s' % create_static_html()
+
     if '-b' in sys.argv:
         import webbrowser
-        subprocess.call([sys.executable, webbrowser.__file__, '-t',
-                         'http://localhost:8080/'])
-
-    run(host='localhost', port=8080)
+        print 'opening in web-browser:', url
+        webbrowser.open_new_tab(url)
 
 
 if __name__ == '__main__':
