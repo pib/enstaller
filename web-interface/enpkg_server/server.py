@@ -46,24 +46,13 @@ def update():
     for i, (package, version, repo) in enumerate(get_installed(sys.prefix)):
         lst.append(('#fff' if i % 2 else '#ccc',
                     package, version, repo, 'install'))
-    print lst
+    #print lst
     return {'items': lst}
 
 
-@post('/action/:pkg')
-def action(pkg):
-    if not pkg.startswith('pkg_'):
-        return "Error: %s" % pkg
-    pkg = pkg[4:]
-    print "ACTION:", pkg
-    time.sleep(3)
-    return "OK"
-
-
 @post('/action')
-def action2():
-    for name in 'AppInst bitarray grin MKL numpy scipy traits'.split():
-        print '%s: %s' % (name, request.forms.get(name))
+def action():
+    print 'request.forms', request.forms.dict
 
 #    subprocess.call(['enpkg
 
