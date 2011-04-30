@@ -1,15 +1,11 @@
 <html> 
 <head>
-  <title>Status</title>
+  <title>Update</title>
   <link rel="stylesheet" href="static/enthought.css" type="text/css" />
 </head>
 <body>
-  <h1>
-    <img src="static/enthought.png" height="64" width="64" />
-    EPD Installed Packages
-  </h1>
-  <form method="post"
-        action="/action">
+  <h1>EPD Installed Packages</h1>
+  <form method="post" action="/action">
     <p><input type="submit" value="update"></p>
     <table style="width: 100%;">
       <thead>

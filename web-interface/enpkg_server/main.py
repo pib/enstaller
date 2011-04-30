@@ -6,7 +6,7 @@ from os.path import dirname, isfile, join
 this_dir = dirname(__file__)
 sys.path.insert(0, this_dir)
 
-from bottle import get, post, request, put, run, view, debug, route, static_file
+from bottle import get, post, request, run, view, debug, route, static_file
 
 from enstaller.main import get_installed_info, cname_fn, shorten_repo
 import egginst
@@ -58,6 +58,11 @@ def server_static(path):
 
 
 def main():
+    if '-b' in sys.argv:
+        import webbrowser
+        subprocess.call([sys.executable, webbrowser.__file__, '-t',
+                         'http://localhost:8080/'])
+
     run(host='localhost', port=8080)
 
 
