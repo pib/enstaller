@@ -1,7 +1,10 @@
 import sys
 import time
 import subprocess
-from os.path import isfile, join
+from os.path import dirname, isfile, join
+
+this_dir = dirname(__file__)
+sys.path.insert(0, this_dir)
 
 from bottle import get, post, request, put, run, view, debug, route, static_file
 
@@ -33,7 +36,7 @@ def get_installed(prefix, pat=None):
 
 
 @get('/')
-@view('update')
+@view(join(this_dir, 'update'))
 def update():
     print "Called update"
     lst = []
@@ -51,7 +54,7 @@ def action():
 
 @route('/static/:path#.+#')
 def server_static(path):
-    return static_file(path, root='.')
+    return static_file(path, root=this_dir)
 
 
 def main():
