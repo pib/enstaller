@@ -12,7 +12,6 @@ import sys
 import re
 import zipfile
 import ConfigParser
-from glob import glob
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from utils import (on_win, bin_dir_name, rel_site_packages,
