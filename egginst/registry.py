@@ -1,4 +1,5 @@
 import os
+import sys
 from collections import defaultdict
 from os.path import basename, join, isdir, isfile, normpath
 
@@ -72,4 +73,16 @@ def create_file(egg):
         fo.write('%s  %s\n' % kv)
     for p in pth:
         fo.write('-pth-  %s\n' % p)
+    fo.close()
+
+
+def collect(packages, path):
+    """
+    collects the EGG-INFO/registry.txt files for `packages` and writes them
+    to a single registry file at `path`
+    """
+    fo = open(path, 'w')
+    for pkg in packages:
+        path = join(sys.prefix, 'pkgs', pkg, 'EGG-INFO', 'registry.txt')
+        fo.write(open(path).read())
     fo.close()
