@@ -103,11 +103,6 @@ class EggInst(object):
             import registry
 
             registry.create_file(self)
-            fo = open(join(sys.prefix, 'registry.txt'), 'w')
-            for path in glob(join(self.pkgs_dir, '*', 'EGG-INFO',
-                                  'registry.txt')):
-                fo.write(open(path).read())
-            fo.close()
 
 
     def entry_points(self):
