@@ -21,7 +21,7 @@ import config
 from proxy.api import setup_proxy
 from utils import canonical, cname_fn, get_info, comparable_version
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
-                          parse_data, dist_naming)
+                          parse_data, dist_naming, dist_as_req)
 
 
 # global options variables
@@ -86,17 +86,17 @@ def get_installed_info(prefix, cname):
     canonical name found in prefix, or None if the package is not found.
     """
     meta_dir = join(prefix, 'EGG-INFO', cname)
-    if not isdir(meta_dir):
+    meta_txt = join(meta_dir, '__egginst__.txt')
+    if not isfile(meta_txt):
         return None
 
+    d = {}
+    execfile(meta_txt, d)
     res = {}
-    meta1_txt = join(meta_dir, '__egginst__.txt')
-    if isfile(meta1_txt):
-        d = {}
-        execfile(meta1_txt, d)
-        res['egg_name'] = d['egg_name']
-        res['mtime'] = time.ctime(getmtime(meta1_txt))
-        res['meta_dir'] = meta_dir
+    res['egg_name'] = d['egg_name']
+    res['name'], res['version'] = egginst.name_version_fn(d['egg_name'])
+    res['mtime'] = time.ctime(getmtime(meta_txt))
+    res['meta_dir'] = meta_dir
 
     meta2_txt = join(meta_dir, '__enpkg__.txt')
     if isfile(meta2_txt):
@@ -108,22 +108,27 @@ def get_installed_info(prefix, cname):
 
 
 def get_status():
-    results = []
-    for fn in egginst.get_installed(sys.prefix):
-        lst = list(egginst.name_version_fn(fn))
-        info = get_installed_info(prefix, cname_fn(fn))
-        if info is None:
-            lst.append('-')
-        else:
-            path = join(info['meta_dir'], '__enpkg__.txt')
-            if isfile(path):
-                d = {}
-                execfile(path, d)
-                lst.append(shorten_repo(d['repo']))
-            else:
-                lst.append('-')
-        results.append(tuple(lst))
-    return results
+    # the result is a dict mapping cname to ...
+    res = {}
+    for cname in egginst.get_installed_cnames(sys.prefix):
+        res[cname] = get_installed_info(sys.prefix, cname)
+        res[cname]['avail'] = None
+
+    conf = config.read()
+    c = Chain(conf['IndexedRepos'])
+
+    for cname in c.groups.iterkeys():
+        dist = c.get_dist(Req(cname))
+        if dist is None:
+            continue
+
+        if cname not in res:
+            res[cname] = {'name': cname, 'version': None}
+
+        r = dist_as_req(dist)
+        res[cname]['avail'] = '%s-%d' % (r.version, r.build)
+
+    return res
 
 
 def egginst_remove(pkg):
@@ -231,13 +236,11 @@ def print_installed(prefix, pat=None):
     fmt = '%-20s %-20s %s'
     print fmt % ('Project name', 'Version', 'Repository')
     print 60 * '='
-    for fn in egginst.get_installed(prefix):
-        if pat and not pat.search(fn[:-4]):
+    for cname in egginst.get_installed_cnames(prefix):
+        if pat and not pat.search(cname):
             continue
-        lst = list(egginst.name_version_fn(fn))
-        info = get_installed_info(prefix, cname_fn(fn))
-        lst.append(info.get('repo'))
-        print fmt % tuple(lst)
+        info = get_installed_info(prefix, cname)
+        print fmt % (info['name'], info['version'], info.get('repo', '-'))
 
 
 def list_option(pat):
@@ -652,5 +655,5 @@ def main():
 
 if __name__ == '__main__':
     #main()
-    for item in get_status():
-        print item
+    for v in get_status().itervalues():
+        print '%(name)-20s %(version)15s %(avail)15s' % v
