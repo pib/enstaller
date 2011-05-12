@@ -11,6 +11,7 @@ import string
 import subprocess
 import textwrap
 import time
+from collections import defaultdict
 from os.path import basename, getmtime, isdir, isfile, join
 from optparse import OptionParser
 
@@ -111,8 +112,9 @@ def get_status():
     # the result is a dict mapping cname to ...
     res = {}
     for cname in egginst.get_installed_cnames(sys.prefix):
-        res[cname] = get_installed_info(sys.prefix, cname)
-        res[cname]['avail'] = None
+        d = defaultdict(str)
+        d.update(get_installed_info(sys.prefix, cname))
+        res[cname] = d
 
     conf = config.read()
     c = Chain(conf['IndexedRepos'])
@@ -121,12 +123,31 @@ def get_status():
         dist = c.get_dist(Req(cname))
         if dist is None:
             continue
-
+        repo, fn = dist_naming.split_dist(dist)
+        n, v, b = dist_naming.split_eggname(fn)
         if cname not in res:
-            res[cname] = {'name': cname, 'version': None}
+            d = defaultdict(str)
+            d['name'] = n
+            res[cname] = d
+        res[cname]['a-egg'] = fn
+        res[cname]['a-ver'] = '%s-%d' % (v, b)
 
-        r = dist_as_req(dist)
-        res[cname]['avail'] = '%s-%d' % (r.version, r.build)
+    def vb_egg(fn):
+        n, v, b = dist_naming.split_eggname(fn)
+        return comparable_version(v), b
+
+    for d in res.itervalues():
+        if d['egg_name']:                    # installed
+            if d['a-egg']:
+                if vb_egg(d['egg_name']) >= vb_egg(d['a-egg']):
+                    d['status'] = 'up-to-date'
+                else:
+                    d['status'] = 'update-able'
+            else:
+                d['status'] = 'installed'
+        else:                                # not installed
+            if d['a-egg']:
+                d['status'] = 'install-able'
 
     return res
 
@@ -656,4 +677,4 @@ def main():
 if __name__ == '__main__':
     #main()
     for v in get_status().itervalues():
-        print '%(name)-20s %(version)15s %(avail)15s' % v
+        print '%(name)-20s %(version)16s %(a-ver)16s %(status)12s' % v
