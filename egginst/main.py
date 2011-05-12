@@ -309,6 +309,17 @@ class EggInst(object):
         sys.stdout.flush()
 
 
+def get_installed_cnames(prefix):
+    """
+    returns a sorted list of cnames of all installed packages
+    """
+    egg_info_dir = join(prefix, 'EGG-INFO')
+    if not isdir(egg_info_dir):
+        return
+    pat = re.compile(r'([a-z0-9_.]+)$')
+    return sorted(fn for fn in os.listdir(egg_info_dir) if pat.match(fn))
+
+
 def get_installed(prefix):
     """
     Generator returns a sorted list of all installed packages.
@@ -316,11 +327,8 @@ def get_installed(prefix):
     package.
     """
     egg_info_dir = join(prefix, 'EGG-INFO')
-    if not isdir(egg_info_dir):
-        return
-
-    for fn in sorted(os.listdir(egg_info_dir)):
-        meta_txt = join(egg_info_dir, fn, '__egginst__.txt')
+    for cname in get_installed_cnames(prefix):
+        meta_txt = join(egg_info_dir, cname, '__egginst__.txt')
         if not isfile(meta_txt):
             continue
         d = {}
