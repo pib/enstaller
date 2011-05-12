@@ -90,18 +90,18 @@ def main():
     opts, args = p.parse_args()
 
     port = int(opts.port)
-
     url = 'http://localhost:%d/' % port
-    try:
-        run(host='localhost', port=port)
-    except socket.error:
-        print "Could not start web server, creating static html file"
-        url = 'file://%s' % create_static_html()
 
     if '-b' in sys.argv:
         import webbrowser
         print 'opening in web-browser:', url
         webbrowser.open_new_tab(url)
+
+#    try:
+    run(host='localhost', port=port)
+#    except socket.error:
+#        print "Could not start web server, creating static html file"
+#        url = 'file://%s' % create_static_html()
 
 
 if __name__ == '__main__':

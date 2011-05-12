@@ -11,7 +11,7 @@ import string
 import subprocess
 import textwrap
 import time
-from os.path import basename, dirname, getmtime, isdir, isfile, join
+from os.path import basename, getmtime, isdir, isfile, join
 from optparse import OptionParser
 
 import egginst
@@ -71,22 +71,59 @@ def egginst_subprocess(pkg_path, remove):
     subprocess.call(args)
 
 
+repo_pat = re.compile(r'/repo/([^\s/]+/[^\s/]+)/')
+def shorten_repo(repo):
+    m = repo_pat.search(repo)
+    if m:
+        return m.group(1)
+    else:
+        return repo.replace('http://', '').replace('.enthought.com', '')
+
+
 def get_installed_info(prefix, cname):
     """
     Returns a dictionary with information about the package specified by the
     canonical name found in prefix, or None if the package is not found.
     """
-    egg_info_dir = join(prefix, 'EGG-INFO')
-    if not isdir(egg_info_dir):
+    meta_dir = join(prefix, 'EGG-INFO', cname)
+    if not isdir(meta_dir):
         return None
-    meta_txt = join(egg_info_dir, cname, '__egginst__.txt')
-    if not isfile(meta_txt):
-        return
-    d = {}
-    execfile(meta_txt, d)
-    return dict(egg_name=d['egg_name'],
-                mtime=time.ctime(getmtime(meta_txt)),
-                meta_dir=dirname(meta_txt))
+
+    res = {}
+    meta1_txt = join(meta_dir, '__egginst__.txt')
+    if isfile(meta1_txt):
+        d = {}
+        execfile(meta1_txt, d)
+        res['egg_name'] = d['egg_name']
+        res['mtime'] = time.ctime(getmtime(meta1_txt))
+        res['meta_dir'] = meta_dir
+
+    meta2_txt = join(meta_dir, '__enpkg__.txt')
+    if isfile(meta2_txt):
+        d = {}
+        execfile(meta2_txt, d)
+        res['repo'] = shorten_repo(d['repo'])
+
+    return res
+
+
+def get_status():
+    results = []
+    for fn in egginst.get_installed(sys.prefix):
+        lst = list(egginst.name_version_fn(fn))
+        info = get_installed_info(prefix, cname_fn(fn))
+        if info is None:
+            lst.append('-')
+        else:
+            path = join(info['meta_dir'], '__enpkg__.txt')
+            if isfile(path):
+                d = {}
+                execfile(path, d)
+                lst.append(shorten_repo(d['repo']))
+            else:
+                lst.append('-')
+        results.append(tuple(lst))
+    return results
 
 
 def egginst_remove(pkg):
@@ -190,15 +227,6 @@ def info_option(url, c, cname):
     print_installed_info(cname)
 
 
-repo_pat = re.compile(r'/repo/([^\s/]+/[^\s/]+)/')
-def shorten_repo(repo):
-    m = repo_pat.search(repo)
-    if m:
-        return m.group(1)
-    else:
-        return repo.replace('http://', '').replace('.enthought.com', '')
-
-
 def print_installed(prefix, pat=None):
     fmt = '%-20s %-20s %s'
     print fmt % ('Project name', 'Version', 'Repository')
@@ -208,16 +236,7 @@ def print_installed(prefix, pat=None):
             continue
         lst = list(egginst.name_version_fn(fn))
         info = get_installed_info(prefix, cname_fn(fn))
-        if info is None:
-            lst.append('')
-        else:
-            path = join(info['meta_dir'], '__enpkg__.txt')
-            if isfile(path):
-                d = {}
-                execfile(path, d)
-                lst.append(shorten_repo(d['repo']))
-            else:
-                lst.append('')
+        lst.append(info.get('repo'))
         print fmt % tuple(lst)
 
 
@@ -632,4 +651,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    #main()
+    for item in get_status():
+        print item
