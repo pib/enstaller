@@ -12,18 +12,20 @@
         <tr>
           <th>Package</th>
           <th>Version</th>
-          <th>Repository</th>
+          <th>Available</th>
+          <th>Status</th>
           <th>Install</th>
         </tr>
       </thead>
       <tbody>
-%for cls, pkg, version, repo, checkbox in items:
+%for cls, name, version, a_vers, status, checkbox in items:
         <tr class="{{cls}}">
-          <td>{{pkg}}</td>
+          <td>{{name}}</td>
           <td>{{version}}</td>
-          <td>{{repo}}</td>
+          <td>{{a_vers}}</td>
+          <td>{{status}}</td>
     %if checkbox:
-          <td><input type="checkbox" name="{{pkg}}" /></td>
+          <td><input type="checkbox" name="{{name}}" /></td>
     %else:
           <td></td>
     %end

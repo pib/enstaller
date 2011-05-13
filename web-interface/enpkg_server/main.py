@@ -12,31 +12,11 @@ sys.path.insert(0, this_dir)
 
 from bottle import get, post, request, run, view, debug, route, static_file
 
-from enstaller.main import get_installed_info, cname_fn, shorten_repo
+from enstaller.main import get_status
 import egginst
 
 
 debug(True)
-
-def get_installed(prefix, pat=None):
-    results = []
-    for fn in egginst.get_installed(prefix):
-        if pat and not pat.search(fn[:-4]):
-            continue
-        lst = list(egginst.name_version_fn(fn))
-        info = get_installed_info(prefix, cname_fn(fn))
-        if info is None:
-            lst.append('-')
-        else:
-            path = join(info['meta_dir'], '__enpkg__.txt')
-            if isfile(path):
-                d = {}
-                execfile(path, d)
-                lst.append(shorten_repo(d['repo']))
-            else:
-                lst.append('-')
-        results.append(tuple(lst))
-    return results
 
 
 @get('/')
@@ -44,14 +24,27 @@ def get_installed(prefix, pat=None):
 def update():
     print "Called update"
     lst = []
-    for i, (pkg, version, repo) in enumerate(get_installed(sys.prefix)):
-        lst.append(('i%d' % (i % 2), pkg, version, repo, i % 3 == 2))
+    status = get_status()
+    for i, cname in enumerate(sorted(status.iterkeys())):
+        d = status[cname]
+        checkbok = d['status'].endswith('-able')
+        cls = {'up-to-date': 'ok',
+               'installed': 'ok',
+               'update-able': 'up',
+               'install-able': 'inst',
+               }.get(d['status'], 'unknown')
+
+        lst.append((cls,
+                    d['name'], d['version'], d['a-ver'], d['status'],
+                    checkbok))
     return {'items': lst}
 
 
 @post('/action')
 def action():
     print 'request.forms', request.forms.dict
+    for name in request.forms.dict.iterkeys():
+        subprocess.call(['enpkg', name])
     return update()
 
 
