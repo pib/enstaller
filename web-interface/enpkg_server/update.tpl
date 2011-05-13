@@ -6,7 +6,7 @@
 <body>
   <h1>EPD Installed Packages</h1>
   <form method="post" action="/action">
-    <p><input type="submit" value="update" /></p>
+    <p><input type="submit" value="install" /></p>
     <table style="width: 100%;">
       <thead>
         <tr>
@@ -14,7 +14,7 @@
           <th>Version</th>
           <th>Available</th>
           <th>Status</th>
-          <th>Install</th>
+          <th>install</th>
         </tr>
       </thead>
       <tbody>
@@ -33,7 +33,7 @@
 %end
       </tbody>
     </table>
-    <p><input type="submit" value="update" /></p>
+    <p><input type="submit" value="install" /></p>
   </form>
 </body>
 </html>

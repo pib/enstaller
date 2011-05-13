@@ -21,8 +21,8 @@ debug(True)
 css_class_map = {
     'up-to-date': 'ok',
     'installed': 'ok',
-    'update-able': 'up',
-    'install-able': 'inst',
+    'updateable': 'up',
+    'installable': 'inst',
 }
 
 @get('/')
@@ -36,7 +36,7 @@ def update():
         lst.append((
                 css_class_map.get(d['status'], 'unknown'),
                 d['name'], d['version'], d['a-ver'], d['status'],
-                d['status'].endswith('-able'),
+                d['status'].endswith('able'),
         ))
     return {'items': lst}
 

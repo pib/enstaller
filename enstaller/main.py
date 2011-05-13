@@ -145,12 +145,12 @@ def get_status():
                 if vb_egg(d['egg_name']) >= vb_egg(d['a-egg']):
                     d['status'] = 'up-to-date'
                 else:
-                    d['status'] = 'update-able'
+                    d['status'] = 'updateable'
             else:
                 d['status'] = 'installed'
         else:                                # not installed
             if d['a-egg']:
-                d['status'] = 'install-able'
+                d['status'] = 'installable'
 
     return res
 
