@@ -18,6 +18,12 @@ import egginst
 
 debug(True)
 
+css_class_map = {
+    'up-to-date': 'ok',
+    'installed': 'ok',
+    'update-able': 'up',
+    'install-able': 'inst',
+}
 
 @get('/')
 @view(join(this_dir, 'update'))
@@ -25,18 +31,13 @@ def update():
     print "Called update"
     lst = []
     status = get_status()
-    for i, cname in enumerate(sorted(status.iterkeys())):
+    for cname in sorted(status.iterkeys()):
         d = status[cname]
-        checkbok = d['status'].endswith('-able')
-        cls = {'up-to-date': 'ok',
-               'installed': 'ok',
-               'update-able': 'up',
-               'install-able': 'inst',
-               }.get(d['status'], 'unknown')
-
-        lst.append((cls,
-                    d['name'], d['version'], d['a-ver'], d['status'],
-                    checkbok))
+        lst.append((
+                css_class_map.get(d['status'], 'unknown'),
+                d['name'], d['version'], d['a-ver'], d['status'],
+                d['status'].endswith('-able'),
+        ))
     return {'items': lst}
 
 
