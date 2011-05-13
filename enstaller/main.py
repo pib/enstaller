@@ -113,7 +113,10 @@ def get_status():
     res = {}
     for cname in egginst.get_installed_cnames(sys.prefix):
         d = defaultdict(str)
-        d.update(get_installed_info(sys.prefix, cname))
+        info = get_installed_info(sys.prefix, cname)
+        if info is None:
+            continue
+        d.update(info)
         res[cname] = d
 
     conf = config.read()
@@ -261,6 +264,8 @@ def print_installed(prefix, pat=None):
         if pat and not pat.search(cname):
             continue
         info = get_installed_info(prefix, cname)
+        if info is None:
+            continue
         print fmt % (info['name'], info['version'], info.get('repo', '-'))
 
 
