@@ -136,8 +136,11 @@ def get_status():
         res[cname]['a-ver'] = '%s-%d' % (v, b)
 
     def vb_egg(fn):
-        n, v, b = dist_naming.split_eggname(fn)
-        return comparable_version(v), b
+        try:
+            n, v, b = dist_naming.split_eggname(fn)
+            return comparable_version(v), b
+        except:
+            return None
 
     for d in res.itervalues():
         if d['egg_name']:                    # installed
