@@ -328,9 +328,9 @@ class Chain(object):
             if self.verbose:
                 print "Not forcing refetch, %r already exists" % dst
             return
-
-        pprint_fn_action(fn,
-                 ['copying', 'downloading'][dist.startswith('http://')])
+        
+        pprint_fn_action(fn, ('copying', 'downloading')
+                             [dist.startswith(('http://', 'https://'))])
         if dry_run:
             return
 
