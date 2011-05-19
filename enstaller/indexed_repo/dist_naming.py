@@ -4,7 +4,7 @@ from os.path import isdir
 from enstaller.utils import abs_expanduser, comparable_version
 
 
-DIST_PAT = re.compile(r'(file://.*[\\/]|http://.+/)([^\\/]+)$')
+DIST_PAT = re.compile(r'(file://.*[\\/]|https?://.+/)([^\\/]+)$')
 
 def split_dist(dist):
     """
@@ -25,8 +25,8 @@ def split_dist(dist):
     exists), the distributions are added to the index by inspecting the
     actual files.
 
-    http://
-    =======
+    http:// or https://
+    ===================
 
     A remote repository, which must contain a compressed index file.
 
@@ -75,7 +75,7 @@ def cleanup_reponame(repo):
     Make sure a given repo string, i.e. a string specifying a repository,
     is valid and return a cleaned up version of the string.
     """
-    if repo.startswith('http://'):
+    if repo.startswith(('http://', 'https://')):
         if not repo.endswith('/'):
             repo += '/'
 

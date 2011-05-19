@@ -14,6 +14,7 @@ class TestDistNaming(unittest.TestCase):
     def test_split_dist(self):
         for repo, fn in [
             ('http://www.example.com/repo/', 'foo.egg'),
+            ('https://www.example.com/repo/', 'foo.egg'),
             ('file:///home/repo/', 'numpy-1.1.1-5.egg'),
             ('file://E:\\eggs\\', 'numpy-1.1.1-5.egg'),
             ('file://C:\\Desk and Top\\', 'with space.egg'),
@@ -43,7 +44,7 @@ class TestDistNaming(unittest.TestCase):
     def test_cleanup_reponame(self):
         for repo, a in [
             ('http://www.example.com/repo', '/'),
-            ('http://www.example.com/repo/', ''),
+            ('https://www.example.com/repo/', ''),
             ('file:///home/repo', '/'),
             ('file:///home/repo/', ''),
             ('file://E:\\eggs', '\\'),

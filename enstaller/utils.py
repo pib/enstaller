@@ -120,7 +120,7 @@ def write_data_from_url(fo, url, md5=None, size=None):
     if url.startswith('file://'):
         path = url[7:]
         fi = open(path, 'rb')
-    elif url.startswith('http://'):
+    elif url.startswith(('http://', 'https://')):
         try:
             fi = open_with_auth(url)
         except urllib2.URLError, e:
