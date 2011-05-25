@@ -315,7 +315,7 @@ def get_installed_cnames(prefix):
     """
     egg_info_dir = join(prefix, 'EGG-INFO')
     if not isdir(egg_info_dir):
-        return
+        return []
     pat = re.compile(r'([a-z0-9_.]+)$')
     return sorted(fn for fn in os.listdir(egg_info_dir) if pat.match(fn))
 
