@@ -201,6 +201,12 @@ class TestChain(unittest.TestCase):
                               Req('numpy'),
                               Req('pysparse 1.2.dev203')]))
 
+    def test_order1(self):
+        self.assertEqual(self.c.install_order(Req('scipy')),
+                         [self.repos['epd'] + egg for egg in
+                          'MKL-10.3-1.egg', 'numpy-1.5.1-2.egg',
+                          'scipy-0.9.0-1.egg'])
+
 
 if __name__ == '__main__':
     unittest.main()
