@@ -168,7 +168,7 @@ class TestChain(unittest.TestCase):
     c = Chain(verbose=0)
     for name in ('epd', 'gpl'):
         repo = 'file://%s/%s/' % (abspath(dirname(__file__)), name)
-        c.add_repo(repo, 'index-7.0.txt')
+        c.add_repo(repo, 'index-7.1.txt')
         repos[name] = repo
 
     def test_get_repo(self):
@@ -184,7 +184,7 @@ class TestChain(unittest.TestCase):
         requirement.PY_VER = '2.7'
         for req_string, dist in [
             ('MySQL_python',  self.repos['gpl'] + 'MySQL_python-1.2.3-2.egg'),
-            ('numpy',         self.repos['epd'] + 'numpy-1.5.1-2.egg'),
+            ('numpy',         self.repos['epd'] + 'numpy-1.6.0-3.egg'),
             ('swig',          self.repos['epd'] + 'swig-1.3.40-2.egg'),
             ('swig 1.3.36',   self.repos['epd'] + 'swig-1.3.36-3.egg'),
             ('swig 1.3.40-1', self.repos['epd'] + 'swig-1.3.40-1.egg'),
@@ -202,7 +202,8 @@ class TestChain(unittest.TestCase):
                               Req('pysparse 1.2.dev203')]))
 
     def test_order0(self):
-        self.assertEqual(self.c.install_order(Req('numpy'), recur=False),
+        self.assertEqual(self.c.install_order(Req('numpy 1.5.1'),
+                                              recur=False),
                          [self.repos['epd'] + 'numpy-1.5.1-2.egg'])
 
         self.assertEqual(self.c.install_order(Req('numpy 1.5.1-1'),
@@ -212,7 +213,7 @@ class TestChain(unittest.TestCase):
     def test_order1(self):
         self.assertEqual(self.c.install_order(Req('numpy')),
                          [self.repos['epd'] + egg for egg in
-                          'MKL-10.3-1.egg', 'numpy-1.5.1-2.egg'])
+                          'MKL-10.3-1.egg', 'numpy-1.6.0-3.egg'])
 
     def test_order2(self):
         self.assertEqual(self.c.install_order(Req('scipy')),

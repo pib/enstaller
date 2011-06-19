@@ -465,6 +465,62 @@ packages = [
   'numpy 1.5.1',
 ]
 
+==> basemap-1.0-3.egg <==
+size = 14814022
+md5 = '24c2f86a6efb628709881870982e60b5'
+mtime = 1305659225.0
+
+metadata_version = '1.1'
+name = 'basemap'
+version = '1.0'
+build = 3
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'matplotlib 1.0.1',
+  'numpy 1.6.0',
+]
+
+==> basemap-1.0.1-1.egg <==
+size = 12193803
+md5 = '5601aff6ab9c5ac5a31e949355d8f3e3'
+mtime = 1306350741.0
+
+metadata_version = '1.1'
+name = 'basemap'
+version = '1.0.1'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'matplotlib 1.0.1',
+  'numpy 1.6.0',
+]
+
+==> basemap_ld-1.0.1-1.egg <==
+size = 83387550
+md5 = '92d91f438278e46524835229a36ea1d6'
+mtime = 1306370597.0
+
+metadata_version = '1.1'
+name = 'basemap_ld'
+version = '1.0.1'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = None
+packages = [
+  'basemap 1.0.1',
+]
+
 ==> biopython-1.54-1.egg <==
 size = 2641731
 md5 = 'c72cec33a909bd6c213b0427485d9c37'
@@ -517,6 +573,42 @@ osdist = 'RedHat_5'
 python = '2.7'
 packages = [
   'numpy 1.5.1',
+]
+
+==> biopython-1.57-1.egg <==
+size = 2551094
+md5 = '42d6978aa17a2de0c381ba149808ee98'
+mtime = 1301952526.0
+
+metadata_version = '1.1'
+name = 'biopython'
+version = '1.57'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'numpy 1.5.1',
+]
+
+==> biopython-1.57-2.egg <==
+size = 2551090
+md5 = 'b4664bcf10ad48c80d728326aecdd147'
+mtime = 1305658986.0
+
+metadata_version = '1.1'
+name = 'biopython'
+version = '1.57'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'numpy 1.6.0',
 ]
 
 ==> bitarray-0.3.5-1.egg <==
@@ -659,6 +751,38 @@ mtime = 1296766708.0
 metadata_version = '1.1'
 name = 'BlockCanvas'
 version = '3.2.1'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> bsdiff4-1.0.0-1.egg <==
+size = 15833
+md5 = '0167f276560f1f0a35014db46ad0d4b6'
+mtime = 1306180380.0
+
+metadata_version = '1.1'
+name = 'bsdiff4'
+version = '1.0.0'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> bsdiff4-1.0.1-1.egg <==
+size = 16012
+md5 = 'd9a5cfd61b015ff957de510605082fae'
+mtime = 1307994079.0
+
+metadata_version = '1.1'
+name = 'bsdiff4'
+version = '1.0.1'
 build = 1
 
 arch = 'amd64'
@@ -1134,6 +1258,22 @@ build = 1
 arch = None
 platform = None
 osdist = None
+python = '2.7'
+packages = []
+
+==> cloud-2.2.2-1.egg <==
+size = 282164
+md5 = '6518f4b5f2a2abab8441f17dc0d6b820'
+mtime = 1304639555.0
+
+metadata_version = '1.1'
+name = 'cloud'
+version = '2.2.2'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
 python = '2.7'
 packages = []
 
@@ -1731,6 +1871,70 @@ osdist = None
 python = '2.7'
 packages = []
 
+==> distribute-0.6.15-1.egg <==
+size = 378402
+md5 = '322f7ebadf361794f6f8734108d3837c'
+mtime = 1302820643.0
+
+metadata_version = '1.1'
+name = 'distribute'
+version = '0.6.15'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = []
+
+==> distribute-0.6.16-1.egg <==
+size = 377560
+md5 = '3fb8b3f24a5cf4e4d02e8471600c8d84'
+mtime = 1304373778.0
+
+metadata_version = '1.1'
+name = 'distribute'
+version = '0.6.16'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = []
+
+==> distribute-0.6.17-1.egg <==
+size = 381803
+md5 = '0bd20383516a469ca28cf909b3056a84'
+mtime = 1306788555.0
+
+metadata_version = '1.1'
+name = 'distribute'
+version = '0.6.17'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = []
+
+==> distribute-0.6.19-1.egg <==
+size = 382653
+md5 = 'c5e24dc7c34603ec7a2b8bae79af08da'
+mtime = 1307117192.0
+
+metadata_version = '1.1'
+name = 'distribute'
+version = '0.6.19'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = []
+
 ==> distribute-0.6.8-1.egg <==
 size = 373913
 md5 = 'c172acea9f42e423e4e98db715176e1a'
@@ -1804,6 +2008,22 @@ metadata_version = '1.1'
 name = 'docutils'
 version = '0.7'
 build = 2
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = []
+
+==> drmaa-0.4b3-1.egg <==
+size = 33556
+md5 = '9f1613b284f242431444b4293ea7e628'
+mtime = 1302120126.0
+
+metadata_version = '1.1'
+name = 'drmaa'
+version = '0.4b3'
+build = 1
 
 arch = None
 platform = None
@@ -5000,6 +5220,44 @@ osdist = 'RedHat_5'
 python = '2.6'
 packages = []
 
+==> fastnumpy-1.0-1.egg <==
+size = 20872
+md5 = 'aa568fea6f11db92316c2a4f3b87f99c'
+mtime = 1307124406.0
+
+metadata_version = '1.1'
+name = 'fastnumpy'
+version = '1.0'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.6'
+packages = [
+  'MKL 10.2',
+  'numpy 1.4.0',
+]
+
+==> fastnumpy-1.0-2.egg <==
+size = 20816
+md5 = '5e4e1a91ef1b784d65087eb65b798401'
+mtime = 1307124365.0
+
+metadata_version = '1.1'
+name = 'fastnumpy'
+version = '1.0'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'MKL 10.3',
+  'numpy 1.5.1',
+]
+
 ==> FiPy-2.1-1.egg <==
 size = 894928
 md5 = 'bfcac154b03256cfa424c94d008d0798'
@@ -5135,6 +5393,44 @@ python = '2.7'
 packages = [
   'pyOpenSSL 0.11',
   'Twisted 10.2.0',
+]
+
+==> foolscap-0.6.1-2.egg <==
+size = 657896
+md5 = '4fc6da158c75406ba4e52177aee7b8b9'
+mtime = 1302731742.0
+
+metadata_version = '1.1'
+name = 'foolscap'
+version = '0.6.1'
+build = 2
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = [
+  'pyOpenSSL 0.11',
+  'Twisted 11.0.0',
+]
+
+==> foolscap-0.6.1-3.egg <==
+size = 657897
+md5 = 'c904dc98fb1e5a6173cc13d253ae21e7'
+mtime = 1304611718.0
+
+metadata_version = '1.1'
+name = 'foolscap'
+version = '0.6.1'
+build = 3
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = [
+  'pyOpenSSL 0.12',
+  'Twisted 11.0.0',
 ]
 
 ==> fpconst-0.7.2-1.egg <==
@@ -5642,6 +5938,24 @@ packages = [
   'numpy 1.5.1',
 ]
 
+==> h5py-1.3.1-2.egg <==
+size = 1973825
+md5 = '0343486a3b8b2de50c3651382ccd2ab2'
+mtime = 1305670004.0
+
+metadata_version = '1.1'
+name = 'h5py'
+version = '1.3.1'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'numpy 1.6.0',
+]
+
 ==> HDF4-4.2r3-1.egg <==
 size = 4199861
 md5 = 'c7ba692cfdf6619a37de9b05f508f381'
@@ -6038,6 +6352,42 @@ packages = [
   'appinst',
 ]
 
+==> ipython-0.10.2-1.egg <==
+size = 1714760
+md5 = 'a773a789b1c5e4c56689c06fac483825'
+mtime = 1302814344.0
+
+metadata_version = '1.1'
+name = 'ipython'
+version = '0.10.2'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'appinst',
+]
+
+==> ipython-0.10.2-2.egg <==
+size = 1714757
+md5 = '23796bd818bdc0452183145c52f1df73'
+mtime = 1305041672.0
+
+metadata_version = '1.1'
+name = 'ipython'
+version = '0.10.2'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'appinst',
+]
+
 ==> ipython-0.9.1-1.egg <==
 size = 3686974
 md5 = '9871a3da6c31a0823d35b7035b580e18'
@@ -6218,6 +6568,38 @@ packages = [
   'Pygments 1.4',
 ]
 
+==> keyring-0.5-1.egg <==
+size = 31314
+md5 = 'baf286b9b37baf620840f61492837498'
+mtime = 1304609619.0
+
+metadata_version = '1.1'
+name = 'keyring'
+version = '0.5'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.6'
+packages = []
+
+==> keyring-0.5.1-1.egg <==
+size = 32548
+md5 = 'ac72033c562b29f7222fdfe21e42f911'
+mtime = 1304609617.0
+
+metadata_version = '1.1'
+name = 'keyring'
+version = '0.5.1'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
 ==> larry-0.2.0-1.egg <==
 size = 181223
 md5 = 'd32a3ecd30bc293f18a0da6068fcdae7'
@@ -6374,6 +6756,23 @@ osdist = 'RedHat_5'
 python = None
 packages = []
 
+==> libgnomevfs-2.0-1.egg <==
+size = 181380
+md5 = '0f3be11dd4a0322d8f3345d397ec9bb9'
+mtime = 1308101458.0
+
+metadata_version = '1.1'
+name = 'libgnomevfs'
+version = '2.0'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+
 ==> libxml2-2.6.32-1.egg <==
 size = 1493416
 md5 = 'e66e9f1707012de28810ebd1fa68c9bf'
@@ -6484,6 +6883,22 @@ mtime = 1274206039.0
 metadata_version = '1.1'
 name = 'libYAML'
 version = '0.1.3'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = None
+packages = []
+
+==> libYAML-0.1.4-1.egg <==
+size = 127326
+md5 = '3679f8a4f6c852ed65a3b9809bbecd13'
+mtime = 1307130611.0
+
+metadata_version = '1.1'
+name = 'libYAML'
+version = '0.1.4'
 build = 1
 
 arch = 'amd64'
@@ -6897,6 +7312,29 @@ packages = [
   'wxPython 2.8.10.1',
 ]
 
+==> matplotlib-1.0.1-2.egg <==
+size = 8799895
+md5 = 'df2c52170452eed6ed9da6c920ae1836'
+mtime = 1305670452.0
+
+metadata_version = '1.1'
+name = 'matplotlib'
+version = '1.0.1'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'configobj',
+  'freetype 2.4.4',
+  'numpy 1.6.0',
+  'python_dateutil',
+  'pytz',
+  'wxPython 2.8.10.1',
+]
+
 ==> Mayavi-3.2.0-1.egg <==
 size = 15269571
 md5 = '4de74f9f6700c5d542b20be44ca022ba'
@@ -7183,6 +7621,24 @@ packages = [
   'Traits 3.6.0',
   'TraitsGUI 3.6.0',
   'VTK 5.6.0',
+]
+
+==> MDP-3.1-1.egg <==
+size = 1055773
+md5 = '3e7d73051ab25ab8ed96854720197c3d'
+mtime = 1302305698.0
+
+metadata_version = '1.1'
+name = 'MDP'
+version = '3.1'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = [
+  'numpy',
 ]
 
 ==> MKL-10.2-1.egg <==
@@ -7593,6 +8049,26 @@ packages = [
   'numpy 1.5.1',
 ]
 
+==> netCDF4-0.9.4-1.egg <==
+size = 310474
+md5 = '73f1ed32ce643bc931b5e5b02a912bcf'
+mtime = 1305660657.0
+
+metadata_version = '1.1'
+name = 'netCDF4'
+version = '0.9.4'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'hdf5 1.8.5.1',
+  'lib_netcdf4 4.1.1-1',
+  'numpy 1.6.0',
+]
+
 ==> networkx-0.36-1.egg <==
 size = 537750
 md5 = '0bd199ca874a9115d0be83fac52239ca'
@@ -7746,6 +8222,60 @@ osdist = None
 python = '2.7'
 packages = [
   'numpy',
+]
+
+==> networkx-1.5-1.egg <==
+size = 983660
+md5 = '91cd02649e9b6f3bc376625348b17f6a'
+mtime = 1307403494.0
+
+metadata_version = '1.1'
+name = 'networkx'
+version = '1.5'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = [
+  'numpy',
+]
+
+==> nltk-2.0.1rc1-1.egg <==
+size = 2261030
+md5 = '6d6b9256f497f15eece35f29f2216262'
+mtime = 1303140048.0
+
+metadata_version = '1.1'
+name = 'nltk'
+version = '2.0.1rc1'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = [
+  'PyYAML 3.9',
+]
+
+==> nltk-2.0.1rc1-2.egg <==
+size = 2261027
+md5 = 'fd23d4bae912e3d165d23894856c7a4b'
+mtime = 1307131828.0
+
+metadata_version = '1.1'
+name = 'nltk'
+version = '2.0.1rc1'
+build = 2
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = [
+  'PyYAML',
 ]
 
 ==> nose-0.10.3-1.egg <==
@@ -7971,6 +8501,25 @@ packages = [
   'numpy 1.5.1',
 ]
 
+==> numexpr-1.4.2-2.egg <==
+size = 164729
+md5 = '908aba5ac6958100338bbb9932994e3a'
+mtime = 1305658914.0
+
+metadata_version = '1.1'
+name = 'numexpr'
+version = '1.4.2'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'MKL 10.3',
+  'numpy 1.6.0',
+]
+
 ==> numpy-1.2.1-1.egg <==
 size = 3961113
 md5 = 'b4cdb7b6c4ca9c44f01e1a50e5ce4ba2'
@@ -8170,6 +8719,78 @@ metadata_version = '1.1'
 name = 'numpy'
 version = '1.5.1'
 build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'MKL 10.3-1',
+]
+
+==> numpy-1.6.0-1.egg <==
+size = 3481603
+md5 = '829d13ae763ceaf5fde67a407eb24bed'
+mtime = 1305658871.0
+
+metadata_version = '1.1'
+name = 'numpy'
+version = '1.6.0'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'MKL 10.3-1',
+]
+
+==> numpy-1.6.0-2.egg <==
+size = 3481884
+md5 = 'd877a56fc54878d868c79e9c5ed71a12'
+mtime = 1305749538.0
+
+metadata_version = '1.1'
+name = 'numpy'
+version = '1.6.0'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'MKL 10.3-1',
+]
+
+==> numpy-1.6.0-3.egg <==
+size = 3481948
+md5 = '73fec6b935856ef647d2f2fdacaf9255'
+mtime = 1307399951.0
+
+metadata_version = '1.1'
+name = 'numpy'
+version = '1.6.0'
+build = 3
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'MKL 10.3-1',
+]
+
+==> numpy-1.6.0b2-1.egg <==
+size = 3478276
+md5 = '452cbfc9047cd6b724f38f7c0c3407b5'
+mtime = 1304453769.0
+
+metadata_version = '1.1'
+name = 'numpy'
+version = '1.6.0b2'
+build = 1
 
 arch = 'amd64'
 platform = 'linux2'
@@ -8424,6 +9045,24 @@ packages = [
   'pycrypto',
 ]
 
+==> paramiko-1.7.7.1-1.egg <==
+size = 289329
+md5 = 'a85e61d46600ec7edc000d8ec9000251'
+mtime = 1306444680.0
+
+metadata_version = '1.1'
+name = 'paramiko'
+version = '1.7.7.1'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = [
+  'pycrypto',
+]
+
 ==> PIL-1.1.6-4.egg <==
 size = 576202
 md5 = '3db22b84b2a31c175d24f1905301a8c1'
@@ -8595,6 +9234,22 @@ osdist = None
 python = '2.7'
 packages = []
 
+==> ply-3.4-1.egg <==
+size = 86962
+md5 = 'af305689e799ae8d65ea9b7cd9debe67'
+mtime = 1301932789.0
+
+metadata_version = '1.1'
+name = 'ply'
+version = '3.4'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = []
+
 ==> portaudio-19-4.egg <==
 size = 103681
 md5 = '47a482c8e5e49226b13a499a177c46b0'
@@ -8604,6 +9259,38 @@ metadata_version = '1.1'
 name = 'portaudio'
 version = '19'
 build = 4
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = None
+packages = []
+
+==> protobuf-2.4.0a0-1.egg <==
+size = 3120682
+md5 = 'd4cce8907c61e1ebb4652a38e16e6b52'
+mtime = 1301589770.0
+
+metadata_version = '1.1'
+name = 'protobuf'
+version = '2.4.0a0'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = None
+packages = []
+
+==> protobuf-2.4.1-1.egg <==
+size = 3120866
+md5 = '2e21c2e30a2e3d4398a3eb68bf9cf456'
+mtime = 1304636150.0
+
+metadata_version = '1.1'
+name = 'protobuf'
+version = '2.4.1'
+build = 1
 
 arch = 'amd64'
 platform = 'linux2'
@@ -8635,6 +9322,22 @@ mtime = 1292278368.0
 metadata_version = '1.1'
 name = 'psutil'
 version = '0.2.0'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> psutil-0.2.1-1.egg <==
+size = 66743
+md5 = 'e0a7a55379edb3568643e5f77784eb79'
+mtime = 1302812137.0
+
+metadata_version = '1.1'
+name = 'psutil'
+version = '0.2.1'
 build = 1
 
 arch = 'amd64'
@@ -8778,6 +9481,24 @@ osdist = 'RedHat_5'
 python = '2.7'
 packages = [
   'numpy 1.5.1',
+]
+
+==> Pycluster-1.50-3.egg <==
+size = 58044
+md5 = 'ce7b44c1e966d9d01ba8712c435b7c96'
+mtime = 1305659031.0
+
+metadata_version = '1.1'
+name = 'Pycluster'
+version = '1.50'
+build = 3
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'numpy 1.6.0',
 ]
 
 ==> pycrypto-2.0.1-2.egg <==
@@ -8934,6 +9655,24 @@ packages = [
   'pyparsing 1.5.5',
 ]
 
+==> pydot-1.0.25-1.egg <==
+size = 43236
+md5 = 'df163348ae7dd7d0520f53572a1db786'
+mtime = 1302822051.0
+
+metadata_version = '1.1'
+name = 'pydot'
+version = '1.0.25'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = [
+  'pyparsing 1.5.5',
+]
+
 ==> pyephem-3.7.3.4-1.egg <==
 size = 812017
 md5 = '6104e70e66b71037f300bfe39cee8cca'
@@ -9034,6 +9773,24 @@ packages = [
   'numpy 1.5.1',
 ]
 
+==> pyfits-2.4.0-2.egg <==
+size = 363789
+md5 = '4dece7fc52effb2caa3bd22e878ddd94'
+mtime = 1305659071.0
+
+metadata_version = '1.1'
+name = 'pyfits'
+version = '2.4.0'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'numpy 1.6.0',
+]
+
 ==> pyflakes-0.3.0-1.egg <==
 size = 35334
 md5 = '2931de45b08fc83360af88796d9c0ecc'
@@ -9091,6 +9848,22 @@ metadata_version = '1.1'
 name = 'pyflakes'
 version = '0.4.0'
 build = 2
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = []
+
+==> pyflakes-0.4.0-3.egg <==
+size = 44258
+md5 = '88ae6c11427dd26063b13f991a00f91e'
+mtime = 1307489311.0
+
+metadata_version = '1.1'
+name = 'pyflakes'
+version = '0.4.0'
+build = 3
 
 arch = None
 platform = None
@@ -9445,6 +10218,24 @@ packages = [
   'numpy 1.5.1',
 ]
 
+==> pyhdf-0.8.3-5.egg <==
+size = 419418
+md5 = 'f5cb42b37108fe7d451c0bf5ebec1ba2'
+mtime = 1305659115.0
+
+metadata_version = '1.1'
+name = 'pyhdf'
+version = '0.8.3'
+build = 5
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'numpy 1.6.0',
+]
+
 ==> pymc-2.1a0-1.egg <==
 size = 714039
 md5 = '6e77514c4793ed74178b0a72cd071f90'
@@ -9479,6 +10270,24 @@ osdist = 'RedHat_5'
 python = '2.7'
 packages = [
   'numpy 1.5.1',
+]
+
+==> pymc-2.1b0-2.egg <==
+size = 728475
+md5 = '8fdbee3cf91738bd92af4ec5338742cf'
+mtime = 1305929052.0
+
+metadata_version = '1.1'
+name = 'pymc'
+version = '2.1b0'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'numpy 1.6.0',
 ]
 
 ==> PyOpenGL-3.0.0-1.egg <==
@@ -9602,6 +10411,22 @@ metadata_version = '1.1'
 name = 'pyOpenSSL'
 version = '0.11'
 build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> pyOpenSSL-0.12-1.egg <==
+size = 161385
+md5 = 'b3812536f9d81ece044ba69fef6dc338'
+mtime = 1304610234.0
+
+metadata_version = '1.1'
+name = 'pyOpenSSL'
+version = '0.12'
+build = 1
 
 arch = 'amd64'
 platform = 'linux2'
@@ -9785,6 +10610,22 @@ osdist = 'RedHat_5'
 python = '2.7'
 packages = []
 
+==> pyproj-1.8.9-1.egg <==
+size = 3274376
+md5 = '7ab9a94f165c92af24845207ab9a5e7e'
+mtime = 1304630088.0
+
+metadata_version = '1.1'
+name = 'pyproj'
+version = '1.8.9'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
 ==> Pyrex-0.9.8.5-1.egg <==
 size = 346601
 md5 = 'a630915748ee87ffca3c320a82d7d16e'
@@ -9913,6 +10754,42 @@ osdist = 'RedHat_5'
 python = None
 packages = [
   'Qt 4.7.1',
+]
+
+==> pyside-1.0.2-1.egg <==
+size = 8093186
+md5 = '76d1304b7c242eaaa6bfc7476693d476'
+mtime = 1304636269.0
+
+metadata_version = '1.1'
+name = 'pyside'
+version = '1.0.2'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = None
+packages = [
+  'Qt 4.7.2',
+]
+
+==> PySide-1.0.3-2.egg <==
+size = 8108519
+md5 = 'd50fda4707d40955595632338330065b'
+mtime = 1306966908.0
+
+metadata_version = '1.1'
+name = 'PySide'
+version = '1.0.3'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = None
+packages = [
+  'Qt 4.7.3',
 ]
 
 ==> pysparse-1.2.dev203-1.egg <==
@@ -10107,6 +10984,26 @@ packages = [
   'numpy 1.5.1',
 ]
 
+==> pytables-2.2.1-2.egg <==
+size = 1521365
+md5 = '085f231a7b7c068337aa33223c471067'
+mtime = 1307568499.0
+
+metadata_version = '1.1'
+name = 'pytables'
+version = '2.2.1'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'hdf5 1.8.5.1',
+  'numexpr 1.4.2',
+  'numpy 1.6.0',
+]
+
 ==> python_dateutil-1.4-1.egg <==
 size = 231652
 md5 = '81057f3b30f230976631d2ecf061c915'
@@ -10201,6 +11098,22 @@ build = 2
 arch = None
 platform = None
 osdist = None
+python = '2.7'
+packages = []
+
+==> python_sybase-0.39-1.egg <==
+size = 1084876
+md5 = '13134c95407266494a470fd0789230c0'
+mtime = 1306882292.0
+
+metadata_version = '1.1'
+name = 'python_sybase'
+version = '0.39'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
 python = '2.7'
 packages = []
 
@@ -10333,6 +11246,38 @@ osdist = None
 python = '2.7'
 packages = []
 
+==> pytz-2011e-1.egg <==
+size = 516871
+md5 = '680f0dd6ed186241a5aea99f01fc3770'
+mtime = 1303156979.0
+
+metadata_version = '1.1'
+name = 'pytz'
+version = '2011e'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = []
+
+==> pytz-2011g-1.egg <==
+size = 509844
+md5 = 'ee66633b8b2691f5701ed78445ee238c'
+mtime = 1304980365.0
+
+metadata_version = '1.1'
+name = 'pytz'
+version = '2011g'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
+packages = []
+
 ==> PyVISA-1.3-1.egg <==
 size = 110067
 md5 = '0077672086f414dd5fd79f0ecfbbf700'
@@ -10396,6 +11341,24 @@ platform = 'linux2'
 osdist = 'RedHat_5'
 python = '2.5'
 packages = []
+
+==> PyYAML-3.10-1.egg <==
+size = 180165
+md5 = '7a30b8e58612bc18c8f94419461ac226'
+mtime = 1307130591.0
+
+metadata_version = '1.1'
+name = 'PyYAML'
+version = '3.10'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'libYAML 0.1.4',
+]
 
 ==> PyYAML-3.9-1.egg <==
 size = 180392
@@ -10577,6 +11540,42 @@ packages = [
   'zeromq 2.1.1',
 ]
 
+==> pyzmq-2.1.4-1.egg <==
+size = 311820
+md5 = 'c285dd09b5453fb3aa434e4eb33cfcf2'
+mtime = 1302822183.0
+
+metadata_version = '1.1'
+name = 'pyzmq'
+version = '2.1.4'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'zeromq 2.1.4',
+]
+
+==> pyzmq-2.1.7-1.egg <==
+size = 315771
+md5 = '75498744d6f6364a5cea14a7f39906f6'
+mtime = 1306966505.0
+
+metadata_version = '1.1'
+name = 'pyzmq'
+version = '2.1.7'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'zeromq 2.1.7',
+]
+
 ==> Qt-4.7.1-1.egg <==
 size = 33231461
 md5 = '9bdc43816f39116d2a264c7bb7ace435'
@@ -10585,6 +11584,38 @@ mtime = 1298332945.0
 metadata_version = '1.1'
 name = 'Qt'
 version = '4.7.1'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = None
+packages = []
+
+==> Qt-4.7.2-1.egg <==
+size = 33310124
+md5 = '7a343a3e02a8cdd8d509fd7338f3d952'
+mtime = 1304636260.0
+
+metadata_version = '1.1'
+name = 'Qt'
+version = '4.7.2'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = None
+packages = []
+
+==> Qt-4.7.3-1.egg <==
+size = 27239636
+md5 = '61234e4fb7cc27f50f083fd30e0ce50c'
+mtime = 1306968026.0
+
+metadata_version = '1.1'
+name = 'Qt'
+version = '4.7.3'
 build = 1
 
 arch = 'amd64'
@@ -10755,6 +11786,25 @@ packages = [
   'numpy 1.5.1',
 ]
 
+==> ScientificPython-2.9.0-3.egg <==
+size = 500808
+md5 = '15dd3562ded6f10d41c4db8a338db9a2'
+mtime = 1307404317.0
+
+metadata_version = '1.1'
+name = 'ScientificPython'
+version = '2.9.0'
+build = 3
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'lib_netcdf3 3.6.2',
+  'numpy 1.6.0',
+]
+
 ==> scikits.image-0.2.2-1.egg <==
 size = 623620
 md5 = 'f4961b368fe74ae48234c1e8a7b3ccb3'
@@ -10830,6 +11880,65 @@ osdist = 'RedHat_5'
 python = '2.7'
 packages = [
   'numpy 1.5.1',
+]
+
+==> scikits.learn-0.7.1-1.egg <==
+size = 1192068
+md5 = 'c0d0f14a4c0efdb64a8605c374687f22'
+mtime = 1302731684.0
+
+metadata_version = '1.1'
+name = 'scikits.learn'
+version = '0.7.1'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'MKL 10.3',
+  'numpy 1.5.1',
+]
+
+==> scikits.learn-0.7.1-2.egg <==
+size = 1192085
+md5 = '00259d227d8037d4cccbf7137ef7e8ec'
+mtime = 1306267768.0
+
+metadata_version = '1.1'
+name = 'scikits.learn'
+version = '0.7.1'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'MKL 10.3',
+  'numpy 1.6.0',
+  'scipy',
+]
+
+==> scikits.learn-0.8-1.egg <==
+size = 1359204
+md5 = 'e461ab288058f32e0ead393871b6c6f0'
+mtime = 1307119477.0
+
+metadata_version = '1.1'
+name = 'scikits.learn'
+version = '0.8'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'MKL 10.3',
+  'numpy 1.6.0',
+  'scipy',
 ]
 
 ==> scikits.rsformats-0.1-1.egg <==
@@ -10948,6 +12057,26 @@ osdist = 'RedHat_5'
 python = '2.7'
 packages = [
   'numpy 1.5.1',
+  'pyhdf 0.8.3',
+  'pyparsing',
+]
+
+==> scikits.rsformats-0.1-7.egg <==
+size = 9058
+md5 = '6abbfca703d079cfb37c341dbe4a4af5'
+mtime = 1307404260.0
+
+metadata_version = '1.1'
+name = 'scikits.rsformats'
+version = '0.1'
+build = 7
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'numpy 1.6.0',
   'pyhdf 0.8.3',
   'pyparsing',
 ]
@@ -12052,6 +13181,38 @@ osdist = None
 python = '2.7'
 packages = []
 
+==> SQLAlchemy-0.7.0-1.egg <==
+size = 1459560
+md5 = '6dbd6149f561a7c5876530fcde204ed9'
+mtime = 1306260780.0
+
+metadata_version = '1.1'
+name = 'SQLAlchemy'
+version = '0.7.0'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> SQLAlchemy-0.7.1-1.egg <==
+size = 1475573
+md5 = 'b713768188c8366d18f357605c9433e6'
+mtime = 1308011351.0
+
+metadata_version = '1.1'
+name = 'SQLAlchemy'
+version = '0.7.1'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
 ==> swig-1.3.36-3.egg <==
 size = 1162282
 md5 = '44bea9ae0a30b7a34035e0913d10a107'
@@ -12790,6 +13951,44 @@ packages = [
   'zope.interface 3.6.1',
 ]
 
+==> Twisted-11.0.0-1.egg <==
+size = 5934930
+md5 = '0f12d277dc45dacb8f104cb4ce013db7'
+mtime = 1301955336.0
+
+metadata_version = '1.1'
+name = 'Twisted'
+version = '11.0.0'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'pyOpenSSL 0.11',
+  'zope.interface 3.6.1',
+]
+
+==> Twisted-11.0.0-2.egg <==
+size = 5934932
+md5 = 'ad76cc63c5d4aaa4e7615583f75f735b'
+mtime = 1304611762.0
+
+metadata_version = '1.1'
+name = 'Twisted'
+version = '11.0.0'
+build = 2
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'pyOpenSSL 0.12',
+  'zope.interface 3.6.1',
+]
+
 ==> Twisted-8.1.0-1.egg <==
 size = 5005678
 md5 = 'eb86e99b9c554360d0ffbfcae4dadbeb'
@@ -13376,6 +14575,38 @@ mtime = 1300287039.0
 metadata_version = '1.1'
 name = 'zeromq'
 version = '2.1.1'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = None
+packages = []
+
+==> zeromq-2.1.4-1.egg <==
+size = 526007
+md5 = '3b889241df72138d0f4952fc3820639b'
+mtime = 1302822167.0
+
+metadata_version = '1.1'
+name = 'zeromq'
+version = '2.1.4'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = None
+packages = []
+
+==> zeromq-2.1.7-1.egg <==
+size = 526711
+md5 = '866e2b0b0241e270738ee05b99bf0a89'
+mtime = 1305583033.0
+
+metadata_version = '1.1'
+name = 'zeromq'
+version = '2.1.7'
 build = 1
 
 arch = 'amd64'

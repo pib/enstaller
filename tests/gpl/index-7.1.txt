@@ -46,6 +46,54 @@ osdist = 'RedHat_5'
 python = '2.7'
 packages = []
 
+==> mercurial-1.8.2-1.egg <==
+size = 1501497
+md5 = 'ae7c6383a94f29c4e67a38ebc9b8dfbc'
+mtime = 1305477020.0
+
+metadata_version = '1.1'
+name = 'mercurial'
+version = '1.8.2'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> mercurial-1.8.3-1.egg <==
+size = 1506618
+md5 = 'cd19346d133669c0719abf924a1ba4be'
+mtime = 1305673836.0
+
+metadata_version = '1.1'
+name = 'mercurial'
+version = '1.8.3'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> mercurial-1.8.4-1.egg <==
+size = 1508196
+md5 = '229a6103d5edec8aabe5715a6b3d7c90'
+mtime = 1307137130.0
+
+metadata_version = '1.1'
+name = 'mercurial'
+version = '1.8.4'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
 ==> MySQL_python-1.2.2-5.egg <==
 size = 814304
 md5 = '35a49be8a9a8768c8d5794dcfda3f720'
@@ -108,6 +156,22 @@ arch = 'amd64'
 platform = 'linux2'
 osdist = 'RedHat_5'
 python = '2.6'
+packages = []
+
+==> pycallgraph-0.5.1-1.egg <==
+size = 12573
+md5 = '4beafcb4bc5e959cadd6ff94770df8ab'
+mtime = 1302198205.0
+
+metadata_version = '1.1'
+name = 'pycallgraph'
+version = '0.5.1'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.7'
 packages = []
 
 ==> pyfits-2.2.2-1.egg <==
