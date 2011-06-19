@@ -139,7 +139,8 @@ class Chain(object):
 
     def reqs_dist(self, dist):
         """
-        return the set of requirement objects for the distribution
+        return the set of requirement objects listed by the given
+        distribution
         """
         return self.index[dist]['Reqs']
 
