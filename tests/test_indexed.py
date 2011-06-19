@@ -201,7 +201,20 @@ class TestChain(unittest.TestCase):
                               Req('numpy'),
                               Req('pysparse 1.2.dev203')]))
 
+    def test_order0(self):
+        self.assertEqual(self.c.install_order(Req('numpy'), recur=False),
+                         [self.repos['epd'] + 'numpy-1.5.1-2.egg'])
+
+        self.assertEqual(self.c.install_order(Req('numpy 1.5.1-1'),
+                                              recur=False),
+                         [self.repos['epd'] + 'numpy-1.5.1-1.egg'])
+
     def test_order1(self):
+        self.assertEqual(self.c.install_order(Req('numpy')),
+                         [self.repos['epd'] + egg for egg in
+                          'MKL-10.3-1.egg', 'numpy-1.5.1-2.egg'])
+
+    def test_order2(self):
         self.assertEqual(self.c.install_order(Req('scipy')),
                          [self.repos['epd'] + egg for egg in
                           'MKL-10.3-1.egg', 'numpy-1.5.1-2.egg',
