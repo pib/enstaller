@@ -1,0 +1,99 @@
+==> nomkl_numpy-1.6.0-1.egg <==
+size = 6497268
+md5 = '085922e25e254a70a6b56c0bc975b585'
+mtime = 1308460628.9107766
+
+metadata_version = '1.1'
+name = 'nomkl_numpy'
+version = '1.6.0'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> nomkl_scipy-0.9.0-1.egg <==
+size = 24205846
+md5 = 'c4fdb6479bd747ee57c430a01b3ebca3'
+mtime = 1308460630.579902
+
+metadata_version = '1.1'
+name = 'nomkl_scipy'
+version = '0.9.0'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'nomkl_numpy 1.6.0',
+]
+
+==> numpy-1.6.0-0.egg <==
+size = 6497264
+md5 = '01d502baaef5d857d7e7eb77a2addf57'
+mtime = 1308460640.9099019
+
+metadata_version = '1.1'
+name = 'numpy'
+version = '1.6.0'
+build = 0
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = []
+
+==> openEPD-7.1-1.egg <==
+size = 1095
+md5 = 'f045c0dfb4a3e40c47bf35cc6cba8350'
+mtime = 1308521254.51884
+
+metadata_version = '1.1'
+name = 'openEPD'
+version = '7.1'
+build = 1
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'AppInst 2.1.0-1',
+  'configobj 4.7.2-2',
+  'freetype 2.4.4-1',
+  'idle 2.7.1-1',
+  'ipython 0.10.2-2',
+  'matplotlib 1.0.1-2',
+  'nose 1.0.0-1',
+  'numpy 1.6.0-0',
+  'PIL 1.1.7-3',
+  'pyglet 1.1.4-2',
+  'python_dateutil 1.5-2',
+  'pytz 2011g-1',
+  'scipy 0.9.0-0',
+  'wxPython 2.8.10.1-2',
+]
+
+==> scipy-0.9.0-0.egg <==
+size = 24205842
+md5 = '7b0b6bc45299422c6c1fe4546a2e0c1d'
+mtime = 1308460638.9219017
+
+metadata_version = '1.1'
+name = 'scipy'
+version = '0.9.0'
+build = 0
+
+arch = 'amd64'
+platform = 'linux2'
+osdist = 'RedHat_5'
+python = '2.7'
+packages = [
+  'numpy 1.6.0-0',
+]
+
