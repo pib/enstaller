@@ -102,7 +102,8 @@ class Chain(object):
 
     def iter_dists(self, req):
         """
-        iterate over all distributions matching the requirement
+        iterate over all distributions matching the requirement (in
+        repository order)
         """
         assert req.strictness >= 1
         for dist in self.groups[req.name]:
