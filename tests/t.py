@@ -12,5 +12,21 @@ for name in ('open', 'runner', 'epd'):
     c.add_repo(repo, 'index-7.1.txt')
 
 
-for dist in c.order(Req('openepd'), mode='flat'):
-    print dist
+def show(dists):
+    for d in dists:
+        print d
+    print
+
+
+a = c.order(Req('openepd'), mode='flat')
+show(a)
+
+b = c.order(Req('openepd'), mode='recur')
+show(b)
+
+assert a == b
+
+c = c.order(Req('foo'), mode='recur')
+show(c)
+
+assert b[:-1] == c[:-1]

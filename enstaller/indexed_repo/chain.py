@@ -183,8 +183,21 @@ class Chain(object):
 
             if len(result) == n:
                 # nothing was added
-                raise Exception("Loop in dependency graph")
+                raise Exception(
+                    "Loop in dependency graph or incomplete "
+                    "distributions:\n%r" %
+                    [dist_naming.filename_dist(d) for d in dists])
 
+        return result
+
+
+    def dependents(self, dists):
+        result = set(dists)
+        for dist in dists:
+            for r in self.reqs_dist(dist):
+                d = self.get_dist(r)
+                #if d not in result:
+                result |= self.dependents([d])
         return result
 
 
@@ -207,6 +220,10 @@ class Chain(object):
             dists = [self.get_dist(r) for r in self.reqs_dist(dist_required)]
             dists.append(dist_required)
             return self.determine_install_order(dists)
+        if mode == 'recur':
+            return self.determine_install_order(list(
+                    self.dependents([dist_required])))
+        raise Exception('did not expect mode: %r' % mode)
 
     # ---------------------------------------------------------------- old
 
