@@ -258,7 +258,19 @@ class Chain(object):
         if mode == 'flat':
             dists = [self.get_dist(r) for r in self.reqs_dist(root)]
             dists.append(root)
-            return self.determine_install_order(dists)
+
+            cnames = set(self.cname_dist(d) for d in dists)
+            can_order = True
+            for dist in dists:
+                for r in self.reqs_dist(dist):
+                    if r.name not in cnames:
+                        can_order = False
+            if self.verbose:
+                print "Can determine install order:", can_order
+            if can_order:
+                dists = self.determine_install_order(dists)
+
+            return dists
 
         if mode == 'recur':
             return self.order_recur(root)
