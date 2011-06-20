@@ -200,18 +200,14 @@ class Chain(object):
         return result
 
 
-    def dependents(self, dist):
-        #print dist
-        result = set([dist])
+    def add_dependents(self, dist):
         for r in self.reqs_dist(dist):
-            #if r.name == 'appinst':
-            #    print dist, r
-            if r.name in set(self.cname_dist(d) for d in result):
+            if (r.name in self._reqs  and
+                    r.strictness < self._reqs[r.name] .strictness):
                 continue
             d = self.get_dist(r)
-            result |= self.dependents(d)
-
-        return result
+            self._result.add(d)
+            self.add_dependents(d)
 
 
     def order(self, req, mode='recur'):
@@ -239,8 +235,10 @@ class Chain(object):
             dists.append(dist_required)
             return self.determine_install_order(dists)
         if mode == 'recur':
-            dists = self.dependents(dist_required)
-            return self.determine_install_order(dists)
+            self._reqs = {r.name: r for r in self.reqs_dist(dist_required)}
+            self._result = set([dist_required])
+            self.add_dependents(dist_required)
+            return self.determine_install_order(self._result)
         raise Exception('did not expect mode: %r' % mode)
 
     # ---------------------------------------------------------------- old
