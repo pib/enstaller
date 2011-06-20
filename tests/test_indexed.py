@@ -219,6 +219,7 @@ class TestChain1(unittest.TestCase):
                           'MKL-10.3-1.egg', 'numpy-1.5.1-2.egg',
                           'scipy-0.9.0-1.egg'])
 
+
 class TestChain2(unittest.TestCase):
 
     repos = {}

@@ -265,7 +265,7 @@ class Chain(object):
 
         raise Exception('did not expect: mode = %r' % mode)
 
-    # ---------------------------------------------------------------- old
+    # ------------------------------------------------------- OLD begin
 
     def select_new_reqs(self, reqs, dist):
         """
@@ -290,7 +290,6 @@ class Chain(object):
                 result.add(r)
         return result
 
-
     def add_reqs(self, reqs, req, level=1):
         """
         Finds requirements of 'req', recursively and adds them to 'reqs',
@@ -303,7 +302,6 @@ class Chain(object):
                     continue
                 reqs[r] = (level, dist)
                 self.add_reqs(reqs, r, level + 1)
-
 
     def get_reqs(self, req):
         """
@@ -341,7 +339,6 @@ class Chain(object):
 
         return reqs2
 
-
     def install_order(self, req, recur=True):
         """
         Return the list of distributions which need to be installed.
@@ -376,6 +373,7 @@ class Chain(object):
 
         return self.determine_install_order(dists)
 
+    # ------------------------------------------------------- OLD end
 
     def list_versions(self, name):
         """
