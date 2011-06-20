@@ -144,12 +144,17 @@ class Chain(object):
         """
         return self.index[dist]['Reqs']
 
+    def cname_dist(self, dist):
+        return self.index[dist]['cname']
+
     # ---------------------------------------------------------------- new
 
     def determine_install_order(self, dists):
+        assert len(dists) == len(set(self.cname_dist(d) for d in dists))
+
         # the distributions corresponding to the requirements must be sorted
         # because the output of this function is otherwise not deterministic
-        dists.sort()
+        dists.sort(key=self.cname_dist)
 
         # maps dist -> set of required (project) names
         rns = {}
