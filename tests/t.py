@@ -5,7 +5,7 @@ from enstaller.indexed_repo.requirement import Req
 
 
 
-c = Chain(verbose=1)
+c = Chain(verbose=0)
 
 for name in ('open', 'runner', 'epd'):
     repo = 'file://%s/%s/' % (abspath(dirname(__file__)), name)
@@ -19,14 +19,11 @@ def show(dists):
 
 
 a = c.order(Req('openepd'), mode='flat')
-show(a)
-
+#show(a)
 b = c.order(Req('openepd'), mode='recur')
-show(b)
-
+#show(b)
 assert a == b
-
 c = c.order(Req('foo'), mode='recur')
-show(c)
-
+#show(c)
 assert b[:-1] == c[:-1]
+

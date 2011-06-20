@@ -205,10 +205,15 @@ class Chain(object):
     def order(self, req, mode='recur'):
         """
         Return the list of distributions which need to be installed.
-        The returned list is given in dependency order.  mode may be:
-        'single':
-        'flat':
-        'recur':
+        The returned list is given in dependency order.
+        The 'mode' may be:
+
+        'single':  only the distribution for the requirement itself is
+                   contained in the result (but not any dependencies)
+
+        'flat':    dependencies are handled only one level deep
+
+        'recur':   dependencies are handled recursively
         """
         if self.verbose:
             print "Determining install order for %r" % req
