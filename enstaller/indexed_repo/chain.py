@@ -154,6 +154,7 @@ class Chain(object):
         the 'dists'), return a list of the same distribution in the correct
         install order
         """
+        # make sure each project name is listed only once
         assert len(dists) == len(set(self.cname_dist(d) for d in dists))
 
         # the distributions corresponding to the requirements must be sorted
