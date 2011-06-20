@@ -218,17 +218,6 @@ class Chain(object):
             self._dists.append(self.get_dist(r))
 
 
-    def add_dependents(self, dist):
-        for r in self.reqs_dist(dist):
-            self._reqs_deep[r.name].add(r)
-            if (r.name in self._reqs_shallow  and
-                    r.strictness < self._reqs_shallow[r.name].strictness):
-                continue
-            d = self.get_dist(r)
-            self._dists.add(d)
-            self.add_dependents(d)
-
-
     def order(self, req, mode='recur'):
         """
         Return the list of distributions which need to be installed.
@@ -257,12 +246,22 @@ class Chain(object):
             return self.determine_install_order(dists)
 
         if mode == 'recur':
-            self._reqs_shallow = {}
+            def add_dependents(dist):
+                for r in self.reqs_dist(dist):
+                    self._reqs_deep[r.name].add(r)
+                    if (r.name in reqs_shallow  and
+                            r.strictness < reqs_shallow[r.name].strictness):
+                        continue
+                    d = self.get_dist(r)
+                    self._dists.add(d)
+                    add_dependents(d)
+
+            reqs_shallow = {}
             for r in self.reqs_dist(root):
-                self._reqs_shallow[r.name] = r
+                reqs_shallow[r.name] = r
             self._reqs_deep = defaultdict(set)
             self._dists = set([root])
-            self.add_dependents(root)
+            add_dependents(root)
             self.handle_multiple_dists()
             return self.determine_install_order(self._dists)
 
