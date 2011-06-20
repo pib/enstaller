@@ -196,8 +196,12 @@ class Chain(object):
 
 
     def order_flat(self, root):
-        dists = [self.get_dist(r) for r in self.reqs_dist(root)]
-        dists.append(root)
+        dists = [root]
+        for r in self.reqs_dist(root):
+            d = self.get_dist(r)
+            if d is None:
+                sys.exit('Error: could not resolve %r' % r)
+            dists.append(d)
 
         cnames = set(self.cname_dist(d) for d in dists)
         can_order = True
@@ -227,7 +231,7 @@ class Chain(object):
                     continue
                 d = self.get_dist(r)
                 if d is None:
-                    sys.exit('Error: could not resolve %s' % r)
+                    sys.exit('Error: could not resolve %r' % r)
                 dists.add(d)
                 add_dependents(d)
 
