@@ -227,8 +227,7 @@ class Chain(object):
                         print '    %s' % d
                 r = max(reqs_deep[cname], key=lambda r: r.strictness)
                 assert r.name == cname
-                dists = [d for d in dists
-                               if self.cname_dist(d) != cname]
+                dists = [d for d in dists if self.cname_dist(d) != cname]
                 dists.append(self.get_dist(r))
 
         return self.determine_install_order(dists)
@@ -264,7 +263,7 @@ class Chain(object):
         if mode == 'recur':
             return self.order_recur(root)
 
-        raise Exception('did not expect mode: %r' % mode)
+        raise Exception('did not expect: mode = %r' % mode)
 
     # ---------------------------------------------------------------- old
 
