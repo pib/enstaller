@@ -33,7 +33,10 @@ for name in ('runner', 'epd'):
     repo = 'file://%s/%s/' % (abspath(dirname(__file__)), name)
     c.add_repo(repo, 'index-7.1.txt')
 
+for rs in 'epd 7.0', 'epd 7.0-1', 'epd 7.0-2':
+    d1 = c.order(Req(rs), mode='flat')
+    d2 = c.order(Req(rs), mode='recur')
+    assert d1 == d2
 
 req = Req(' '.join(sys.argv[1:]))
-print req
-show(c.order(req, mode='recur'))
+show(c.order(req))
