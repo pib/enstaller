@@ -149,11 +149,12 @@ class Chain(object):
 
     def determine_install_order(self, dists):
         """
-        given a list of distributions 'dists' (which are already complete,
-        i.e. the for each distribution all dependencies are also included in
+        given the distributions 'dists' (which are already complete, i.e.
+        the for each distribution all dependencies are also included in
         the 'dists'), return a list of the same distribution in the correct
         install order
         """
+        dists = list(dists)
         # make sure each project name is listed only once
         assert len(dists) == len(set(self.cname_dist(d) for d in dists))
 
@@ -221,8 +222,8 @@ class Chain(object):
             dists.append(dist_required)
             return self.determine_install_order(dists)
         if mode == 'recur':
-            return self.determine_install_order(list(
-                    self.dependents([dist_required])))
+            dists = self.dependents(set([dist_required]))
+            return self.determine_install_order(dists)
         raise Exception('did not expect mode: %r' % mode)
 
     # ---------------------------------------------------------------- old
@@ -386,7 +387,7 @@ class Chain(object):
             if self.verbose:
                 print "Not forcing refetch, %r already exists" % dst
             return
-        
+
         pprint_fn_action(fn, ('copying', 'downloading')
                              [dist.startswith(('http://', 'https://'))])
         if dry_run:
