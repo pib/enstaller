@@ -156,7 +156,15 @@ class Chain(object):
         """
         dists = list(dists)
         # make sure each project name is listed only once
-        assert len(dists) == len(set(self.cname_dist(d) for d in dists))
+        cnames = set(self.cname_dist(d) for d in dists)
+        if len(dists) != len(cnames):
+            for cname in cnames:
+                ds = [d for d in dists if self.cname_dist(d) == cname]
+                if len(ds) > 1:
+                    print cname
+                    for d in ds:
+                        print '    %s' % d
+            sys.exit('Error: in determine_install_order()')
 
         # the distributions corresponding to the requirements must be sorted
         # because the output of this function is otherwise not deterministic
@@ -193,11 +201,17 @@ class Chain(object):
 
 
     def dependents(self, dists):
+#        for d in dists:
+#            print d
         result = set(dists)
         for dist in dists:
             for r in self.reqs_dist(dist):
+                if r.name == 'appinst':
+                    print dist, r
                 d = self.get_dist(r)
-                #if d not in result:
+                assert r.name == self.cname_dist(d)
+                if r.name in set(self.cname_dist(d) for d in result):
+                    continue
                 result |= self.dependents([d])
         return result
 
@@ -213,7 +227,7 @@ class Chain(object):
 
         'flat':    dependencies are handled only one level deep
 
-        'recur':   dependencies are handled recursively
+        'recur':   dependencies are handled recursively (default)
         """
         if self.verbose:
             print "Determining install order for %r" % req
