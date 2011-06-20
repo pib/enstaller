@@ -144,8 +144,10 @@ class Chain(object):
         """
         return self.index[dist]['Reqs']
 
+
     def cname_dist(self, dist):
         return self.index[dist]['cname']
+
 
     def determine_install_order(self, dists):
         """
@@ -160,11 +162,21 @@ class Chain(object):
         if len(dists) != len(cnames):
             for cname in cnames:
                 ds = [d for d in dists if self.cname_dist(d) == cname]
-                if len(ds) > 1:
-                    print cname
-                    for d in ds:
-                        print '    %s' % d
-            sys.exit('Error: in determine_install_order()')
+                assert len(ds) != 0
+                if len(ds) == 1:
+                    continue
+                print cname
+                for d in ds:
+                    print '    %s' % d
+                if hasattr(self, '_reqs_deep'):
+                    r = max(self._reqs_deep[cname],
+                            key=lambda r:r.strictness)
+                    assert r.name == cname
+                    dists = [d for d in dists
+                             if self.cname_dist(d) != cname]
+                    dists.append(self.get_dist(r))
+                else:
+                    sys.exit('Error: in determine_install_order()')
 
         # the distributions corresponding to the requirements must be sorted
         # because the output of this function is otherwise not deterministic
@@ -202,8 +214,9 @@ class Chain(object):
 
     def add_dependents(self, dist):
         for r in self.reqs_dist(dist):
+            self._reqs_deep[r.name].add(r)
             if (r.name in self._reqs  and
-                    r.strictness < self._reqs[r.name] .strictness):
+                    r.strictness < self._reqs[r.name].strictness):
                 continue
             d = self.get_dist(r)
             self._result.add(d)
@@ -236,8 +249,9 @@ class Chain(object):
             return self.determine_install_order(dists)
         if mode == 'recur':
             self._reqs = {r.name: r for r in self.reqs_dist(dist_required)}
+            self._reqs_deep = defaultdict(set)
             self._result = set([dist_required])
-            self.add_dependents(dist_required)
+            self.add_dependents(dist_required)            
             return self.determine_install_order(self._result)
         raise Exception('did not expect mode: %r' % mode)
 
