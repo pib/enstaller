@@ -160,23 +160,7 @@ class Chain(object):
         # make sure each project name is listed only once
         cnames = set(self.cname_dist(d) for d in dists)
         if len(dists) != len(cnames):
-            for cname in cnames:
-                ds = [d for d in dists if self.cname_dist(d) == cname]
-                assert len(ds) != 0
-                if len(ds) == 1:
-                    continue
-                print cname
-                for d in ds:
-                    print '    %s' % d
-                if hasattr(self, '_reqs_deep'):
-                    r = max(self._reqs_deep[cname],
-                            key=lambda r:r.strictness)
-                    assert r.name == cname
-                    dists = [d for d in dists
-                             if self.cname_dist(d) != cname]
-                    dists.append(self.get_dist(r))
-                else:
-                    sys.exit('Error: in determine_install_order()')
+            sys.exit('Error: in determine_install_order()')
 
         # the distributions corresponding to the requirements must be sorted
         # because the output of this function is otherwise not deterministic
@@ -210,6 +194,32 @@ class Chain(object):
                     [dist_naming.filename_dist(d) for d in dists])
 
         return result
+
+
+    def handle_multiple_dists(self, dists):
+        assert hasattr(self, '_reqs_deep')
+
+        cnames = set(self.cname_dist(d) for d in dists)
+        if len(dists) == len(cnames):
+            return dists
+
+        for cname in cnames:
+            ds = [d for d in dists if self.cname_dist(d) == cname]
+            assert len(ds) != 0
+            if len(ds) == 1:
+                continue
+            print cname
+            for d in ds:
+                print '    %s' % d
+
+            r = max(self._reqs_deep[cname],
+                    key=lambda r:r.strictness)
+            assert r.name == cname
+            dists = [d for d in dists
+                     if self.cname_dist(d) != cname]
+            dists.append(self.get_dist(r))
+
+        return dists
 
 
     def add_dependents(self, dist):
@@ -251,8 +261,9 @@ class Chain(object):
             self._reqs = {r.name: r for r in self.reqs_dist(dist_required)}
             self._reqs_deep = defaultdict(set)
             self._result = set([dist_required])
-            self.add_dependents(dist_required)            
-            return self.determine_install_order(self._result)
+            self.add_dependents(dist_required)
+            x = self.handle_multiple_dists(self._result)
+            return self.determine_install_order(x)
         raise Exception('did not expect mode: %r' % mode)
 
     # ---------------------------------------------------------------- old
