@@ -22,7 +22,7 @@ import config
 from proxy.api import setup_proxy
 from utils import canonical, cname_fn, get_info, comparable_version
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
-                          parse_data, dist_naming, dist_as_req)
+                          parse_data, dist_naming)
 
 
 # global options variables

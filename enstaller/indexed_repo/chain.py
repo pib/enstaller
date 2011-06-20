@@ -10,7 +10,7 @@ from egginst.utils import pprint_fn_action, rm_rf
 from enstaller.utils import comparable_version, md5_file, write_data_from_url
 import metadata
 import dist_naming
-from requirement import Req, add_Reqs_to_spec, filter_name, dist_as_req
+from requirement import Req, add_Reqs_to_spec
 
 
 class Chain(object):
@@ -287,115 +287,6 @@ class Chain(object):
 
         raise Exception('did not expect: mode = %r' % mode)
 
-    # ------------------------------------------------------- OLD begin
-
-    def select_new_reqs(self, reqs, dist):
-        """
-        Selects new requirements, which are listed as dependencies in the
-        distribution 'dist', and are not already in the requirements 'reqs',
-        unless the distribution requires something more strict.
-        """
-        result = set()
-        for r in self.reqs_dist(dist):
-            # from all the reqs (we already have collected) filter the
-            # ones with the same project name
-            rs2 = filter_name(reqs, r.name)
-            if rs2:
-                # if there are requirements for an existing project name,
-                # only add if it is more strict
-                for r2 in rs2:
-                    if r2.strictness > r.strictness:
-                        result.add(r2)
-            else:
-                # otherwise, just add it, there is no requirement for this
-                # project yet
-                result.add(r)
-        return result
-
-    def add_reqs(self, reqs, req, level=1):
-        """
-        Finds requirements of 'req', recursively and adds them to 'reqs',
-        which is a dictionary mapping requirements to a
-        tuple(recursion level, distribution which requires the requirement)
-        """
-        for dist in self.iter_dists(req):
-            for r in self.select_new_reqs(reqs, dist):
-                if r in reqs:
-                    continue
-                reqs[r] = (level, dist)
-                self.add_reqs(reqs, r, level + 1)
-
-    def get_reqs(self, req):
-        """
-        Returns a dictionary mapping all requirements found recursively
-        to the distribution which requires it.
-        """
-        # the root requirement (in the argument) itself maps to recursion
-        # level 0 and a non-existent distribution (because the required by
-        # the argument of this function and not any other distribution)
-        assert req.strictness == 3, req
-        reqs1 = {req: (0, 'ROOT')}
-
-        # add all requirements for the root requirement
-        self.add_reqs(reqs1, req)
-
-        if self.verbose:
-            print "Requirements: (-level, strictness)"
-            for r in sorted(reqs1):
-                print '\t%-33r %3i %3i' % (r, -reqs1[r][0], r.strictness)
-
-        reqs2 = {}
-        for name in set(r.name for r in reqs1):
-            # get all requirements for the name
-            rs = []
-            for r in filter_name(reqs1, name):
-                # append a tuple with:
-                #   * tuple(negative recursion level, strictness)
-                #   * requirement itself
-                #   * distribution requiring it
-                rs.append(((-reqs1[r][0], r.strictness), r, reqs1[r][1]))
-
-            rs.sort()
-            r, d = rs[-1][1:]
-            reqs2[r] = d
-
-        return reqs2
-
-    def install_order(self, req, recur=True):
-        """
-        Return the list of distributions which need to be installed.
-        The returned list is given in dependency order, i.e. the
-        distributions can be installed in this order without any package
-        being installed before its dependencies got installed.
-        """
-        if self.verbose:
-            print "Determining install order for %r" % req
-        dist_required = self.get_dist(req)
-        if dist_required is None:
-            return None
-
-        if not recur:
-            return [dist_required]
-
-        req = dist_as_req(dist_required)
-        if self.verbose:
-            print dist_required
-            print "Requirement: %r" % req
-
-        dists = []
-        for r, d in self.get_reqs(req).iteritems():
-            dist = self.get_dist(r)
-            if dist:
-                dists.append(dist)
-                continue
-            print 'ERROR: No distribution found for: %r' % r
-            if d != 'ROOT':
-                print '       required by: %s' % d
-            sys.exit(1)
-
-        return self.determine_install_order(dists)
-
-    # ------------------------------------------------------- OLD end
 
     def list_versions(self, name):
         """
