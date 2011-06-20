@@ -147,8 +147,6 @@ class Chain(object):
     def cname_dist(self, dist):
         return self.index[dist]['cname']
 
-    # ---------------------------------------------------------------- new
-
     def determine_install_order(self, dists):
         """
         given a list of distributions 'dists' (which are already complete,
@@ -185,6 +183,7 @@ class Chain(object):
             if len(result) == n:
                 # nothing was added
                 raise Exception("Loop in dependency graph")
+
         return result
 
 
@@ -317,33 +316,7 @@ class Chain(object):
                 print '       required by: %s' % d
             sys.exit(1)
 
-        # the distributions corresponding to the requirements must be sorted
-        # because the output of this function is otherwise not deterministic
-        dists.sort()
-
-        # maps dist -> set of required (project) names
-        rns = {}
-        for dist in dists:
-            rns[dist] = set(r.name for r in self.reqs_dist(dist))
-
-        # As long as we have things missing, simply look for things which
-        # can be added, i.e. all the requirements have been added already
-        res = []
-        names_inst = set()
-        while len(res) < len(dists):
-            n = len(res)
-            for dist in dists:
-                if dist in res:
-                    continue
-                # see if all required packages were added already
-                if all(bool(n in names_inst) for n in rns[dist]):
-                    res.append(dist)
-                    names_inst.add(self.index[dist]['cname'])
-                    assert len(names_inst) == len(res)
-            if len(res) == n:
-                # nothing was added
-                raise Exception("Loop in dependency graph")
-        return res
+        return self.determine_install_order(dists)
 
 
     def list_versions(self, name):
