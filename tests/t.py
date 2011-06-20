@@ -28,7 +28,7 @@ d3 = c.order(Req('foo'), mode='recur')
 assert d2[:-1] == d3[:-1]
 
 
-c = Chain(verbose=0)
+c = Chain(verbose=1)
 for name in ('runner', 'epd'):
     repo = 'file://%s/%s/' % (abspath(dirname(__file__)), name)
     c.add_repo(repo, 'index-7.1.txt')

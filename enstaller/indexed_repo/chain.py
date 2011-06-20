@@ -205,9 +205,12 @@ class Chain(object):
             assert len(ds) != 0
             if len(ds) == 1:
                 continue
-#            print cname
-#            for d in ds:
-#                print '    %s' % d
+
+            if self.verbose:
+                print 'mutiple: %s' % cname
+                for d in ds:
+                    print '    %s' % d
+
             r = max(self._reqs_deep[cname], key=lambda r: r.strictness)
             assert r.name == cname
             self._dists = [d for d in self._dists
@@ -218,8 +221,8 @@ class Chain(object):
     def add_dependents(self, dist):
         for r in self.reqs_dist(dist):
             self._reqs_deep[r.name].add(r)
-            if (r.name in self._reqs  and
-                    r.strictness < self._reqs[r.name].strictness):
+            if (r.name in self._reqs_shallow  and
+                    r.strictness < self._reqs_shallow[r.name].strictness):
                 continue
             d = self.get_dist(r)
             self._dists.add(d)
@@ -241,24 +244,28 @@ class Chain(object):
         """
         if self.verbose:
             print "Determining install order for %r" % req
-        dist_required = self.get_dist(req)
-        if dist_required is None:
+        root = self.get_dist(req)
+        if root is None:
             return None
+
         if mode =='single':
-            return [dist_required]
+            return [root]
+
         if mode == 'flat':
-            dists = [self.get_dist(r) for r in self.reqs_dist(dist_required)]
-            dists.append(dist_required)
+            dists = [self.get_dist(r) for r in self.reqs_dist(root)]
+            dists.append(root)
             return self.determine_install_order(dists)
+
         if mode == 'recur':
-            self._reqs = {}
-            for r in self.reqs_dist(dist_required):
-                self._reqs[r.name] = r
+            self._reqs_shallow = {}
+            for r in self.reqs_dist(root):
+                self._reqs_shallow[r.name] = r
             self._reqs_deep = defaultdict(set)
-            self._dists = set([dist_required])
-            self.add_dependents(dist_required)
+            self._dists = set([root])
+            self.add_dependents(root)
             self.handle_multiple_dists()
             return self.determine_install_order(self._dists)
+
         raise Exception('did not expect mode: %r' % mode)
 
     # ---------------------------------------------------------------- old
