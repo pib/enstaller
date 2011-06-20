@@ -195,49 +195,43 @@ class Chain(object):
         return result
 
 
-    def handle_multiple_dists(self):
-        cnames = set(self.cname_dist(d) for d in self._dists)
-        if len(self._dists) == len(cnames):
-            return
-
-        for cname in cnames:
-            ds = [d for d in self._dists if self.cname_dist(d) == cname]
-            assert len(ds) != 0
-            if len(ds) == 1:
-                continue
-
-            if self.verbose:
-                print 'mutiple: %s' % cname
-                for d in ds:
-                    print '    %s' % d
-
-            r = max(self._reqs_deep[cname], key=lambda r: r.strictness)
-            assert r.name == cname
-            self._dists = [d for d in self._dists
-                           if self.cname_dist(d) != cname]
-            self._dists.append(self.get_dist(r))
-
-
     def order_recur(self, root):
         reqs_shallow = {}
         for r in self.reqs_dist(root):
             reqs_shallow[r.name] = r
+        reqs_deep = defaultdict(set)
 
         def add_dependents(dist):
             for r in self.reqs_dist(dist):
-                self._reqs_deep[r.name].add(r)
+                reqs_deep[r.name].add(r)
                 if (r.name in reqs_shallow  and
                         r.strictness < reqs_shallow[r.name].strictness):
                     continue
                 d = self.get_dist(r)
-                self._dists.add(d)
+                dists.add(d)
                 add_dependents(d)
 
-        self._reqs_deep = defaultdict(set)
-        self._dists = set([root])
+        dists = set([root])
         add_dependents(root)
-        self.handle_multiple_dists()
-        return self.determine_install_order(self._dists)
+
+        cnames = set(self.cname_dist(d) for d in dists)
+        if len(dists) != len(cnames):
+            for cname in cnames:
+                ds = [d for d in dists if self.cname_dist(d) == cname]
+                assert len(ds) != 0
+                if len(ds) == 1:
+                    continue
+                if self.verbose:
+                    print 'mutiple: %s' % cname
+                    for d in ds:
+                        print '    %s' % d
+                r = max(reqs_deep[cname], key=lambda r: r.strictness)
+                assert r.name == cname
+                dists = [d for d in dists
+                               if self.cname_dist(d) != cname]
+                dists.append(self.get_dist(r))
+
+        return self.determine_install_order(dists)
 
 
     def order(self, req, mode='recur'):
