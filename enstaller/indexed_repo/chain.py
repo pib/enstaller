@@ -150,6 +150,12 @@ class Chain(object):
     # ---------------------------------------------------------------- new
 
     def determine_install_order(self, dists):
+        """
+        given a list of distributions 'dists' (which are already complete,
+        i.e. the for each distribution all dependencies are also included in
+        the 'dists'), return a list of the same distribution in the correct
+        install order
+        """
         assert len(dists) == len(set(self.cname_dist(d) for d in dists))
 
         # the distributions corresponding to the requirements must be sorted
