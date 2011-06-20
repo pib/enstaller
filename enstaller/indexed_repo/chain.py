@@ -144,6 +144,60 @@ class Chain(object):
         """
         return self.index[dist]['Reqs']
 
+    # ---------------------------------------------------------------- new
+
+    def determine_install_order(self, dists):
+        # the distributions corresponding to the requirements must be sorted
+        # because the output of this function is otherwise not deterministic
+        dists.sort()
+
+        # maps dist -> set of required (project) names
+        rns = {}
+        for dist in dists:
+            rns[dist] = set(r.name for r in self.reqs_dist(dist))
+
+        # as long as we have things missing, simply look for things which
+        # can be added, i.e. all the requirements have been added already
+        result = []
+        names_inst = set()
+        while len(result) < len(dists):
+            n = len(result)
+            for dist in dists:
+                if dist in result:
+                    continue
+                # see if all required packages were added already
+                if all(bool(name in names_inst) for name in rns[dist]):
+                    result.append(dist)
+                    names_inst.add(self.index[dist]['cname'])
+                    assert len(names_inst) == len(result)
+
+            if len(result) == n:
+                # nothing was added
+                raise Exception("Loop in dependency graph")
+        return result
+
+
+    def order(self, req, mode='recur'):
+        """
+        Return the list of distributions which need to be installed.
+        The returned list is given in dependency order.  mode may be:
+        'single':
+        'flat':
+        'recur':
+        """
+        if self.verbose:
+            print "Determining install order for %r" % req
+        dist_required = self.get_dist(req)
+        if dist_required is None:
+            return None
+        if mode =='single':
+            return [dist_required]
+        if mode == 'flat':
+            dists = [self.get_dist(r) for r in self.reqs_dist(dist_required)]
+            dists.append(dist_required)
+            return self.determine_install_order(dists)
+
+    # ---------------------------------------------------------------- old
 
     def select_new_reqs(self, reqs, dist):
         """

@@ -12,5 +12,5 @@ for name in ('open', 'runner', 'epd'):
     c.add_repo(repo, 'index-7.1.txt')
 
 
-for dist in c.install_order(Req('openepd'), recur=True):
+for dist in c.order(Req('openepd'), mode='flat'):
     print dist
