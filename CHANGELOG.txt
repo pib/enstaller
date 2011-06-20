@@ -1,8 +1,11 @@
-2011-??-??   4.3.5:
+2011-06-??   4.4.0:
 -------------------
 * add examples/update
 
 * add --sys-config option to enpkg
+
+* rewrote install_order method in Chain class (which is now simply
+  called order)
 
 
 
