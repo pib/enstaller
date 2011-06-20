@@ -208,6 +208,8 @@ class Chain(object):
                         r.strictness < reqs_shallow[r.name].strictness):
                     continue
                 d = self.get_dist(r)
+                if d is None:
+                    sys.exit('Error: could not resolve %s' % r)
                 dists.add(d)
                 add_dependents(d)
 
