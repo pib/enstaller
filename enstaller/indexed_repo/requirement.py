@@ -116,10 +116,3 @@ def dist_as_req(dist, strictness=3):
     That is: What requirement gives me the distribution?
     """
     return filename_as_req(filename_dist(dist), strictness)
-
-
-def filter_name(reqs, name):
-    """
-    from the requirements 'reqs', filter those for project 'name'
-    """
-    return set(r for r in reqs if r.name == name)

@@ -162,11 +162,11 @@ class TestReq(unittest.TestCase):
         self.assertEqual(Reqs, set([Req('numpy 1.3.0')]))
 
 
-class TestChain(unittest.TestCase):
+class TestChain1(unittest.TestCase):
 
     repos = {None: None}
     c = Chain(verbose=0)
-    for name in ('epd', 'gpl'):
+    for name in 'epd', 'gpl':
         repo = 'file://%s/%s/' % (abspath(dirname(__file__)), name)
         c.add_repo(repo, 'index-7.1.txt')
         repos[name] = repo
@@ -201,25 +201,50 @@ class TestChain(unittest.TestCase):
                               Req('numpy'),
                               Req('pysparse 1.2.dev203')]))
 
-    def test_order0(self):
-        self.assertEqual(self.c.install_order(Req('numpy 1.5.1'),
-                                              recur=False),
+    def test_order_single(self):
+        self.assertEqual(self.c.order(Req('numpy 1.5.1'), mode='single'),
                          [self.repos['epd'] + 'numpy-1.5.1-2.egg'])
 
-        self.assertEqual(self.c.install_order(Req('numpy 1.5.1-1'),
-                                              recur=False),
+        self.assertEqual(self.c.order(Req('numpy 1.5.1-1'), mode='single'),
                          [self.repos['epd'] + 'numpy-1.5.1-1.egg'])
 
     def test_order1(self):
-        self.assertEqual(self.c.install_order(Req('numpy')),
+        self.assertEqual(self.c.order(Req('numpy')),
                          [self.repos['epd'] + egg for egg in
                           'MKL-10.3-1.egg', 'numpy-1.6.0-3.egg'])
 
     def test_order2(self):
-        self.assertEqual(self.c.install_order(Req('scipy')),
+        self.assertEqual(self.c.order(Req('scipy')),
                          [self.repos['epd'] + egg for egg in
                           'MKL-10.3-1.egg', 'numpy-1.5.1-2.egg',
                           'scipy-0.9.0-1.egg'])
+
+
+class TestChain2(unittest.TestCase):
+
+    repos = {}
+    c = Chain(verbose=0)
+    for name in 'open', 'runner', 'epd':
+        repo = 'file://%s/%s/' % (abspath(dirname(__file__)), name)
+        c.add_repo(repo, 'index-7.1.txt')
+        repos[name] = repo
+
+    def test_flat_recur1(self):
+        d1 = self.c.order(Req('openepd'), mode='flat')
+        d2 = self.c.order(Req('openepd'), mode='recur')
+        self.assertEqual(d1, d2)
+        d3 = self.c.order(Req('foo'), mode='recur')
+        self.assertEqual(d2[:-1], d3[:-1])
+
+    def test_flat_recur2(self):
+        for rs in 'epd 7.0', 'epd 7.0-1', 'epd 7.0-2':
+            d1 = self.c.order(Req(rs), mode='flat')
+            d2 = self.c.order(Req(rs), mode='recur')
+            self.assertEqual(d1, d2)
+
+    def test_multiple_reqs(self):
+        lst = self.c.order(Req('ets'))
+        self.assert_(self.repos['epd'] + 'numpy-1.5.1-2.egg' in lst)
 
 
 if __name__ == '__main__':
