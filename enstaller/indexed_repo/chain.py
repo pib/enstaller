@@ -195,6 +195,24 @@ class Chain(object):
         return result
 
 
+    def order_flat(self, root):
+        dists = [self.get_dist(r) for r in self.reqs_dist(root)]
+        dists.append(root)
+
+        cnames = set(self.cname_dist(d) for d in dists)
+        can_order = True
+        for dist in dists:
+            for r in self.reqs_dist(dist):
+                if r.name not in cnames:
+                    can_order = False
+        if self.verbose:
+            print "Can determine install order:", can_order
+        if can_order:
+            dists = self.determine_install_order(dists)
+
+        return dists
+
+
     def order_recur(self, root):
         reqs_shallow = {}
         for r in self.reqs_dist(root):
@@ -258,21 +276,7 @@ class Chain(object):
             return [root]
 
         if mode == 'flat':
-            dists = [self.get_dist(r) for r in self.reqs_dist(root)]
-            dists.append(root)
-
-            cnames = set(self.cname_dist(d) for d in dists)
-            can_order = True
-            for dist in dists:
-                for r in self.reqs_dist(dist):
-                    if r.name not in cnames:
-                        can_order = False
-            if self.verbose:
-                print "Can determine install order:", can_order
-            if can_order:
-                dists = self.determine_install_order(dists)
-
-            return dists
+            return self.order_flat(root)
 
         if mode == 'recur':
             return self.order_recur(root)
