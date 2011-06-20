@@ -196,15 +196,13 @@ class Chain(object):
         return result
 
 
-    def handle_multiple_dists(self, dists):
-        assert hasattr(self, '_reqs_deep')
-
-        cnames = set(self.cname_dist(d) for d in dists)
-        if len(dists) == len(cnames):
-            return dists
+    def handle_multiple_dists(self):
+        cnames = set(self.cname_dist(d) for d in self._dists)
+        if len(self._dists) == len(cnames):
+            return
 
         for cname in cnames:
-            ds = [d for d in dists if self.cname_dist(d) == cname]
+            ds = [d for d in self._dists if self.cname_dist(d) == cname]
             assert len(ds) != 0
             if len(ds) == 1:
                 continue
@@ -215,11 +213,9 @@ class Chain(object):
             r = max(self._reqs_deep[cname],
                     key=lambda r:r.strictness)
             assert r.name == cname
-            dists = [d for d in dists
-                     if self.cname_dist(d) != cname]
-            dists.append(self.get_dist(r))
-
-        return dists
+            self._dists = [d for d in self._dists
+                           if self.cname_dist(d) != cname]
+            self._dists.append(self.get_dist(r))
 
 
     def add_dependents(self, dist):
@@ -229,7 +225,7 @@ class Chain(object):
                     r.strictness < self._reqs[r.name].strictness):
                 continue
             d = self.get_dist(r)
-            self._result.add(d)
+            self._dists.add(d)
             self.add_dependents(d)
 
 
@@ -260,10 +256,10 @@ class Chain(object):
         if mode == 'recur':
             self._reqs = {r.name: r for r in self.reqs_dist(dist_required)}
             self._reqs_deep = defaultdict(set)
-            self._result = set([dist_required])
+            self._dists = set([dist_required])
             self.add_dependents(dist_required)
-            x = self.handle_multiple_dists(self._result)
-            return self.determine_install_order(x)
+            self.handle_multiple_dists()
+            return self.determine_install_order(self._dists)
         raise Exception('did not expect mode: %r' % mode)
 
     # ---------------------------------------------------------------- old
