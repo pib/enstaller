@@ -385,6 +385,7 @@ class Chain(object):
         z.close()
         add_Reqs_to_spec(spec)
         self.index[dist] = spec
+        self.groups[spec['cname']].append(dist)
 
 
     def index_all_files(self, repo):
