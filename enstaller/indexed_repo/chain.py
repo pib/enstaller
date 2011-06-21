@@ -152,6 +152,20 @@ class Chain(object):
         return self.index[dist]['cname']
 
 
+    def are_complete(self, dists):
+        """
+        return True if the distributions 'dists' are complete, i.e. the for
+        each distribution all dependencies (by name only) are also included
+        in the 'dists'
+        """
+        cnames = set(self.cname_dist(d) for d in dists)
+        for dist in dists:
+            for r in self.reqs_dist(dist):
+                if r.name not in cnames:
+                    return False
+        return True
+
+
     def determine_install_order(self, dists):
         """
         given the distributions 'dists' (which are already complete, i.e.
@@ -160,6 +174,8 @@ class Chain(object):
         install order
         """
         dists = list(dists)
+        assert self.are_complete(dists)
+
         # make sure each project name is listed only once
         assert len(dists) == len(set(self.cname_dist(d) for d in dists))
 
@@ -189,11 +205,8 @@ class Chain(object):
 
             if len(result) == n:
                 # nothing was added
-                raise Exception(
-                    "Loop in dependency graph or incomplete "
-                    "distributions:\n%r" %
-                    [dist_naming.filename_dist(d) for d in dists])
-
+                raise Exception("Loop in dependency graph\n%r" %
+                                [dist_naming.filename_dist(d) for d in dists])
         return result
 
 
@@ -205,17 +218,11 @@ class Chain(object):
                 sys.exit('Error: could not resolve %r' % r)
             dists.append(d)
 
-        cnames = set(self.cname_dist(d) for d in dists)
-        can_order = True
-        for dist in dists:
-            for r in self.reqs_dist(dist):
-                if r.name not in cnames:
-                    can_order = False
+        can_order = self.are_complete(dists)
         if self.verbose:
             print "Can determine install order:", can_order
         if can_order:
             dists = self.determine_install_order(dists)
-
         return dists
 
 
@@ -248,7 +255,7 @@ class Chain(object):
                 if len(ds) == 1:
                     continue
                 if self.verbose:
-                    print 'mutiple: %s' % cname
+                    print 'multiple: %s' % cname
                     for d in ds:
                         print '    %s' % d
                 r = max(reqs_deep[cname], key=lambda r: r.strictness)
