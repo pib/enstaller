@@ -195,7 +195,7 @@ class Chain(object):
         return result
 
 
-    def order_flat(self, root):
+    def _sequence_flat(self, root):
         dists = [root]
         for r in self.reqs_dist(root):
             d = self.get_dist(r)
@@ -217,7 +217,7 @@ class Chain(object):
         return dists
 
 
-    def order_recur(self, root):
+    def _sequence_recur(self, root):
         reqs_shallow = {}
         for r in self.reqs_dist(root):
             reqs_shallow[r.name] = r
@@ -257,18 +257,18 @@ class Chain(object):
         return self.determine_install_order(dists)
 
 
-    def order(self, req, mode='recur'):
+    def install_sequence(self, req, mode='recur'):
         """
         Return the list of distributions which need to be installed.
         The returned list is given in dependency order.
         The 'mode' may be:
 
-        'single':  only the distribution for the requirement itself is
-                   contained in the result (but not any dependencies)
+        'root':  only the distribution for the requirement itself is
+                 contained in the result (but not any dependencies)
 
-        'flat':    dependencies are handled only one level deep
+        'flat':  dependencies are handled only one level deep
 
-        'recur':   dependencies are handled recursively (default)
+        'recur': dependencies are handled recursively (default)
         """
         if self.verbose:
             print "Determining install order for %r" % req
@@ -276,14 +276,14 @@ class Chain(object):
         if root is None:
             return None
 
-        if mode =='single':
+        if mode == 'root':
             return [root]
 
         if mode == 'flat':
-            return self.order_flat(root)
+            return self._sequence_flat(root)
 
         if mode == 'recur':
-            return self.order_recur(root)
+            return self._sequence_recur(root)
 
         raise Exception('did not expect: mode = %r' % mode)
 

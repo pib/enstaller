@@ -4,8 +4,8 @@
 
 * add --sys-config option to enpkg
 
-* rewrote install_order method in Chain class (which is now simply
-  called order)
+* rewrote install_order method in Chain class (which is now called
+  install_sequence)
 
 
 

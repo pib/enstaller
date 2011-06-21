@@ -20,4 +20,4 @@ for name in ('runner', 'epd'):
 
 
 req = Req(' '.join(sys.argv[1:]))
-show(c.order(req))
+show(c.install_sequence(req))

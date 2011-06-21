@@ -400,7 +400,7 @@ def get_dists(c, req, recur):
     """
     Resolves the requirement
     """
-    dists = c.order(req)
+    dists = c.install_sequence(req)
     if dists is None:
         print "No distribution found for requirement '%s'." % req
         versions = c.list_versions(req.name)
