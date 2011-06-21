@@ -146,6 +146,9 @@ class Chain(object):
 
 
     def cname_dist(self, dist):
+        """
+        return the canonical project name for a given distribution
+        """
         return self.index[dist]['cname']
 
 
@@ -158,8 +161,7 @@ class Chain(object):
         """
         dists = list(dists)
         # make sure each project name is listed only once
-        assert len(dists) == len(set(self.cname_dist(d) for d in dists)), \
-                                                                      dists
+        assert len(dists) == len(set(self.cname_dist(d) for d in dists))
 
         # the distributions corresponding to the requirements must be sorted
         # because the output of this function is otherwise not deterministic

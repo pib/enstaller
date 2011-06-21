@@ -6,8 +6,10 @@ from enstaller.indexed_repo.requirement import Req
 
 
 
-
 def show(dists):
+    if dists is None:
+        print 'none'
+        return
     for d in dists:
         print d
     print
@@ -20,4 +22,4 @@ for name in ('runner', 'epd'):
 
 
 req = Req(' '.join(sys.argv[1:]))
-show(c.install_sequence(req))
+show(c.install_sequence(req, 'flat'))

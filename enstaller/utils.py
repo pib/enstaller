@@ -20,8 +20,10 @@ def abs_expanduser(path):
 
 def canonical(s):
     """
-    Return the canonical representations of a project name.
+    return the canonical representations of a project name
     """
+    # eventually (once Python 2.6 repo eggs are no longer supported), this
+    # function should only return s.lower()
     s = s.lower()
     s = s.replace('-', '_')
     if s == 'tables':
