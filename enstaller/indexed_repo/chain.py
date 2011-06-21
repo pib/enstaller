@@ -280,7 +280,7 @@ class Chain(object):
         'recur': dependencies are handled recursively (default)
         """
         if self.verbose:
-            print "Determining install order for %r" % req
+            print "Determining install sequence for %r" % req
         root = self.get_dist(req)
         if root is None:
             return None
@@ -363,12 +363,6 @@ class Chain(object):
         os.rename(dst + '.part', dst)
 
 
-    def dirname_repo(self, repo):
-        if repo.startswith('file://'):
-            return repo[7:].rstrip(r'\/')
-        return None
-
-
     def index_file(self, filename, repo):
         """
         Add an unindexed distribution, which must already exist in a local
@@ -381,7 +375,7 @@ class Chain(object):
             print "Adding %r to index" % dist
 
         arcname = 'EGG-INFO/spec/depend'
-        z = zipfile.ZipFile(join(self.dirname_repo(repo), filename))
+        z = zipfile.ZipFile(join(dist_naming.dirname_repo(repo), filename))
         if arcname not in z.namelist():
             z.close()
             raise Exception("zipfile %r has no arcname=%r" %
@@ -398,7 +392,7 @@ class Chain(object):
         Add all distributions to the index, see index_file() above.
         Note that no index file is written to disk.
         """
-        dir_path = self.dirname_repo(repo)
+        dir_path = dist_naming.dirname_repo(repo)
         assert isdir(dir_path), dir_path
         for fn in os.listdir(dir_path):
             if not fn.endswith('.egg'):

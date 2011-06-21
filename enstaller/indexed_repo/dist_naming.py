@@ -70,6 +70,12 @@ def split_eggname(eggname):
     return m.group(1), m.group(2), int(m.group(3))
 
 
+def dirname_repo(repo):
+    if repo.startswith('file://'):
+        return repo[7:].rstrip(r'\/')
+    return None
+
+
 def cleanup_reponame(repo):
     """
     Make sure a given repo string, i.e. a string specifying a repository,
