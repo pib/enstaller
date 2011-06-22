@@ -160,7 +160,8 @@ def get_status():
 
 def egginst_remove(pkg):
     fn = basename(pkg)
-    if sys.platform == 'win32' and fn.startswith(('AppInst-', 'pywin32-')):
+    if (sys.platform == 'win32'  and
+            fn.lower().startswith(('appinst-', 'pywin32-'))):
         print "Starting subprocess:"
         egginst_subprocess(pkg, remove=True)
         return
@@ -174,7 +175,8 @@ def egginst_remove(pkg):
 def egginst_install(conf, dist):
     repo, fn = dist_naming.split_dist(dist)
     pkg_path = join(conf['local'], fn)
-    if sys.platform == 'win32' and fn.startswith(('AppInst-', 'pywin32-')):
+    if (sys.platform == 'win32'  and
+            fn.lower().startswith(('appinst-', 'pywin32-'))):
         print "Starting subprocess:"
         egginst_subprocess(pkg_path, remove=False)
         return
