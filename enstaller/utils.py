@@ -104,7 +104,7 @@ def open_with_auth(url):
         request.add_header("Authorization", "Basic " + auth)
     else:
         request = urllib2.Request(url)
-    request.add_header('User-Agent', 'Enstaller/%s' % __version__)
+    request.add_header('User-Agent', 'enstaller/%s' % __version__)
     return urllib2.urlopen(request)
 
 

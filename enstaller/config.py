@@ -37,7 +37,7 @@ def get_path():
 def input_auth():
     from getpass import getpass
     print """\
-Welcome to Enstaller (version %s)!
+Welcome to enstaller (version %s)!
 
 In order to access the EPD repository, please enter your
 username and password, which you use to subscribe to EPD.
@@ -55,11 +55,11 @@ If you are not subscribed to EPD, just hit Return.
     return None
 
 RC_TMPL = """\
-# Enstaller configuration file
+# enstaller configuration file
 # ============================
 #
 # This file contains the default package repositories, and configuration,
-# used by Enstaller %(version)s for the Python %(py_ver)s environment:
+# used by enstaller %(version)s for the Python %(py_ver)s environment:
 #
 #   sys.prefix = %(sys_prefix)r
 #
@@ -228,7 +228,7 @@ def read():
 
 def print_config():
     print "Python version:", PY_VER
-    print "Enstaller version:", __version__
+    print "enstaller version:", __version__
     print "sys.prefix:", sys.prefix
     print "platform:", platform.platform()
     print "architecture:", platform.architecture()[0]

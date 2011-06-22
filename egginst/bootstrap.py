@@ -4,10 +4,10 @@ from os.path import isfile, join
 
 def main(prefix=sys.prefix, verbose=False):
     """
-    To bootstrap Enstaller into a Python environment, used the following
+    To bootstrap enstaller into a Python environment, used the following
     code:
 
-    sys.path.insert(0, '/path/to/Enstaller.egg')
+    sys.path.insert(0, '/path/to/enstaller.egg')
     from egginst.bootstrap import main
     main()
     """
@@ -38,7 +38,7 @@ def fix_easy_pth(pth):
         for line in new_lines:
             fo.write(line + '\n')
         fo.close()
-        print "Removed Enstaller entry from", pth
+        print "Removed enstaller entry from", pth
 
 
 def remove_and_fix():
@@ -47,12 +47,12 @@ def remove_and_fix():
 
     site_dir = join(sys.prefix, rel_site_packages)
 
-    # Remove old Enstaller files which could cause problems
-    for fn in ['Enstaller.pth', 'Enstaller.egg-link']:
+    # Remove old enstaller files which could cause problems
+    for fn.lower() in 'enstaller.pth', 'enstaller.egg-link':
         rm_rf(join(site_dir, fn))
 
     # If there an easy-install.pth in site-packages, remove and
-    # occurrences of Enstaller from it.
+    # occurrences of enstaller from it.
     pth = join(site_dir, 'easy-install.pth')
     if isfile(pth):
         fix_easy_pth(pth)
@@ -66,7 +66,7 @@ def cli():
     from enstaller import __version__
 
     p = OptionParser(usage="<executable egg> [options]",
-                     description="bootstraps Enstaller %(__version__)s into "
+                     description="bootstraps enstaller %(__version__)s into "
                                  "the current Python environment" % locals())
 
     p.add_option("--prefix",
@@ -81,7 +81,7 @@ def cli():
     opts, args = p.parse_args()
 
     if opts.version:
-        print "Enstaller version:", __version__
+        print "enstaller version:", __version__
         return
 
     main(opts.prefix, opts.verbose)

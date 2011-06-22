@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script to build the self-bootstraping, indexable Enstaller egg.
+# Script to build the self-bootstraping, indexable enstaller egg.
 # The resulting egg is executable, but only on systems which have
 # bash installed.
 
@@ -9,11 +9,11 @@
 VER=4.4.0
 PY=2.7
 
-SPEC=Enstaller.egg-info/spec
+SPEC=enstaller.egg-info/spec
 mkdir -p $SPEC
 sed -e "s/_VER_/$VER/" -e "s/_PY_/$PY/" <<EOF >$SPEC/depend
 metadata_version = '1.1'
-name = 'Enstaller'
+name = 'enstaller'
 version = '_VER_'
 build = 1
 
@@ -25,7 +25,7 @@ packages = []
 EOF
 
 
-EGG=dist/Enstaller-$VER-1.egg
+EGG=dist/enstaller-$VER-1.egg
 rm -rf build dist
 python$PY setup.py bdist_egg
 sed -e "s/_PY_/$PY/" <<EOF >tmp.sh
@@ -33,8 +33,8 @@ sed -e "s/_PY_/$PY/" <<EOF >tmp.sh
 python_PY_ -c "import sys, os; sys.path.insert(0, os.path.abspath('\$0')); from egginst.bootstrap import cli; cli()" "\$@"
 exit 0
 EOF
-cat tmp.sh dist/Enstaller-*-py*.egg >$EGG
-rm -f tmp.sh dist/Enstaller-*-py*.egg
+cat tmp.sh dist/enstaller-*-py*.egg >$EGG
+rm -f tmp.sh dist/enstaller-*-py*.egg
 chmod +x $EGG
 
 # egginfo --sd $EGG

@@ -17,7 +17,7 @@ f.close()
 
 
 setup(
-    name="Enstaller",
+    name="enstaller",
     author="Enthought, Inc.",
     author_email="info@enthought.com",
     url = "https://github.com/enthought/enstaller",

@@ -549,7 +549,7 @@ def main():
 
     if opts.version:                              #  --version
         from enstaller import __version__
-        print "Enstaller version:", __version__
+        print "enstaller version:", __version__
         return
 
     if opts.sys_config:                           #  --sys-config
