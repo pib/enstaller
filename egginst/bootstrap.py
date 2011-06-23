@@ -47,10 +47,6 @@ def remove_and_fix():
 
     site_dir = join(sys.prefix, rel_site_packages)
 
-    # Remove old enstaller files which could cause problems
-    for fn.lower() in 'enstaller.pth', 'enstaller.egg-link':
-        rm_rf(join(site_dir, fn))
-
     # If there an easy-install.pth in site-packages, remove and
     # occurrences of enstaller from it.
     pth = join(site_dir, 'easy-install.pth')
