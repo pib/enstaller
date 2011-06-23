@@ -76,18 +76,13 @@ def open_with_auth(url):
     Open a urllib2 request, handling HTTP authentication
     """
     import enstaller.config as config
-    try:
-        import custom_tools
-    except ImportError:
-        custom_tools = None
 
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
     assert not query
     auth, host = urllib2.splituser(netloc)
     if auth:
         auth = urllib2.unquote(auth).encode('base64').strip()
-    elif (custom_tools and hasattr(custom_tools, 'epd_baseurl') and
-                           url.startswith(custom_tools.epd_baseurl)):
+    elif 'enthought.com' in url:
         conf = config.read()
         if conf is None:
             sys.exit("Error: config file '.enstaller4rc' not found")
