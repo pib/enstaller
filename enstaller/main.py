@@ -410,8 +410,10 @@ def get_dists(c, req, recur):
             print "Versions for package %r are: %s" % (req.name,
                                                        ', '.join(versions))
         else:
-            print
-            print "You may want to run: easy_install %s" % req.name
+            print """
+If you haven't already, checkout the Enthought Python Distribution, which
+supports many more packages: http://www.enthought.com/products/epd.php
+"""
         sys.exit(1)
 
     if verbose:
