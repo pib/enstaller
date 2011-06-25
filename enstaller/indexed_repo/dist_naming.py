@@ -100,7 +100,7 @@ def cleanup_reponame(repo):
         return cleanup_reponame('file://' + abs_expanduser(repo))
 
     else:
-        raise Exception("Invalid repo string: %r" % repo)
+        raise Exception("Invalid repo string or non-existing file: %r" % repo)
 
     return repo
 
