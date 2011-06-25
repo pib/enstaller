@@ -38,8 +38,9 @@ def split_dist(dist):
 
     file:///usr/local/repo/
     file://E:\eggs\
-    http://www.enthought.com/repo/EPD/eggs/Windows/x86/
-    http://username:password@www.enthought.com/repo/EPD/eggs/Windows/x86/
+    http://download.enthought.com/pypieggs/Windows/amd64/
+    https://www.enthought.com/repo/epd/eggs/Windows/x86/
+    https://username:password@www.enthought.com/repo/epd/eggs/Windows/x86/
 
     Note that, since we always have dist = repo + filename, the file:// repo
     name has to end with a forward slash (backslash on Windows), and the

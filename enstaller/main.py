@@ -180,11 +180,9 @@ def egginst_install(conf, dist):
         print "Starting subprocess:"
         egginst_subprocess(pkg_path, remove=False)
         return
-
     pprint_fn_action(fn, 'installing')
     if dry_run:
         return
-
     ei = egginst.EggInst(pkg_path, prefix, noapp=noapp)
     ei.install()
     info = get_installed_info(prefix, cname_fn(fn))
