@@ -10,9 +10,8 @@ import sys
 import string
 import subprocess
 import textwrap
-import time
 from collections import defaultdict
-from os.path import basename, getmtime, isdir, isfile, join
+from os.path import basename, isdir, isfile, join
 from optparse import OptionParser
 
 import egginst
@@ -21,7 +20,7 @@ from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 import config
 from proxy.api import setup_proxy
 from utils import (canonical, cname_fn, get_info, comparable_version,
-                   get_available)
+                   shorten_repo, get_installed_info, get_available)
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
                           parse_data, dist_naming)
 
@@ -73,42 +72,6 @@ def egginst_subprocess(pkg_path, remove):
     subprocess.call(args)
 
 
-repo_pat = re.compile(r'/repo/([^\s/]+/[^\s/]+)/')
-def shorten_repo(repo):
-    m = repo_pat.search(repo)
-    if m:
-        return m.group(1)
-    else:
-        return repo.replace('http://', '').replace('.enthought.com', '')
-
-
-def get_installed_info(prefix, cname):
-    """
-    return a dictionary with information about the package specified by the
-    canonical name found in prefix, or None if the package is not found
-    """
-    meta_dir = join(prefix, 'EGG-INFO', cname)
-    meta_txt = join(meta_dir, '__egginst__.txt')
-    if not isfile(meta_txt):
-        return None
-
-    d = {}
-    execfile(meta_txt, d)
-    res = {}
-    res['egg_name'] = d['egg_name']
-    res['name'], res['version'] = egginst.name_version_fn(d['egg_name'])
-    res['mtime'] = time.ctime(getmtime(meta_txt))
-    res['meta_dir'] = meta_dir
-
-    meta2_txt = join(meta_dir, '__enpkg__.txt')
-    if isfile(meta2_txt):
-        d = {}
-        execfile(meta2_txt, d)
-        res['repo'] = shorten_repo(d['repo'])
-
-    return res
-
-
 def get_status():
     # the result is a dict mapping cname to ...
     res = {}
@@ -155,7 +118,6 @@ def get_status():
         else:                                # not installed
             if d['a-egg']:
                 d['status'] = 'installable'
-
     return res
 
 
@@ -422,14 +384,14 @@ def get_dists(c, req, mode):
         info = get_installed_info(prefix, req.name)
         if info:
             print "%(egg_name)s was installed on: %(mtime)s" % info
-        else:
-            check_available(req.name)             
+        elif 'EPD_free' in sys.version:
+            check_available(req.name)
         sys.exit(1)
 
     if verbose:
         print "Distributions in install order:"
         for d in dists:
-            print '    ', d
+            print '    ' + d
     return dists
 
 

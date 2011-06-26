@@ -1,11 +1,14 @@
 import bz2
+import re
 import sys
+import time
 import hashlib
 import urlparse
 import urllib2
 from cStringIO import StringIO
-from os.path import abspath, expanduser
+from os.path import abspath, expanduser, getmtime, isfile, join
 
+from egginst import name_version_fn
 from egginst.utils import human_bytes
 from enstaller import __version__
 from enstaller.verlib import NormalizedVersion, IrrationalVersionError
@@ -161,6 +164,42 @@ def write_data_from_url(fo, url, md5=None, size=None):
                          "is corrupted.  MD5 sums mismatch.\n" % url)
         fo.close()
         sys.exit(1)
+
+# -----------------------------------------------------------------
+
+repo_pat = re.compile(r'/repo/([^\s/]+/[^\s/]+)/')
+def shorten_repo(repo):
+    m = repo_pat.search(repo)
+    if m:
+        return m.group(1)
+    else:
+        return repo.replace('http://', '').replace('.enthought.com', '')
+
+
+def get_installed_info(prefix, cname):
+    """
+    return a dictionary with information about the package specified by the
+    canonical name found in prefix, or None if the package is not found
+    """
+    meta_dir = join(prefix, 'EGG-INFO', cname)
+    meta_txt = join(meta_dir, '__egginst__.txt')
+    if not isfile(meta_txt):
+        return None
+
+    d = {}
+    execfile(meta_txt, d)
+    res = {}
+    res['egg_name'] = d['egg_name']
+    res['name'], res['version'] = name_version_fn(d['egg_name'])
+    res['mtime'] = time.ctime(getmtime(meta_txt))
+    res['meta_dir'] = meta_dir
+
+    meta2_txt = join(meta_dir, '__enpkg__.txt')
+    if isfile(meta2_txt):
+        d = {}
+        execfile(meta2_txt, d)
+        res['repo'] = shorten_repo(d['repo'])
+    return res
 
 
 def get_info(url):
