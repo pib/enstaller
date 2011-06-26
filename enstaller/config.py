@@ -27,10 +27,8 @@ def get_path():
     """
     if isfile(HOME_CONFIG_PATH):
         return HOME_CONFIG_PATH
-
     if isfile(SYSTEM_CONFIG_PATH):
         return SYSTEM_CONFIG_PATH
-
     return None
 
 
@@ -113,8 +111,8 @@ def write(proxy=None):
     except ImportError:
         custom_tools = None
 
-    # If user is 'root', then create the config file in the system
-    # site-packages.  Otherwise, create it in the user's HOME directory.
+    # If user is 'root', then always create the config file in sys.prefix,
+    # otherwise in the user's HOME directory.
     if sys.platform != 'win32' and os.getuid() == 0:
         path = SYSTEM_CONFIG_PATH
     else:
