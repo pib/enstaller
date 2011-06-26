@@ -16,6 +16,8 @@ config_fn = ".enstaller4rc"
 home_config_path = abs_expanduser("~/" + config_fn)
 system_config_path = join(sys.prefix, config_fn)
 
+pypi_url = 'http://www.enthought.com/repo/pypi/eggs/'
+
 default = dict(
     info_url=None,
     prefix=sys.prefix,
@@ -24,8 +26,7 @@ default = dict(
     local=join(sys.prefix, 'LOCAL-REPO'),
     EPD_auth=None,
     EPD_userpass=None,
-    IndexedRepos=['http://www.enthought.com/repo/pypi/eggs/%s/' %
-                  plat.subdir],
+    IndexedRepos=[pypi_url + plat.subdir + '/'],
 )
 
 

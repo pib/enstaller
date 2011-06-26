@@ -20,7 +20,8 @@ from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
 from proxy.api import setup_proxy
-from utils import canonical, cname_fn, get_info, comparable_version
+from utils import (canonical, cname_fn, get_info, comparable_version,
+                   get_available)
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
                           parse_data, dist_naming)
 
@@ -395,6 +396,18 @@ def remove_req(req):
     egginst_remove(pkg)
 
 
+def check_available(cname):
+    import plat
+    url = '%savailable/%s.txt' % (config.pypi_url, plat.custom_plat)
+    avail = get_available(url)
+    if cname in avail:
+        print """
+But wait, %r is available in the EPD subscriber repository!
+Would you like to go to 'http://www.enthought.com/products/epd.php'
+to subscribe?
+""" % cname
+
+
 def get_dists(c, req, mode):
     """
     resolve the requirement
@@ -410,10 +423,7 @@ def get_dists(c, req, mode):
         if info:
             print "%(egg_name)s was installed on: %(mtime)s" % info
         else:
-            print """
-If you haven't already, checkout the Enthought Python Distribution, which
-supports many more packages: http://www.enthought.com/products/epd.php
-"""            
+            check_available(req.name)             
         sys.exit(1)
 
     if verbose:
