@@ -309,15 +309,15 @@ def remove_req(req):
 
 
 def check_available(cname):
-    import plat
-    url = '%savailable/%s.txt' % (config.pypi_url, plat.custom_plat)
-    avail = get_available(url)
-    if cname in avail:
-        print """
+    avail = get_available()
+    if cname not in avail:
+        return
+    print """
 But wait, %r is available in the EPD subscriber repository!
 Would you like to go to 'http://www.enthought.com/products/epd.php'
 to subscribe?
 """ % cname
+    # XXX
 
 
 def get_dists(c, req, mode):
@@ -325,24 +325,24 @@ def get_dists(c, req, mode):
     resolve the requirement
     """
     dists = c.install_sequence(req, mode)
-    if dists is None:
-        print "No distribution found for requirement '%s'." % req
-        versions = c.list_versions(req.name)
-        if versions:
-            print "Versions for package %r are: %s" % (req.name,
-                                                       ', '.join(versions))
-        info = get_installed_info(prefix, req.name)
-        if info:
-            print "%(egg_name)s was installed on: %(mtime)s" % info
-        elif 'EPD_free' in sys.version:
-            check_available(req.name)
-        sys.exit(1)
+    if dists:
+        if verbose:
+            print "Distributions in install sequence:"
+            for d in dists:
+                print '    ' + d
+        return dists
 
-    if verbose:
-        print "Distributions in install order:"
-        for d in dists:
-            print '    ' + d
-    return dists
+    print "No distribution found for requirement '%s'." % req
+    versions = c.list_versions(req.name)
+    if versions:
+        print "Versions for package %r are: %s" % (req.name,
+                                                   ', '.join(versions))
+    info = get_installed_info(prefix, req.name)
+    if info:
+        print "%(egg_name)s was installed on: %(mtime)s" % info
+    elif 'EPD_free' in sys.version:
+        check_available(req.name)
+    sys.exit(1)
 
 
 def add_url(conf, url):

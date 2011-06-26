@@ -230,11 +230,15 @@ def get_info(url):
     return res
 
 
-def get_available(url):
+def get_available():
     """
     return a dict mapping canonical project names to versions which
     are available in the subscriber repositories
     """
+    import plat
+    import config
+
+    url = '%savailable/%s.txt' % (config.pypi_url, plat.custom_plat)
     faux = StringIO()
     write_data_from_url(faux, url)
     data = faux.getvalue()
