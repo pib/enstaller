@@ -128,7 +128,7 @@ def write(proxy=None):
     else:
         path = home_config_path
 
-    if (custom_tools and hasattr(custom_tools, 'repo_section')):
+    if custom_tools and hasattr(custom_tools, 'repo_section'):
         auth = input_auth()
     else:
         auth = None

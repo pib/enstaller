@@ -172,7 +172,8 @@ def shorten_repo(repo):
     if m:
         return m.group(1)
     else:
-        return repo.replace('http://', '').replace('.enthought.com', '')
+        res = repo.replace('http://', '').replace('https://', '')
+        return res.replace('.enthought.com', '')
 
 
 def get_installed_info(prefix, cname):
@@ -203,9 +204,9 @@ def get_installed_info(prefix, cname):
 
 def get_info():
     """
-    Returns a dict mapping canonical project names to spec structures
+    returns a dict mapping canonical project names to spec structures
     containing additional meta-data of the project which is not contained
-    in the index-depend data.
+    in the index-depend data
     """
     from indexed_repo.metadata import parse_index
     import config
