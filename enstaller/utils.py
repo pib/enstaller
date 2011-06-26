@@ -75,7 +75,7 @@ def open_with_auth(url):
     """
     Open a urllib2 request, handling HTTP authentication
     """
-    import enstaller.config as config
+    import config
     try:
         from custom_tools import auth_pat
     except ImportError:
@@ -87,9 +87,7 @@ def open_with_auth(url):
     if auth:
         auth = urllib2.unquote(auth).encode('base64').strip()
     elif auth_pat and auth_pat.match(url):
-        conf = config.read()
-        if conf is None:
-            sys.exit("Error: config file '.enstaller4rc' not found")
+        conf = config.get()
         auth = conf.get('EPD_auth')
         if auth is None:
             userpass = conf.get('EPD_userpass')

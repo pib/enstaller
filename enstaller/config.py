@@ -4,6 +4,7 @@
 import re
 import os
 import sys
+import platform
 from os.path import isfile, join
 
 from enstaller import __version__
@@ -15,7 +16,17 @@ config_fn = ".enstaller4rc"
 home_config_path = abs_expanduser("~/" + config_fn)
 system_config_path = join(sys.prefix, config_fn)
 
-pypi_url = 'http://www.enthought.com/repo/pypi/eggs/%s/'
+default = dict(
+    info_url=None,
+    prefix=sys.prefix,
+    proxy=None,
+    noapp=False,
+    local=join(sys.prefix, 'LOCAL-REPO'),
+    EPD_auth=None,
+    EPD_userpass=None,
+    IndexedRepos=['http://www.enthought.com/repo/pypi/eggs/%s/' %
+                  plat.subdir],
+)
 
 
 def get_path():
@@ -191,23 +202,16 @@ def arch_filled_url(url):
 
 def read():
     """
-    Return the current configuration as a dictionary, and fix some values and
-    give defaults.
+    return the configuration from the config file as a dictionary,
+    and fix some values and give defaults
     """
     if hasattr(read, 'cache'):
         return read.cache
 
     d = {}
     execfile(get_path(), d)
-    read.cache = dict( # defaults
-        info_url=None,
-        prefix=sys.prefix,
-        proxy=None,
-        noapp=False,
-        local=join(sys.prefix, 'LOCAL-REPO'),
-    )
-    for k in ['EPD_auth', 'EPD_userpass', 'IndexedRepos', 'info_url',
-              'prefix', 'proxy', 'noapp', 'local']:
+    read.cache = default
+    for k in default.iterkeys():
         if not d.has_key(k):
             continue
         v = d[k]
@@ -224,8 +228,8 @@ def read():
 def get(use_conf_file=True):
     if use_conf_file and get_path():
         return read()
-
-    return dict(IndexedRepos='%s%s/' % (pypi_url, plat.subdir))
+    else:
+        return default
 
 
 def print_config():
@@ -236,10 +240,8 @@ def print_config():
     print "architecture:", platform.architecture()[0]
     cfg_path = get_path()
     print "config file:", cfg_path
-    if cfg_path is None:
-        return
-    conf = read()
     print
+    conf = get()
     print "config file setting:"
     for k in ['info_url', 'prefix', 'local', 'noapp', 'proxy']:
         print "    %s = %r" % (k, conf[k])

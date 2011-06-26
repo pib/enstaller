@@ -119,7 +119,7 @@ def get_status():
         d.update(info)
         res[cname] = d
 
-    conf = config.read()
+    conf = config.get()
     c = Chain(conf['IndexedRepos'])
 
     for cname in c.groups.iterkeys():
@@ -553,7 +553,7 @@ def main():
         return
 
     if opts.sys_config:                           #  --sys-config
-        config.get_path = lambda: config.SYSTEM_CONFIG_PATH
+        config.get_path = lambda: config.system_config_path
 
     if opts.config:                               #  --config
         config.print_config()
@@ -563,11 +563,11 @@ def main():
         config.change_auth()
         return
 
-    if config.get_path() is None:
-        # create config file if it dosn't exist
-        config.write(opts.proxy)
+    #if config.get_path() is None:
+    #    # create config file if it dosn't exist
+    #    config.write(opts.proxy)
 
-    conf = config.read()                          #  conf
+    conf = config.get()                           #  conf
 
     if opts.proxy:                                #  --proxy
         setup_proxy(opts.proxy)
@@ -685,6 +685,6 @@ def main():
 
 
 if __name__ == '__main__':
-    #main()
-    for v in get_status().itervalues():
-        print '%(name)-20s %(version)16s %(a-ver)16s %(status)12s' % v
+    main()
+    #for v in get_status().itervalues():
+    #    print '%(name)-20s %(version)16s %(a-ver)16s %(status)12s' % v
