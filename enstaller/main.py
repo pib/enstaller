@@ -83,8 +83,8 @@ def shorten_repo(repo):
 
 def get_installed_info(prefix, cname):
     """
-    Returns a dictionary with information about the package specified by the
-    canonical name found in prefix, or None if the package is not found.
+    return a dictionary with information about the package specified by the
+    canonical name found in prefix, or None if the package is not found
     """
     meta_dir = join(prefix, 'EGG-INFO', cname)
     meta_txt = join(meta_dir, '__egginst__.txt')
@@ -406,11 +406,14 @@ def get_dists(c, req, mode):
         if versions:
             print "Versions for package %r are: %s" % (req.name,
                                                        ', '.join(versions))
+        info = get_installed_info(prefix, req.name)
+        if info:
+            print "%(egg_name)s was installed on: %(mtime)s" % info
         else:
             print """
 If you haven't already, checkout the Enthought Python Distribution, which
 supports many more packages: http://www.enthought.com/products/epd.php
-"""
+"""            
         sys.exit(1)
 
     if verbose:
