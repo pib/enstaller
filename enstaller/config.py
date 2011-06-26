@@ -17,8 +17,7 @@ home_config_path = abs_expanduser("~/" + config_fn)
 system_config_path = join(sys.prefix, config_fn)
 
 pypi_url = 'http://www.enthought.com/repo/pypi/eggs/'
-epd_url = 'http://www.enthought.com/epd/'
-info_url = epd_url + 'index-info.bz2'
+info_url = 'http://www.enthought.com/epd/index-info.bz2'
 
 default = dict(
     info_url=info_url,
@@ -211,13 +210,13 @@ def read():
     if hasattr(read, 'cache'):
         return read.cache
 
-    cfg_path = get_path()
+    path = get_path()
     read.cache = default
-    if cfg_path is None:
+    if path is None:
         return read()
 
     d = {}
-    execfile(cfg_path, d)
+    execfile(path, d)
     for k in default.iterkeys():
         if not d.has_key(k):
             continue

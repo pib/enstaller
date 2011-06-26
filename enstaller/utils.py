@@ -225,8 +225,8 @@ def get_info():
         exec data.replace('\r', '') in d
         cname = canonical(name)
         res[cname] = {}
-        for var_name in ['name', 'homepage', 'doclink', 'license',
-                         'summary', 'description']:
+        for var_name in ('name', 'homepage', 'doclink', 'license',
+                         'summary', 'description'):
             res[cname][var_name] = d[var_name]
     return res
 

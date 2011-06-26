@@ -19,8 +19,7 @@ def get_status():
         d.update(info)
         res[cname] = d
 
-    conf = config.get()
-    c = Chain(conf['IndexedRepos'])
+    c = Chain(config.get('IndexedRepos'))
 
     for cname in c.groups.iterkeys():
         dist = c.get_dist(Req(cname))
