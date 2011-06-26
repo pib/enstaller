@@ -136,22 +136,16 @@ def print_installed_info(cname):
         print "%(egg_name)s was installed in sys.prefix on: %(mtime)s" % info
 
 
-def info_option(url, c, cname):
-    if url:
-        info = get_info(url)
-        if cname in info:
-            spec = info[cname]
-            print "Name    :", spec['name']
-            print "License :", spec['license']
-            print "Summary :", spec['summary']
-            print
-            for line in textwrap.wrap(' '.join(spec['description'].split()),
-                                      77):
-                print line
-        else:
-            print "No information about %r in %r" % (cname, url)
-    else:
-        print "No 'info_url' in .enstaller4rc"
+def info_option(c, cname):
+    info = get_info()
+    if info and cname in info:
+        spec = info[cname]
+        print "Name    :", spec['name']
+        print "License :", spec['license']
+        print "Summary :", spec['summary']
+        print
+        for line in textwrap.wrap(' '.join(spec['description'].split()), 77):
+            print line
     print
     print "In repositories:"
     displayed = set()
@@ -533,7 +527,7 @@ def main():
     if opts.info:                                 #  --info
         if len(args) != 1:
             p.error("Option requires one argument (name of package)")
-        info_option(conf['info_url'], c, canonical(args[0]))
+        info_option(c, canonical(args[0]))
         return
 
     if opts.whats_new:                            # --whats-new

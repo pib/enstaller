@@ -202,14 +202,16 @@ def get_installed_info(prefix, cname):
     return res
 
 
-def get_info(url):
+def get_info():
     """
     Returns a dict mapping canonical project names to spec structures
     containing additional meta-data of the project which is not contained
     in the index-depend data.
     """
     from indexed_repo.metadata import parse_index
+    import config
 
+    url = config.get()['info_url']
     faux = StringIO()
     write_data_from_url(faux, url)
     index_data = faux.getvalue()
