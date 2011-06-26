@@ -90,10 +90,9 @@ def open_with_auth(url):
     if auth:
         auth = urllib2.unquote(auth).encode('base64').strip()
     elif auth_pat and auth_pat.match(url):
-        conf = config.get()
-        auth = conf.get('EPD_auth')
+        auth = config.get('EPD_auth')
         if auth is None:
-            userpass = conf.get('EPD_userpass')
+            userpass = config.get('EPD_userpass')
             if userpass:
                 auth = userpass.encode('base64').strip()
 
@@ -211,7 +210,7 @@ def get_info():
     from indexed_repo.metadata import parse_index
     import config
 
-    url = config.get()['info_url']
+    url = config.get('info_url')
     faux = StringIO()
     write_data_from_url(faux, url)
     index_data = faux.getvalue()

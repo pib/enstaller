@@ -27,7 +27,6 @@ from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
 # global options variables
 prefix = None
 dry_run = None
-noapp = None
 verbose = None
 
 
@@ -63,7 +62,7 @@ def egginst_subprocess(pkg_path, remove):
         args.append('--dry-run')
     if remove:
         args.append('--remove')
-    if noapp:
+    if config.get('noapp'):
         args.append('--noapp')
     args.append(pkg_path)
     if verbose:
@@ -81,13 +80,13 @@ def egginst_remove(pkg):
     pprint_fn_action(fn, 'removing')
     if dry_run:
         return
-    ei = egginst.EggInst(pkg, prefix, noapp=noapp)
+    ei = egginst.EggInst(pkg, prefix, noapp=config.get('noapp'))
     ei.remove()
 
 
-def egginst_install(conf, dist):
+def egginst_install(dist):
     repo, fn = dist_naming.split_dist(dist)
-    pkg_path = join(conf['local'], fn)
+    pkg_path = join(config.get('local'), fn)
     if (sys.platform == 'win32'  and
             fn.lower().startswith(('appinst-', 'pywin32-'))):
         print "Starting subprocess:"
@@ -96,7 +95,7 @@ def egginst_install(conf, dist):
     pprint_fn_action(fn, 'installing')
     if dry_run:
         return
-    ei = egginst.EggInst(pkg_path, prefix, noapp=noapp)
+    ei = egginst.EggInst(pkg_path, prefix, noapp=config.get('noapp'))
     ei.install()
     info = get_installed_info(prefix, cname_fn(fn))
     path = join(info['meta_dir'], '__enpkg__.txt')
@@ -339,13 +338,13 @@ def get_dists(c, req, mode):
     sys.exit(1)
 
 
-def add_url(conf, url):
+def add_url(url):
     url = dist_naming.cleanup_reponame(url)
 
     arch_url = config.arch_filled_url(url)
     Chain([arch_url], verbose)
 
-    if arch_url in conf['IndexedRepos']:
+    if arch_url in config.get('IndexedRepos'):
         print "Already configured:", url
         return
 
@@ -485,29 +484,26 @@ def main():
     #    # create config file if it dosn't exist
     #    config.write(opts.proxy)
 
-    conf = config.get()                           #  conf
-
     if opts.proxy:                                #  --proxy
         setup_proxy(opts.proxy)
-    elif conf['proxy']:
-        setup_proxy(conf['proxy'])
+    elif config.get('proxy'):
+        setup_proxy(config.get('proxy'))
     else:
         setup_proxy()
 
-    global prefix, dry_run, noapp, version, verbose    #  set globals
+    global prefix, dry_run, version, verbose    #  set globals
     if opts.sys_prefix:
         prefix = sys.prefix
     elif opts.prefix:
         prefix = opts.prefix
     else:
-        prefix = conf['prefix']
+        prefix = config.get('prefix')
     dry_run = opts.dry_run
-    noapp = conf['noapp']
     verbose = opts.verbose
     version = opts.version
 
     if opts.add_url:                              #  --add-url
-        add_url(conf, opts.add_url)
+        add_url(opts.add_url)
         return
 
     if opts.path:                                 #  --path
@@ -518,7 +514,7 @@ def main():
         list_option(pat)
         return
 
-    c = Chain(conf['IndexedRepos'], verbose)      #  init chain
+    c = Chain(config.get('IndexedRepos'), verbose)      #  init chain
 
     if opts.search:                               #  --search
         search(c, pat)
@@ -571,10 +567,10 @@ def main():
             exclude.discard(dist_naming.filename_dist(dists[-1]))
 
     # Fetch distributions
-    if not isdir(conf['local']):
-        os.makedirs(conf['local'])
+    if not isdir(config.get('local')):
+        os.makedirs(config.get('local'))
     for dist in iter_dists_excl(dists, exclude):
-        c.fetch_dist(dist, conf['local'],
+        c.fetch_dist(dist, config.get('local'),
                      check_md5=opts.force or opts.forceall,
                      dry_run=dry_run)
 
@@ -595,7 +591,7 @@ def main():
     installed_something = False
     for dist in iter_dists_excl(dists, exclude):
         installed_something = True
-        egginst_install(conf, dist)
+        egginst_install(dist)
 
     if not installed_something:
         print "No update necessary, %s is up-to-date." % req
