@@ -161,6 +161,10 @@ EPD_auth = %r
     fo.close()
     print "Wrote configuration file:", path
     print 77 * '='
+    try:
+        del read.cache
+    except AttributeError:
+        pass
 
 
 def change_auth():
@@ -211,7 +215,7 @@ def read():
         return read.cache
 
     path = get_path()
-    read.cache = default
+    read.cache = dict(default)
     if path is None:
         return read()
 
@@ -223,7 +227,7 @@ def read():
         v = d[k]
         if k == 'IndexedRepos':
             read.cache[k] = [arch_filled_url(url) for url in v]
-        elif k in ['prefix', 'local']:
+        elif k in ('prefix', 'local'):
             read.cache[k] = abs_expanduser(v)
         else:
             read.cache[k] = v
@@ -252,5 +256,7 @@ def print_config():
 
 if __name__ == '__main__':
     #write("1.2.3.4:8077")
+#    print_config()
     write()
+#    del read.cache
     print_config()
