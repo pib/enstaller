@@ -224,7 +224,6 @@ def print_installed_info(cname):
 
 
 def info_option(url, c, cname):
-    print "Canonic.:", cname
     if url:
         info = get_info(url)
         if cname in info:
@@ -396,11 +395,11 @@ def remove_req(req):
     egginst_remove(pkg)
 
 
-def get_dists(c, req, recur):
+def get_dists(c, req, mode):
     """
-    Resolves the requirement
+    resolve the requirement
     """
-    dists = c.install_sequence(req)
+    dists = c.install_sequence(req, mode)
     if dists is None:
         print "No distribution found for requirement '%s'." % req
         versions = c.list_versions(req.name)
@@ -631,7 +630,7 @@ def main():
         return
 
     dists = get_dists(c, req,                     #  dists
-                      recur=not opts.no_deps)
+                      'root' if opts.no_deps else 'recur')
 
     # Warn the user about packages which depend on what will be updated
     depend_warn([dist_naming.filename_dist(d) for d in dists])
