@@ -211,9 +211,13 @@ def read():
     if hasattr(read, 'cache'):
         return read.cache
 
-    d = {}
-    execfile(get_path(), d)
+    cfg_path = get_path()
     read.cache = default
+    if cfg_path is None:
+        return read()
+
+    d = {}
+    execfile(cfg_path, d)
     for k in default.iterkeys():
         if not d.has_key(k):
             continue
@@ -224,15 +228,11 @@ def read():
             read.cache[k] = abs_expanduser(v)
         else:
             read.cache[k] = v
-
     return read()
 
 
-def get(use_conf_file=True):
-    if use_conf_file and get_path():
-        return read()
-    else:
-        return default
+def get(key):
+    return read()[key]
 
 
 def print_config():
@@ -241,15 +241,13 @@ def print_config():
     print "sys.prefix:", sys.prefix
     print "platform:", platform.platform()
     print "architecture:", platform.architecture()[0]
-    cfg_path = get_path()
-    print "config file:", cfg_path
+    print "config file:", get_path()
     print
-    conf = get()
     print "settings:"
-    for k in ['info_url', 'prefix', 'local', 'noapp', 'proxy']:
-        print "    %s = %r" % (k, conf[k])
+    for k in 'info_url', 'prefix', 'local', 'noapp', 'proxy':
+        print "    %s = %r" % (k, get(k))
     print "    IndexedRepos:"
-    for repo in conf['IndexedRepos']:
+    for repo in get('IndexedRepos'):
         print '        %r' % repo
 
 
