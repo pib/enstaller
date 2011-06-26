@@ -4,31 +4,28 @@
 import re
 import os
 import sys
-import platform
 from os.path import isfile, join
 
 from enstaller import __version__
 from utils import PY_VER, abs_expanduser
+import plat
 
 
-CONFIG_FN = ".enstaller4rc"
-HOME_CONFIG_PATH = abs_expanduser("~/" + CONFIG_FN)
-SYSTEM_CONFIG_PATH = join(sys.prefix, CONFIG_FN)
+config_fn = ".enstaller4rc"
+home_config_path = abs_expanduser("~/" + config_fn)
+system_config_path = join(sys.prefix, config_fn)
 
-if '64' in platform.architecture()[0]:
-    ARCH = 'amd64'
-else:
-    ARCH = 'x86'
+pypi_url = 'http://www.enthought.com/repo/pypi/eggs/%s/'
 
 
 def get_path():
     """
     Return the absolute path to our config file.
     """
-    if isfile(HOME_CONFIG_PATH):
-        return HOME_CONFIG_PATH
-    if isfile(SYSTEM_CONFIG_PATH):
-        return SYSTEM_CONFIG_PATH
+    if isfile(home_config_path):
+        return home_config_path
+    if isfile(system_config_path):
+        return system_config_path
     return None
 
 
@@ -114,9 +111,9 @@ def write(proxy=None):
     # If user is 'root', then always create the config file in sys.prefix,
     # otherwise in the user's HOME directory.
     if sys.platform != 'win32' and os.getuid() == 0:
-        path = SYSTEM_CONFIG_PATH
+        path = system_config_path
     else:
-        path = HOME_CONFIG_PATH
+        path = home_config_path
 
     if (custom_tools and hasattr(custom_tools, 'repo_section')):
         auth = input_auth()
@@ -189,7 +186,7 @@ def prepend_url(url):
 def arch_filled_url(url):
     from indexed_repo.dist_naming import cleanup_reponame
 
-    return cleanup_reponame(url.replace('{ARCH}', ARCH))
+    return cleanup_reponame(url.replace('{ARCH}', plat.arch))
 
 
 def read():
@@ -222,6 +219,13 @@ def read():
             read.cache[k] = v
 
     return read()
+
+
+def get(use_conf_file=True):
+    if use_conf_file and get_path():
+        return read()
+
+    return dict(IndexedRepos='%s%s/' % (pypi_url, plat.subdir))
 
 
 def print_config():
