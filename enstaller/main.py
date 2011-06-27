@@ -29,6 +29,11 @@ prefix = None
 dry_run = None
 verbose = None
 
+c = None
+def set_chain():
+    global c
+    c = Chain(config.get('IndexedRepos'), verbose)
+
 
 def print_path():
     prefixes = [sys.prefix]
@@ -135,7 +140,7 @@ def print_installed_info(cname):
         print "%(egg_name)s was installed in sys.prefix on: %(mtime)s" % info
 
 
-def info_option(c, cname):
+def info_option(cname):
     info = get_info()
     if info and cname in info:
         spec = info[cname]
@@ -187,7 +192,7 @@ def list_option(pat):
     print_installed(prefix, pat)
 
 
-def whats_new(c):
+def whats_new():
     fmt = '%-25s %-15s %s'
     print fmt % ('Name', 'installed', 'available')
     print 60* "="
@@ -214,7 +219,7 @@ def whats_new(c):
         print "no new version of any installed package is available"
 
 
-def search(c, pat=None):
+def search(pat=None):
     """
     Print the distributions available in a repo, i.e. a "virtual" repo made
     of a chain of (indexed) repos.
@@ -318,12 +323,12 @@ to subscribe?
 Once you have obtained a subscription, you can proceed here.
 """
     import webbrowser
-    webbrowser.open(get_epd_url)    
+    webbrowser.open(get_epd_url)
     config.write()
     return True
 
 
-def get_dists(c, req, mode):
+def get_dists(req, mode):
     """
     resolve the requirement
     """
@@ -345,8 +350,8 @@ def get_dists(c, req, mode):
         print "%(egg_name)s was installed on: %(mtime)s" % info
     elif 'EPD_free' in sys.version:
         if check_available(req.name):
-            c = Chain(config.get('IndexedRepos'), verbose)
-            return get_dists(c, req, mode)
+            set_chain()
+            return get_dists(req, mode)
     sys.exit(1)
 
 
@@ -526,22 +531,22 @@ def main():
         list_option(pat)
         return
 
-    c = Chain(config.get('IndexedRepos'), verbose)      #  init chain
+    set_chain()                                   #  init chain
 
     if opts.search:                               #  --search
-        search(c, pat)
+        search(pat)
         return
 
     if opts.info:                                 #  --info
         if len(args) != 1:
             p.error("Option requires one argument (name of package)")
-        info_option(c, canonical(args[0]))
+        info_option(canonical(args[0]))
         return
 
     if opts.whats_new:                            # --whats-new
         if args:
             p.error("Option requires no arguments")
-        whats_new(c)
+        whats_new()
         return
 
     if len(args) == 0:
@@ -556,7 +561,7 @@ def main():
         remove_req(req)
         return
 
-    dists = get_dists(c, req,                     #  dists
+    dists = get_dists(req,                        #  dists
                       'root' if opts.no_deps else 'recur')
 
     # Warn the user about packages which depend on what will be updated
