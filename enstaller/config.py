@@ -197,7 +197,7 @@ def arch_filled_url(url):
     return cleanup_reponame(url.replace('{ARCH}', plat.arch))
 
 
-def clear_cache()
+def clear_cache():
     try:
         del read.cache
     except AttributeError:
