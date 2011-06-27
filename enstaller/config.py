@@ -161,7 +161,8 @@ EPD_auth = %r
 def change_auth():
     path = get_path()
     if path is None:
-        sys.exit("Error: config file '.enstaller4rc' not found")
+        write()
+        return
     f = open(path, 'r+')
     data = f.read()
     auth = input_auth()
@@ -246,8 +247,5 @@ def print_config():
 
 
 if __name__ == '__main__':
-    #write("1.2.3.4:8077")
-#    print_config()
     write()
-#    del read.cache
     print_config()
