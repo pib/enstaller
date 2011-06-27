@@ -163,21 +163,23 @@ def change_auth():
     if path is None:
         write()
         return
-    f = open(path, 'r+')
-    data = f.read()
+    fi = open(path)
+    data = fi.read()
+    fi.close()
     auth = input_auth()
-    if auth:
-        pat = re.compile(r'^EPD_auth\s*=.*$', re.M)
-        authline = 'EPD_auth = %r' % auth
-        if pat.search(data):
-            data = pat.sub(authline, data)
-        else:
-            lines = data.splitlines()
-            lines.insert(10, authline)
-            data = '\n'.join(lines) + '\n'
-        f.seek(0)
-        f.write(data)
-    f.close()
+    if not auth:
+        return
+    pat = re.compile(r'^EPD_auth\s*=.*$', re.M)
+    authline = 'EPD_auth = %r' % auth
+    if pat.search(data):
+        data = pat.sub(authline, data)
+    else:
+        lines = data.splitlines()
+        lines.insert(10, authline)
+        data = '\n'.join(lines) + '\n'
+    fo = open(path, 'w')
+    fo.write(data)
+    fo.close()
 
 
 def prepend_url(url):
