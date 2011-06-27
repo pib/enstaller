@@ -85,7 +85,7 @@ def open_with_auth(url):
     auth, host = urllib2.splituser(netloc)
     if auth:
         auth = urllib2.unquote(auth).encode('base64').strip()
-    elif 'enthought.com' in url:
+    elif 'enthought.com/repo/' in url and 'repo/pypi/eggs/' not in url:
         auth = config.get('EPD_auth')
         if auth is None:
             userpass = config.get('EPD_userpass')
