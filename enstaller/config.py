@@ -152,10 +152,7 @@ EPD_auth = %r
     fo.close()
     print "Wrote configuration file:", path
     print 77 * '='
-    try:
-        del read.cache
-    except AttributeError:
-        pass
+    clear_cache()
 
 
 def change_auth():
@@ -198,6 +195,13 @@ def arch_filled_url(url):
     from indexed_repo.dist_naming import cleanup_reponame
 
     return cleanup_reponame(url.replace('{ARCH}', plat.arch))
+
+
+def clear_cache()
+    try:
+        del read.cache
+    except AttributeError:
+        pass
 
 
 def read():
