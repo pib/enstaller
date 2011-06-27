@@ -117,9 +117,9 @@ def write(proxy=None):
     Return the default state of this project's config file.
     """
     try:
-        import custom_tools
+        from custom_tools import repo_section
     except ImportError:
-        custom_tools = None
+        repo_section = ''
 
     # If user is 'root', then always create the config file in sys.prefix,
     # otherwise in the user's HOME directory.
@@ -128,11 +128,7 @@ def write(proxy=None):
     else:
         path = home_config_path
 
-    if custom_tools and hasattr(custom_tools, 'repo_section'):
-        auth = input_auth()
-    else:
-        auth = None
-
+    auth = input_auth()
     if auth:
         auth_section = """
 # The EPD subscriber authentication is required to access the EPD repository.
@@ -140,12 +136,9 @@ def write(proxy=None):
 # you for your username and password.
 EPD_auth = %r
 """ % auth
-        repo_section = custom_tools.repo_section
-        comment_info = ''
     else:
         auth_section = ''
-        repo_section = ''
-        comment_info = '#'
+        repo_section = "  '%s%s/'\n" % (pypi_url, plat.subdir)
 
     py_ver = PY_VER
     sys_prefix = sys.prefix

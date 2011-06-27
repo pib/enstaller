@@ -79,17 +79,13 @@ def open_with_auth(url):
     Open a urllib2 request, handling HTTP authentication
     """
     import config
-    try:
-        from custom_tools import auth_pat
-    except ImportError:
-        auth_pat = None
 
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
     assert not query
     auth, host = urllib2.splituser(netloc)
     if auth:
         auth = urllib2.unquote(auth).encode('base64').strip()
-    elif auth_pat and auth_pat.match(url):
+    elif 'enthought.com' in url:
         auth = config.get('EPD_auth')
         if auth is None:
             userpass = config.get('EPD_userpass')
