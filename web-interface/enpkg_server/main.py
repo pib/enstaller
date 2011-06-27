@@ -12,7 +12,7 @@ sys.path.insert(0, this_dir)
 
 from bottle import get, post, request, run, view, debug, route, static_file
 
-from enstaller.main import get_status
+from api import get_status
 import egginst
 
 
