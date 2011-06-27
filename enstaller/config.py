@@ -45,12 +45,10 @@ def get_path():
 def input_auth():
     from getpass import getpass
     print """\
-Welcome to enstaller (version %s)!
-
 In order to access the EPD repository, please enter your
 username and password, which you use to subscribe to EPD.
 If you are not subscribed to EPD, just hit Return.
-""" % __version__
+"""
     username = raw_input('Username: ').strip()
     if not username:
         return None
@@ -114,7 +112,7 @@ IndexedRepos = [
 
 def write(proxy=None):
     """
-    Return the default state of this project's config file.
+    write the config file
     """
     try:
         from custom_tools import repo_section

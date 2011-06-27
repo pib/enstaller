@@ -304,13 +304,23 @@ def remove_req(req):
 def check_available(cname):
     avail = get_available()
     if cname not in avail:
-        return
+        return False
+    get_epd_url = 'http://www.enthought.com/products/epd.php'
     print """
 But wait, %r is available in the EPD subscriber repository!
-Would you like to go to 'http://www.enthought.com/products/epd.php'
+Would you like to go to %r
 to subscribe?
-""" % cname
-    # XXX
+""" % (cname, get_epd_url)
+    answer = raw_input('[yes|no]> ').strip().lower()
+    if answer not in ('y', 'yes'):
+        return False
+    print """
+Once you have obtained a subscription, you can proceed here.
+"""
+    import webbrowser
+    webbrowser.open(get_epd_url)    
+    config.write()
+    return True
 
 
 def get_dists(c, req, mode):
@@ -334,7 +344,9 @@ def get_dists(c, req, mode):
     if info:
         print "%(egg_name)s was installed on: %(mtime)s" % info
     elif 'EPD_free' in sys.version:
-        check_available(req.name)
+        if check_available(req.name):
+            c = Chain(config.get('IndexedRepos'), verbose)
+            return get_dists(c, req, mode)
     sys.exit(1)
 
 
