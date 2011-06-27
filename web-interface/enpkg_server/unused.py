@@ -3,9 +3,9 @@ from collections import defaultdict
 
 import egginst
 
-from indexed_repo import Chain, Req, dist_naming
-from utils import get_installed_info, comparable_version
-import config
+from enstaller.indexed_repo import Chain, Req, dist_naming
+from enstaller.utils import get_installed_info, comparable_version
+import enstaller.config as config
 
 
 def get_status():
