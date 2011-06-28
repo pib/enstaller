@@ -198,10 +198,8 @@ def arch_filled_url(url):
 
 
 def clear_cache():
-    try:
+    if hasattr(read, 'cache'):
         del read.cache
-    except AttributeError:
-        pass
 
 
 def read():
