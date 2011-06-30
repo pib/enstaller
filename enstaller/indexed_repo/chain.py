@@ -240,7 +240,8 @@ class Chain(object):
                     continue
                 d = self.get_dist(r)
                 if d is None:
-                    sys.exit('Error: could not resolve %r' % r)
+                    sys.exit('Error: could not resolve %r required by %r' %
+                             (r, dist))
                 dists.add(d)
                 add_dependents(d)
 
