@@ -79,7 +79,8 @@ def egginst_remove(pkg):
     fn = basename(pkg)
     if (sys.platform == 'win32'  and
             fn.lower().startswith(('appinst-', 'pywin32-'))):
-        print "Starting subprocess:"
+        if verbose:
+            print "Starting subprocess:"
         egginst_subprocess(pkg, remove=True)
         return
     pprint_fn_action(fn, 'removing')
@@ -94,7 +95,8 @@ def egginst_install(dist):
     pkg_path = join(config.get('local'), fn)
     if (sys.platform == 'win32'  and
             fn.lower().startswith(('appinst-', 'pywin32-'))):
-        print "Starting subprocess:"
+        if verbose:
+            print "Starting subprocess:"
         egginst_subprocess(pkg_path, remove=False)
         return
     pprint_fn_action(fn, 'installing')
