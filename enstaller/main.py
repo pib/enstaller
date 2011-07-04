@@ -312,7 +312,7 @@ def check_available(cname):
     avail = get_available()
     if cname not in avail:
         return False
-    get_epd_url = 'http://www.enthought.com/products/epd.php'
+    get_epd_url = 'http://www.enthought.com/epd/upgrade'
     print """
 But wait, %r is available in the EPD subscriber repository!
 Would you like to go to %r
