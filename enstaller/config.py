@@ -18,6 +18,7 @@ system_config_path = join(sys.prefix, config_fn)
 
 pypi_url = 'http://www.enthought.com/repo/pypi/eggs/'
 info_url = 'http://www.enthought.com/epd/index-info.bz2'
+upgrade_epd_url = 'http://www.enthought.com/epd/upgrade'
 
 default = dict(
     info_url=info_url,
