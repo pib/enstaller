@@ -39,7 +39,8 @@ def name_version_fn(fn):
 
 class EggInst(object):
 
-    def __init__(self, fpath, prefix, hook=False, verbose=False, noapp=False):
+    def __init__(self, fpath, prefix=sys.prefix,
+                 hook=False, verbose=False, noapp=False):
         self.fpath = fpath
         self.cname = name_version_fn(basename(fpath))[0].lower()
         self.prefix = abspath(prefix)
@@ -309,7 +310,7 @@ class EggInst(object):
         sys.stdout.flush()
 
 
-def get_installed_cnames(prefix):
+def get_installed_cnames(prefix=sys.prefix):
     """
     returns a sorted list of cnames of all installed packages
     """
@@ -320,7 +321,7 @@ def get_installed_cnames(prefix):
     return sorted(fn for fn in os.listdir(egg_info_dir) if pat.match(fn))
 
 
-def get_installed(prefix):
+def get_installed(prefix=sys.prefix):
     """
     Generator returns a sorted list of all installed packages.
     Each element is the filename of the egg which was used to install the
@@ -336,7 +337,7 @@ def get_installed(prefix):
         yield d['egg_name']
 
 
-def print_installed(prefix):
+def print_installed(prefix=sys.prefix):
     fmt = '%-20s %s'
     print fmt % ('Project name', 'Version')
     print 40 * '='
