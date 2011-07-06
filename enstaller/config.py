@@ -137,7 +137,6 @@ EPD_auth = %r
 """ % auth
     else:
         auth_section = ''
-        repo_section = "  '%s%s/'\n" % (pypi_url, plat.subdir)
 
     py_ver = PY_VER
     sys_prefix = sys.prefix

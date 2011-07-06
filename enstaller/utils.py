@@ -100,7 +100,15 @@ def open_with_auth(url):
     else:
         request = urllib2.Request(url)
     request.add_header('User-Agent', 'enstaller/%s' % __version__)
-    return urllib2.urlopen(request)
+    try:
+        return urllib2.urlopen(request)
+    except urllib2.HTTPError as e:
+        if '401' in str(e):
+            sys.exit("""%s
+Please make sure you are using the correct authentication.
+Use "enpkg --userpass" to update authentication in configuration file.""" % e)
+        else:
+            sys.exit(str(e))
 
 
 def write_data_from_url(fo, url, md5=None, size=None):
