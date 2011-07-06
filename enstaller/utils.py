@@ -103,12 +103,13 @@ def open_with_auth(url):
     try:
         return urllib2.urlopen(request)
     except urllib2.HTTPError as e:
+        sys.stderr.write(str(e) + '\n')
         if '401' in str(e):
-            sys.exit("""%s
+            sys.stderr.write("""\
 Please make sure you are using the correct authentication.
-Use "enpkg --userpass" to update authentication in configuration file.""" % e)
-        else:
-            sys.exit(str(e))
+Use "enpkg --userpass" to update authentication in configuration file.
+""")
+        sys.exit(1)
 
 
 def write_data_from_url(fo, url, md5=None, size=None):
