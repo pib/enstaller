@@ -100,16 +100,7 @@ def open_with_auth(url):
     else:
         request = urllib2.Request(url)
     request.add_header('User-Agent', 'enstaller/%s' % __version__)
-    try:
-        return urllib2.urlopen(request)
-    except urllib2.HTTPError as e:
-        sys.stderr.write(str(e) + '\n')
-        if '401' in str(e):
-            sys.stderr.write("""\
-Please make sure you are using the correct authentication.
-Use "enpkg --userpass" to update authentication in configuration file.
-""")
-        sys.exit(1)
+    return urllib2.urlopen(request)
 
 
 def write_data_from_url(fo, url, md5=None, size=None):
@@ -129,8 +120,14 @@ def write_data_from_url(fo, url, md5=None, size=None):
     elif url.startswith(('http://', 'https://')):
         try:
             fi = open_with_auth(url)
-        except urllib2.URLError, e:
-            sys.exit("%s %s" % (e, url))
+        except urllib2.HTTPError as e:
+            sys.stderr.write(str(e) + '\n')
+            if '401' in str(e):
+                sys.stderr.write("""\
+Please make sure you are using the correct authentication.
+Use "enpkg --userpass" to update authentication in configuration file.
+""")
+                sys.exit(1)
     else:
         sys.exit("Error: invalid url: %r" % url)
 
