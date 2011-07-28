@@ -1,6 +1,6 @@
 2011-??-??   4.4.1:
 -------------------
-* BUG: remove object code fixes being limited to 1/4 MB header
+* BUG: remove object code fixes being limited to 256 KB header
 
 
 
