@@ -59,7 +59,7 @@ def fix_object_code(path):
         return
 
     f = open(path, 'r+b')
-    data = f.read(262144)
+    data = f.read()
     matches = list(placehold_pat.finditer(data))
     if not matches:
         f.close()
