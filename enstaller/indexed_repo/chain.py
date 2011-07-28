@@ -261,7 +261,9 @@ class Chain(object):
                         print '    %s' % d
                 r = max(reqs_deep[cname], key=lambda r: r.strictness)
                 assert r.name == cname
+                # remove the dists with name 'cname'
                 dists = [d for d in dists if self.cname_dist(d) != cname]
+                # add the one
                 dists.append(self.get_dist(r))
 
         return self.determine_install_order(dists)
