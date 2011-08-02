@@ -7,14 +7,18 @@ from collections import defaultdict
 import egginst
 
 
-history_path = join(sys.prefix, 'enpkg.hist')
+PATH = join(sys.prefix, 'enpkg.hist')
+
+
+def write_time(fo):
+    fo.write(time.strftime("==> %Y-%m-%d %H:%M:%S %Z <==\n"))
 
 
 def init():
-    if isfile(history_path):
+    if isfile(PATH):
         return
-    fo = open(history_path, 'w')
-    fo.write(time.strftime("==> %Y-%m-%d %H:%M:%S %Z <==\n"))
+    fo = open(PATH, 'w')
+    write_time(fo)
     for eggname in egginst.get_installed():
         fo.write('%s\n' % eggname)
     fo.close()
@@ -23,7 +27,7 @@ def init():
 def parse():
     res = defaultdict(set)
     sep_pat = re.compile(r'==>\s*(.+)\s*<==')
-    for line in open(history_path):
+    for line in open(PATH):
         line = line.strip()
         if not line or line.startswith('#'):
             continue
@@ -54,18 +58,23 @@ def read():
     return res
 
 
-def diff():
+def update():
+    init()
     dummy, last = read()[-1]
     curr = set(egginst.get_installed())
-    print time.strftime("==> %Y-%m-%d %H:%M:%S %Z <==\n")
+    if last == curr:
+        return
+    fo = open(PATH, 'a') 
+    write_time(fo)
     for fn in last - curr:
-        print '-' + fn
+        fo.write('-%s\n' % fn)
     for fn in curr - last:
-        print '+' + fn
+        fo.write('+%s\n' % fn)
+    fo.close()
 
 
 if __name__ == '__main__':
     #init()
     #for x in read():
     #    print x
-    diff()
+    update()
