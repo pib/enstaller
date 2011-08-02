@@ -12,8 +12,11 @@ PATH = join(sys.prefix, 'enpkg.hist')
 TIME_FMT = '%Y-%m-%d %H:%M:%S %Z'
 
 
-def init():
-    if isfile(PATH):
+def init(force=False):
+    """
+    initialize the history file
+    """
+    if not force and isfile(PATH):
         return
     fo = open(PATH, 'w')
     fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
@@ -23,7 +26,11 @@ def init():
 
 
 def parse():
-    res = defaultdict(set)
+    """
+    parse the history file and return a list of
+    tuples(datetime strings, set of eggs/diffs)
+    """
+    res = []
     sep_pat = re.compile(r'==>\s*(.+?)\s*<==')
     for line in open(PATH):
         line = line.strip()
@@ -32,37 +39,74 @@ def parse():
         m = sep_pat.match(line)
         if m:
             dt = m.group(1)
-            continue
-        res[dt].add(line)
-    return res
-
-
-def read():
-    res = []
-    raw = parse()
-    for dt in sorted(raw):
-        inp = raw[dt]
-        if any(p.startswith(('-', '+')) for p in inp):
-            for p in inp:
-                if p.startswith('-'):
-                    cur.discard(p[1:])
-                elif p.startswith('+'):
-                    cur.add(p[1:])
-                else:
-                    raise Exception('Did not expect: %s' % p)
+            res.append((dt, set()))
         else:
-            cur = inp
-        res.append((dt, cur.copy()))
+            res[-1][1].add(line)
     return res
+
+
+def construct_states():
+    """
+    return a list of tuples(datetime strings, set of eggs)
+    """
+    res = []
+    for dt, cont in parse():
+        if any(s.startswith(('-', '+')) for s in cont):
+            for s in cont:
+                if s.startswith('-'):
+                    cur.discard(s[1:])
+                elif s.startswith('+'):
+                    cur.add(s[1:])
+                else:
+                    raise Exception('Did not expect: %s' % s)
+        else:
+            cur = cont
+        res.append((dt, cur.copy()))
+
+    # make sure times are sorted
+    times = [dt for dt, pkgs in res]
+    assert times == sorted(times)
+
+    return res
+
+
+def find_revision(times, dt=None):
+    """
+    given a list of (sorted) datetimes 'times', return the index corresponding
+    to the time 'dt'
+    """
+    if dt is None:
+        dt = time.strftime(TIME_FMT)
+    i = bisect.bisect(times, dt)
+    if i > 0:
+        i -= 1
+    return i
+
+
+def get_state(arg=None):
+    """
+    return the state, i.e. the set of eggs, for a given revision or time,
+    defaults to latest
+    """
+    times, pkgs = zip(*construct_states())
+    if arg is None:
+        i = -1
+    elif isinstance(arg, str):
+        i = find_revision(times, arg)
+    elif isinstance(arg, int):
+        i = arg
+    else:
+        raise Exception('Did not expect: %r' % arg)
+    return pkgs[i]
 
 
 def update():
     init()
-    dummy, last = read()[-1]
+    last = get_state()
     curr = set(egginst.get_installed())
     if last == curr:
         return
-    fo = open(PATH, 'a') 
+    fo = open(PATH, 'a')
     fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
     for fn in last - curr:
         fo.write('-%s\n' % fn)
@@ -72,29 +116,13 @@ def update():
 
 
 def print_log():
-    raw = parse()
-    for i, dt in enumerate(sorted(raw)):
-        cont = raw[dt]
+    for i, (dt, cont) in enumerate(parse()):
         print '%s (rev %d)' % (dt, i)
         for x in cont:
             print '    %s' % x
 
 
-def get_state(dt=None):
-    if dt is None:
-        dt = time.strftime(TIME_FMT)
-    times, pkgs = zip(*read())
-    i = bisect.bisect(times, dt)
-    if i > 0:
-        i -= 1
-    return i
-    return pkgs[i]
-
-
 if __name__ == '__main__':
     #init()
-    #for x in read():
-    #    print x
     #update()
-    #print get_state()
     print_log()
