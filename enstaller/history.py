@@ -8,17 +8,14 @@ import egginst
 
 
 PATH = join(sys.prefix, 'enpkg.hist')
-
-
-def write_time(fo):
-    fo.write(time.strftime("==> %Y-%m-%d %H:%M:%S %Z <==\n"))
+TIME_FMT = '%Y-%m-%d %H:%M:%S %Z'
 
 
 def init():
     if isfile(PATH):
         return
     fo = open(PATH, 'w')
-    write_time(fo)
+    fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
     for eggname in egginst.get_installed():
         fo.write('%s\n' % eggname)
     fo.close()
@@ -65,7 +62,7 @@ def update():
     if last == curr:
         return
     fo = open(PATH, 'a') 
-    write_time(fo)
+    fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
     for fn in last - curr:
         fo.write('-%s\n' % fn)
     for fn in curr - last:
