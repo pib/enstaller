@@ -135,7 +135,7 @@ def print_log():
                     added[name.lower()] = version
             changed = set(added) & set(removed)
             for name in sorted(changed):
-                print '    |%s  (%s -> %s)' % (name, removed[name], added[name])
+                print '     %s  (%s -> %s)' % (name, removed[name], added[name])
             for name in sorted(set(removed) - changed):
                 print '    -%s-%s' % (name, removed[name])
             for name in sorted(set(added) - changed):
@@ -148,6 +148,5 @@ def print_log():
 
 
 if __name__ == '__main__':
-    #init()
-#    update()
+    update()
     print_log()
