@@ -25,7 +25,7 @@ def parse():
     sep_pat = re.compile(r'==>\s*(.+)\s*<==')
     for line in open(history_path):
         line = line.strip()
-        if not line:
+        if not line or line.startswith('#'):
             continue
         m = sep_pat.match(line)
         if m:
@@ -35,25 +35,37 @@ def parse():
     return res
 
 
-def is_diff(ps):
-    return any(p.startswith(('-', '+')) for p in ps)
-
-
 def read():
     res = []
     raw = parse()
     for dt in sorted(raw):
         inp = raw[dt]
-        if is_diff(inp):
-            cur -= set(p[1:] for p in inp if p.startswith('-'))
-            cur |= set(p[1:] for p in inp if p.startswith('+'))
-            print cur, inp
+        if any(p.startswith(('-', '+')) for p in inp):
+            for p in inp:
+                if p.startswith('-'):
+                    cur.discard(p[1:])
+                elif p.startswith('+'):
+                    cur.add(p[1:])
+                else:
+                    raise Exception('Did not expect: %s' % p)
         else:
             cur = inp
-        res.append((dt, cur.copy()))            
+        res.append((dt, cur.copy()))
     return res
-        
+
+
+def diff():
+    dummy, last = read()[-1]
+    curr = set(egginst.get_installed())
+    print time.strftime("==> %Y-%m-%d %H:%M:%S %Z <==\n")
+    for fn in last - curr:
+        print '-' + fn
+    for fn in curr - last:
+        print '+' + fn
+
 
 if __name__ == '__main__':
-    for x in read():
-        print x
+    #init()
+    #for x in read():
+    #    print x
+    diff()
