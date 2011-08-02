@@ -67,11 +67,6 @@ def construct_states():
         else:
             cur = cont
         res.append((dt, cur.copy()))
-
-    # make sure times are sorted
-    times = [dt for dt, pkgs in res]
-    assert times == sorted(times)
-
     return res
 
 
@@ -83,9 +78,10 @@ def find_revision(times, dt=None):
     if dt is None:
         dt = time.strftime(TIME_FMT)
     i = bisect.bisect(times, dt)
-    if i > 0:
-        i -= 1
-    return i
+    if i == 0:
+        return 0
+    else:
+        return i - 1
 
 
 def get_state(arg=None):
@@ -106,6 +102,9 @@ def get_state(arg=None):
 
 
 def update():
+    """
+    update the history file (creating a new one if necessary)
+    """
     init()
     last = get_state()
     curr = set(egginst.get_installed())
@@ -122,7 +121,7 @@ def update():
 
 def print_log():
     for i, (dt, cont) in enumerate(parse()):
-        print '%s (rev %d)' % (dt, i)
+        print '%s  (rev %d)' % (dt, i)
         if is_diff(cont):
             added = {}
             removed = {}
