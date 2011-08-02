@@ -2,6 +2,7 @@ import re
 import sys
 import time
 import bisect
+import string
 from os.path import isfile, join
 from collections import defaultdict
 
@@ -45,13 +46,17 @@ def parse():
     return res
 
 
+def is_diff(cont):
+    return any(s.startswith(('-', '+')) for s in cont)
+
+
 def construct_states():
     """
     return a list of tuples(datetime strings, set of eggs)
     """
     res = []
     for dt, cont in parse():
-        if any(s.startswith(('-', '+')) for s in cont):
+        if is_diff(cont):
             for s in cont:
                 if s.startswith('-'):
                     cur.discard(s[1:])
@@ -118,11 +123,31 @@ def update():
 def print_log():
     for i, (dt, cont) in enumerate(parse()):
         print '%s (rev %d)' % (dt, i)
-        for x in cont:
-            print '    %s' % x
+        if is_diff(cont):
+            added = {}
+            removed = {}
+            for s in cont:
+                fn = s[1:]
+                name, version = egginst.name_version_fn(fn)
+                if s.startswith('-'):
+                    removed[name.lower()] = version
+                elif s.startswith('+'):
+                    added[name.lower()] = version
+            changed = set(added) & set(removed)
+            for name in sorted(changed):
+                print '    |%s  (%s -> %s)' % (name, removed[name], added[name])
+            for name in sorted(set(removed) - changed):
+                print '    -%s-%s' % (name, removed[name])
+            for name in sorted(set(added) - changed):
+                print '    +%s-%s' % (name, added[name])
+            print
+        else:
+            for x in sorted(cont, key=string.lower):
+                print '    %s' % x
+            print
 
 
 if __name__ == '__main__':
     #init()
-    #update()
+#    update()
     print_log()
