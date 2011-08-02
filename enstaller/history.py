@@ -71,20 +71,29 @@ def update():
     fo.close()
 
 
+def print_log():
+    raw = parse()
+    for i, dt in enumerate(sorted(raw)):
+        cont = raw[dt]
+        print '%s (rev %d)' % (dt, i)
+        for x in cont:
+            print '    %s' % x
+
+
 def get_state(dt=None):
     if dt is None:
         dt = time.strftime(TIME_FMT)
     times, pkgs = zip(*read())
-    if dt < times[0]:
-        return None
-    i = bisect.bisect(times, dt) - 1
-    #return i
+    i = bisect.bisect(times, dt)
+    if i > 0:
+        i -= 1
+    return i
     return pkgs[i]
 
 
 def test_get_state():
     for dt, res in [
-        ('2011-08-01 21:17:21 CDT', None),
+        ('2011-08-01 21:17:21 CDT', 0),
         ('2011-08-01 21:17:22 CDT', 0),
         ('2011-08-01 21:17:23 CDT', 0),
         ('2011-08-01 22:38:36 CDT', 0),
@@ -103,5 +112,6 @@ if __name__ == '__main__':
     #for x in read():
     #    print x
     #update()
-    #test_get_state()
-    print get_state()
+    test_get_state()
+    #print get_state()
+    print_log()
