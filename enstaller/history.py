@@ -1,6 +1,7 @@
 import re
 import sys
 import time
+import bisect
 from os.path import isfile, join
 from collections import defaultdict
 
@@ -23,7 +24,7 @@ def init():
 
 def parse():
     res = defaultdict(set)
-    sep_pat = re.compile(r'==>\s*(.+)\s*<==')
+    sep_pat = re.compile(r'==>\s*(.+?)\s*<==')
     for line in open(PATH):
         line = line.strip()
         if not line or line.startswith('#'):
@@ -70,8 +71,37 @@ def update():
     fo.close()
 
 
+def get_state(dt=None):
+    if dt is None:
+        dt = time.strftime(TIME_FMT)
+    times, pkgs = zip(*read())
+    if dt < times[0]:
+        return None
+    i = bisect.bisect(times, dt) - 1
+    #return i
+    return pkgs[i]
+
+
+def test_get_state():
+    for dt, res in [
+        ('2011-08-01 21:17:21 CDT', None),
+        ('2011-08-01 21:17:22 CDT', 0),
+        ('2011-08-01 21:17:23 CDT', 0),
+        ('2011-08-01 22:38:36 CDT', 0),
+        ('2011-08-01 22:38:37 CDT', 1),
+        ('2011-08-01 22:38:38 CDT', 1),
+        ('2011-08-01 23:05:06 CDT', 1),
+        ('2011-08-01 23:05:07 CDT', 2),
+        ('2011-08-01 23:05:08 CDT', 2),
+        ]:
+        assert get_state(dt) == res, \
+            '%r: %r != %r' % (dt, get_state(dt), res)
+
+
 if __name__ == '__main__':
     #init()
     #for x in read():
     #    print x
-    update()
+    #update()
+    #test_get_state()
+    print get_state()
