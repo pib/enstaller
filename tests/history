@@ -1,0 +1,12 @@
+==> 2011-08-01 21:17:22 CDT <==
+appinst-2.1.0-1.egg
+basemap-1.0.1-1.egg
+biopython-1.57-2.egg
+==> 2011-08-01 22:38:37 CDT <==
+-appinst-2.1.0-1.egg
+-basemap-1.0.1-1.egg
++basemap-1.0.2-1.egg
++numpy-1.6.1-2.egg
+==> 2011-08-01 23:05:07 CDT <==
+-numpy-1.6.1-2.egg
++numpy-1.7.0-1.egg

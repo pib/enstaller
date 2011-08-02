@@ -91,27 +91,10 @@ def get_state(dt=None):
     return pkgs[i]
 
 
-def test_get_state():
-    for dt, res in [
-        ('2011-08-01 21:17:21 CDT', 0),
-        ('2011-08-01 21:17:22 CDT', 0),
-        ('2011-08-01 21:17:23 CDT', 0),
-        ('2011-08-01 22:38:36 CDT', 0),
-        ('2011-08-01 22:38:37 CDT', 1),
-        ('2011-08-01 22:38:38 CDT', 1),
-        ('2011-08-01 23:05:06 CDT', 1),
-        ('2011-08-01 23:05:07 CDT', 2),
-        ('2011-08-01 23:05:08 CDT', 2),
-        ]:
-        assert get_state(dt) == res, \
-            '%r: %r != %r' % (dt, get_state(dt), res)
-
-
 if __name__ == '__main__':
     #init()
     #for x in read():
     #    print x
     #update()
-    test_get_state()
     #print get_state()
     print_log()
