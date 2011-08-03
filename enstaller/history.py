@@ -119,31 +119,35 @@ def update():
     fo.close()
 
 
+def print_diff(diff):
+    added = {}
+    removed = {}
+    for s in diff:
+        fn = s[1:]
+        name, version = egginst.name_version_fn(fn)
+        if s.startswith('-'):
+            removed[name.lower()] = version
+        elif s.startswith('+'):
+            added[name.lower()] = version
+    changed = set(added) & set(removed)
+    for name in sorted(changed):
+        print '     %s  (%s -> %s)' % (name,
+                                       removed[name], added[name])
+    for name in sorted(set(removed) - changed):
+        print '    -%s-%s' % (name, removed[name])
+    for name in sorted(set(added) - changed):
+        print '    +%s-%s' % (name, added[name])
+
+
 def print_log():
     for i, (dt, cont) in enumerate(parse()):
         print '%s  (rev %d)' % (dt, i)
         if is_diff(cont):
-            added = {}
-            removed = {}
-            for s in cont:
-                fn = s[1:]
-                name, version = egginst.name_version_fn(fn)
-                if s.startswith('-'):
-                    removed[name.lower()] = version
-                elif s.startswith('+'):
-                    added[name.lower()] = version
-            changed = set(added) & set(removed)
-            for name in sorted(changed):
-                print '     %s  (%s -> %s)' % (name, removed[name], added[name])
-            for name in sorted(set(removed) - changed):
-                print '    -%s-%s' % (name, removed[name])
-            for name in sorted(set(added) - changed):
-                print '    +%s-%s' % (name, added[name])
-            print
+            print_diff(cont)
         else:
             for x in sorted(cont, key=string.lower):
                 print '    %s' % x
-            print
+        print
 
 
 if __name__ == '__main__':
