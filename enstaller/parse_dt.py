@@ -3,8 +3,30 @@ from datetime import datetime, timedelta
 
 
 time_fmt = '%Y-%m-%d %H:%M:%S'
-iso_pat = re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}') 
-simple_pat = re.compile(r'(\d+)\s*(\w+)$')
+iso_pat = re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}')
+
+
+def simple_delta(s):
+    pat = re.compile(r'(\d+)\s*(\w+)$')
+    if s == 'yesterday':
+        s = '1 day'
+    m = pat.match(s)
+    if m is None:
+        return None
+    n, unit = m.groups()
+    n = int(n)
+    unit = unit.rstrip('s')
+    if unit in ('week', 'wk'):
+        return timedelta(weeks=n)
+    if unit in ('day', 'd'):
+        return timedelta(days=n)
+    if unit in ('hour', 'hr'):
+        return timedelta(hours=n)
+    if unit in ('minute', 'min'):
+        return timedelta(minutes=n)
+    if unit in ('second', 'sec'):
+        return timedelta(seconds=n)
+    return None
 
 
 def parse(s, cur=None):
@@ -20,31 +42,12 @@ def parse(s, cur=None):
     if cur is None:
         cur = datetime.now()
 
-    if s == 'yesterday':
-        s = '1 day'
-
-    m = simple_pat.match(s)
-    if m:
-        n, unit = m.groups()
-        n = int(n)
-        unit = unit.rstrip('s')
-        if unit == 'week':
-            d = timedelta(weeks=n)
-        elif unit == 'day':
-            d = timedelta(days=n)
-        elif unit in ('hour', 'hr'):
-            d = timedelta(hour=n)
-        elif unit in ('minute', 'min'):
-            d = timedelta(minutes=n)
-        elif unit in ('second', 'sec'):
-            d = timedelta(seconds=n)
-        else:
-            return None
-
-    print d
-    return str(cur - d)[:19]
+    d = simple_delta(s)
+    if d:
+        print d
+        return str(cur - d)[:19]
 
 
 if __name__ == '__main__':
     ref = datetime(2011, 8, 2, 23, 3, 43)
-    print parse(' 200 min ', ref)
+    print parse(' 35 wk   ', ref)
