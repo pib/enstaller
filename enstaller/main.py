@@ -408,6 +408,10 @@ def main():
                  action="store_true",
                  help="show information about a package")
 
+    p.add_option("--log",
+                 action="store_true",
+                 help="print revision log")
+
     p.add_option('-l', "--list",
                  action="store_true",
                  help="list the packages currently installed on the system")
@@ -469,7 +473,8 @@ def main():
 
     opts, args = p.parse_args()
 
-    if len(args) > 0 and (opts.config or opts.path or opts.userpass):
+    if len(args) > 0 and (opts.config or opts.path or opts.userpass or
+                          opts.log):
         p.error("Option takes no arguments")
 
     if opts.prefix and opts.sys_prefix:
@@ -485,6 +490,11 @@ def main():
     if opts.version:                              #  --version
         from enstaller import __version__
         print "enstaller version:", __version__
+        return
+
+    if opts.log:                                  #  --log
+        import history
+        history.print_log()
         return
 
     if opts.sys_config:                           #  --sys-config
