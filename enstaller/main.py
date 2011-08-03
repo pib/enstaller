@@ -519,7 +519,7 @@ def main():
     else:
         setup_proxy()
 
-    global prefix, dry_run, version, verbose    #  set globals
+    global prefix, dry_run, verbose    #  set globals
     if opts.sys_prefix:
         prefix = sys.prefix
     elif opts.prefix:
@@ -528,7 +528,6 @@ def main():
         prefix = config.get('prefix')
     dry_run = opts.dry_run
     verbose = opts.verbose
-    version = opts.version
 
     if opts.add_url:                              #  --add-url
         add_url(opts.add_url)
