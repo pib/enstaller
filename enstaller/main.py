@@ -593,8 +593,10 @@ def main():
 
     print "prefix:", prefix
     check_write()
+    history.init()
     if opts.remove:                               #  --remove
         remove_req(req)
+        history.update()
         return
 
     dists = get_dists(req,                        #  dists
@@ -646,7 +648,9 @@ def main():
         installed_something = True
         egginst_install(dist)
 
-    if not installed_something:
+    if installed_something:
+        history.update()
+    else:
         print "No update necessary, %s is up-to-date." % req
         print_installed_info(req.name)
 
