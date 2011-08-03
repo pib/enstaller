@@ -370,13 +370,15 @@ def add_url(url):
     config.prepend_url(url)
 
 
-def revert(rev):
+def revert(rev_in):
     try:
-        rev = int(rev)
+        rev = int(rev_in)
     except ValueError:
         # we have a "date string"
-        import parsedatetime
-        rev = parsedatetime.parse(rev)
+        from parsedatetime import parse
+        rev = parse(rev_in)
+        if rev is None:
+            sys.exit("Error: could not parse: %r" % rev_in)
 
     print "reverting to: %r" % rev
     try:

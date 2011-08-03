@@ -4,7 +4,6 @@ import time
 import bisect
 import string
 from os.path import isfile, join
-from collections import defaultdict
 
 import egginst
 
