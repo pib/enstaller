@@ -129,8 +129,7 @@ def print_diff(diff):
             added[name.lower()] = version
     changed = set(added) & set(removed)
     for name in sorted(changed):
-        print '     %s  (%s -> %s)' % (name,
-                                       removed[name], added[name])
+        print '     %s  (%s -> %s)' % (name, removed[name], added[name])
     for name in sorted(set(removed) - changed):
         print '    -%s-%s' % (name, removed[name])
     for name in sorted(set(added) - changed):
@@ -138,6 +137,8 @@ def print_diff(diff):
 
 
 def print_log():
+    if not isfile(PATH):
+        sys.exit('Error: log file %r not found' % PATH)
     for i, (dt, cont) in enumerate(parse()):
         print '%s  (rev %d)' % (dt, i)
         if is_diff(cont):
