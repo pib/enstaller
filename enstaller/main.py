@@ -374,15 +374,15 @@ def revert(rev):
     try:
         rev = int(rev)
     except ValueError:
-        pass
+        # we have a "date string"
+        import parsedatetime
+        rev = parsedatetime.parse(rev)
 
-    if isinstance(rev, int):
-        try:
-            state = history.get_state(rev)
-        except IndexError:
-            sys.exit("Error: no such revision: %r" % rev)
-    else: # rev is a "date"
-        pass
+    print "reverting to: %r" % rev
+    try:
+        state = history.get_state(rev)
+    except IndexError:
+        sys.exit("Error: no such revision: %r" % rev)
 
     # TODO...
 
