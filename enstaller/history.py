@@ -13,6 +13,11 @@ PATH = join(sys.prefix, 'enpkg.hist')
 TIME_FMT = '%Y-%m-%d %H:%M:%S %Z'
 
 
+def ensure_path():
+    if not isfile(PATH):
+        sys.exit('Error: log file %r not found' % PATH)
+
+
 def init(force=False):
     """
     initialize the history file
@@ -31,6 +36,7 @@ def parse():
     parse the history file and return a list of
     tuples(datetime strings, set of eggs/diffs)
     """
+    ensure_path()
     res = []
     sep_pat = re.compile(r'==>\s*(.+?)\s*<==')
     for line in open(PATH):
@@ -137,8 +143,7 @@ def print_diff(diff):
 
 
 def print_log():
-    if not isfile(PATH):
-        sys.exit('Error: log file %r not found' % PATH)
+    ensure_path()
     for i, (dt, cont) in enumerate(parse()):
         print '%s  (rev %d)' % (dt, i)
         if is_diff(cont):
@@ -152,3 +157,4 @@ def print_log():
 if __name__ == '__main__':
     update()
     print_log()
+    #get_state()

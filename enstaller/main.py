@@ -17,6 +17,7 @@ import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
+import history
 from proxy.api import setup_proxy
 from utils import (canonical, cname_fn, get_info, comparable_version,
                    shorten_repo, get_installed_info, get_available)
@@ -369,6 +370,23 @@ def add_url(url):
     config.prepend_url(url)
 
 
+def revert(rev):
+    try:
+        rev = int(rev)
+    except ValueError:
+        pass
+
+    if isinstance(rev, int):
+        try:
+            state = history.get_state(rev)
+        except IndexError:
+            sys.exit("Error: no such revision: %r" % rev)
+    else: # rev is a "date"
+        pass
+
+    # TODO...
+
+
 def iter_dists_excl(dists, exclude_fn):
     """
     Iterates over all dists, excluding the ones whose filename is an element
@@ -444,6 +462,11 @@ def main():
                  action="store_true",
                  help="remove a package")
 
+    p.add_option("--revert",
+                 action="store",
+                 help="revert to a previous set of packages",
+                 metavar="REV")
+
     p.add_option('-s', "--search",
                  action="store_true",
                  help="search the index in the repo (chain) of packages "
@@ -474,7 +497,7 @@ def main():
     opts, args = p.parse_args()
 
     if len(args) > 0 and (opts.config or opts.path or opts.userpass or
-                          opts.log):
+                          opts.revert or opts.log or opts.whats_new):
         p.error("Option takes no arguments")
 
     if opts.prefix and opts.sys_prefix:
@@ -493,7 +516,6 @@ def main():
         return
 
     if opts.log:                                  #  --log
-        import history
         history.print_log()
         return
 
@@ -554,9 +576,11 @@ def main():
         return
 
     if opts.whats_new:                            # --whats-new
-        if args:
-            p.error("Option requires no arguments")
         whats_new()
+        return
+
+    if opts.revert:
+        revert(opts.revert)
         return
 
     if len(args) == 0:
