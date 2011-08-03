@@ -387,6 +387,7 @@ def revert(rev_in):
         sys.exit("Error: no such revision: %r" % rev)
 
     # TODO...
+    print state
 
 
 def iter_dists_excl(dists, exclude_fn):
@@ -532,10 +533,6 @@ def main():
         config.change_auth()
         return
 
-    #if config.get_path() is None:
-    #    # create config file if it dosn't exist
-    #    config.write(opts.proxy)
-
     if opts.proxy:                                #  --proxy
         setup_proxy(opts.proxy)
     elif config.get('proxy'):
@@ -648,9 +645,8 @@ def main():
         installed_something = True
         egginst_install(dist)
 
-    if installed_something:
-        history.update()
-    else:
+    history.update()
+    if not installed_something:
         print "No update necessary, %s is up-to-date." % req
         print_installed_info(req.name)
 

@@ -7,15 +7,14 @@ iso_pat = re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}')
 
 
 def simple_delta(s):
-    pat = re.compile(r'(\d+)\s*(\w+)$')
+    pat = re.compile(r'(\d+)\s*(\w+)(?:\s+ago)?$')
     if s == 'yesterday':
         s = '1 day'
     m = pat.match(s)
     if m is None:
         return None
-    n, unit = m.groups()
-    n = int(n)
-    unit = unit.rstrip('s')
+    n = int(m.group(1))
+    unit = m.group(2).rstrip('s')
     if unit in ('week', 'wk'):
         return timedelta(weeks=n)
     if unit in ('day', 'd'):
