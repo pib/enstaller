@@ -375,7 +375,7 @@ def revert(rev_in):
         rev = int(rev_in)
     except ValueError:
         # we have a "date string"
-        from parsedatetime import parse
+        from parse_dt import parse
         rev = parse(rev_in)
         if rev is None:
             sys.exit("Error: could not parse: %r" % rev_in)
