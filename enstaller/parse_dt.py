@@ -43,9 +43,10 @@ def parse(s, cur=None):
         cur = datetime.now()
 
     d = simple_delta(s)
-    if d:
-        print d
+    if d is not None:
         return str(cur - d)[:19]
+
+    return None
 
 
 if __name__ == '__main__':

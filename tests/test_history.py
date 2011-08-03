@@ -7,7 +7,7 @@ import enstaller.history as history
 history.PATH = join(dirname(__file__), 'history')
 
 
-class TestDistNaming(unittest.TestCase):
+class TestHistory(unittest.TestCase):
 
     def test_find_revision(self):
         times = [
