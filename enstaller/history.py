@@ -70,13 +70,11 @@ def construct_states():
     return res
 
 
-def find_revision(times, dt=None):
+def find_revision(times, dt):
     """
     given a list of (sorted) datetimes 'times', return the index corresponding
     to the time 'dt'
     """
-    if dt is None:
-        dt = time.strftime(TIME_FMT)
     i = bisect.bisect(times, dt)
     if i == 0:
         return 0
