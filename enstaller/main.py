@@ -666,8 +666,7 @@ def main():
 
     if len(args) == 0:
         p.error("Requirement(s) missing")
-
-    if len(args) == 2:
+    elif len(args) == 2:
         pat = re.compile(r'\d+\.\d+')
         if pat.match(args[1]):
             args = ['-'.join(args)]
