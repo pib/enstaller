@@ -21,8 +21,8 @@ import history
 from proxy.api import setup_proxy
 from utils import (canonical, cname_fn, get_info, comparable_version,
                    shorten_repo, get_installed_info, get_available)
-from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
-                          parse_data, dist_naming)
+from indexed_repo import (Chain, Req, add_Reqs_to_spec, filename_as_req,
+                          spec_as_req, parse_data, dist_naming)
 
 
 # global options variables
@@ -386,8 +386,33 @@ def revert(rev_in):
     except IndexError:
         sys.exit("Error: no such revision: %r" % rev)
 
-    # TODO...
-    print state
+    curr = set(egginst.get_installed())
+    if state == curr:
+        print "Nothing to revert"
+        return
+    for fn in curr - state:
+        egginst_remove(fn)
+
+    to_install = []
+    need_fetch = []
+    for fn in state - curr:
+        to_install.append(fn)
+        if not isfile(join(config.get('local'), fn)):
+            need_fetch.append(fn)
+    if need_fetch:
+        set_chain()
+        for fn in need_fetch:
+            dist = c.get_dist(filename_as_req(fn))
+            if dist:
+                c.fetch_dist(dist, config.get('local'), dry_run=dry_run)
+    for fn in to_install:
+        pprint_fn_action(fn, 'installing')
+        egg_path = join(config.get('local'), fn)
+        if isfile(egg_path):
+            ei = egginst.EggInst(egg_path)
+            ei.install()
+
+    history.update()
 
 
 def iter_dists_excl(dists, exclude_fn):
