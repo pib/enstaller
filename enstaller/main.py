@@ -666,6 +666,12 @@ def main():
 
     if len(args) == 0:
         p.error("Requirement(s) missing")
+
+    if len(args) == 2:
+        pat = re.compile(r'\d+\.\d+')
+        if pat.match(args[1]):
+            args = ['-'.join(args)]
+
     reqs = []
     for arg in args:
         if '-' in arg:
@@ -675,7 +681,10 @@ def main():
             reqs.append(Req(arg))
 
     if verbose:
-        print "Requirements:", reqs
+        print "Requirements:"
+        for req in reqs:
+            print '    %r' % req
+        print
 
     print "prefix:", prefix
     check_write()

@@ -38,6 +38,7 @@ class Chain(object):
         print 'Repositories:'
         for r in self.repos:
             print '  %r' % r
+        print
 
 
     def add_repo(self, repo, index_fn='index-depend.bz2'):
