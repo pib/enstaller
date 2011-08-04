@@ -644,6 +644,10 @@ def main():
         list_option(pat)
         return
 
+    if opts.revert:                               #  --revert
+        revert(opts.revert)
+        return
+
     set_chain()                                   #  init chain
 
     if opts.search:                               #  --search
@@ -658,10 +662,6 @@ def main():
 
     if opts.whats_new:                            # --whats-new
         whats_new()
-        return
-
-    if opts.revert:
-        revert(opts.revert)
         return
 
     if len(args) == 0:
