@@ -627,10 +627,10 @@ def main():
     dists = get_dists(req,                        #  dists
                       'root' if opts.no_deps else 'recur')
 
-    # Warn the user about packages which depend on what will be updated
+    # warn the user about packages which depend on what will be updated
     depend_warn([dist_naming.filename_dist(d) for d in dists])
 
-    # Packages which are installed currently
+    # packages which are installed currently
     sys_inst = set(egginst.get_installed(sys.prefix))
     if prefix == sys.prefix:
         prefix_inst = sys_inst
@@ -638,7 +638,7 @@ def main():
         prefix_inst = set(egginst.get_installed(prefix))
     all_inst = sys_inst | prefix_inst
 
-    # These are the packahes which are being excluded from being installed
+    # these are the packahes which are being excluded from being installed
     if opts.forceall:
         exclude = set()
     else:
@@ -646,7 +646,7 @@ def main():
         if opts.force:
             exclude.discard(dist_naming.filename_dist(dists[-1]))
 
-    # Fetch distributions
+    # fetch distributions
     if not isdir(config.get('local')):
         os.makedirs(config.get('local'))
     for dist in iter_dists_excl(dists, exclude):
@@ -654,7 +654,7 @@ def main():
                      check_md5=opts.force or opts.forceall,
                      dry_run=dry_run)
 
-    # Remove packages (in reverse install order)
+    # remove packages (in reverse install order)
     for dist in dists[::-1]:
         fn = dist_naming.filename_dist(dist)
         if fn in all_inst:
@@ -662,12 +662,12 @@ def main():
             # installed don't remove it
             continue
         cname = cname_fn(fn)
-        # Only remove packages installed in prefix
+        # only remove packages installed in prefix
         for fn_inst in prefix_inst:
             if cname == cname_fn(fn_inst):
                 egginst_remove(fn_inst)
 
-    # Install packages
+    # install packages
     installed_something = False
     for dist in iter_dists_excl(dists, exclude):
         installed_something = True
