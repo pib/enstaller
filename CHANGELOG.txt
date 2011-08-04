@@ -1,6 +1,10 @@
-2011-??-??   4.4.1:
+2011-08-??   4.4.1:
 -------------------
 * BUG: remove object code fixes being limited to 256 KB header
+
+* add --log and --revert option to enpkg
+
+* add ability to enpkg to install/remove multiple packages at once
 
 
 

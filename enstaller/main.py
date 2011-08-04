@@ -430,6 +430,60 @@ def iter_dists_excl(dists, exclude_fn):
         yield dist
 
 
+def install_req(req, opts):
+    dists = get_dists(req, 'root' if opts.no_deps else 'recur')
+
+    # warn the user about packages which depend on what will be updated
+    depend_warn([dist_naming.filename_dist(d) for d in dists])
+
+    # packages which are installed currently
+    sys_inst = set(egginst.get_installed(sys.prefix))
+    if prefix == sys.prefix:
+        prefix_inst = sys_inst
+    else:
+        prefix_inst = set(egginst.get_installed(prefix))
+    all_inst = sys_inst | prefix_inst
+
+    # these are the packahes which are being excluded from being installed
+    if opts.forceall:
+        exclude = set()
+    else:
+        exclude = all_inst
+        if opts.force:
+            exclude.discard(dist_naming.filename_dist(dists[-1]))
+
+    # fetch distributions
+    if not isdir(config.get('local')):
+        os.makedirs(config.get('local'))
+    for dist in iter_dists_excl(dists, exclude):
+        c.fetch_dist(dist, config.get('local'),
+                     check_md5=opts.force or opts.forceall,
+                     dry_run=dry_run)
+
+    # remove packages (in reverse install order)
+    for dist in dists[::-1]:
+        fn = dist_naming.filename_dist(dist)
+        if fn in all_inst:
+            # if the distribution (which needs to be installed) is already
+            # installed don't remove it
+            continue
+        cname = cname_fn(fn)
+        # only remove packages installed in prefix
+        for fn_inst in prefix_inst:
+            if cname == cname_fn(fn_inst):
+                egginst_remove(fn_inst)
+
+    # install packages
+    installed_something = False
+    for dist in iter_dists_excl(dists, exclude):
+        installed_something = True
+        egginst_install(dist)
+
+    if not installed_something:
+        print "No update necessary, %s is up-to-date." % req
+        print_installed_info(req.name)
+
+
 def main():
     p = OptionParser(usage="usage: %prog [options] [name] [version]",
                      description=__doc__)
@@ -611,72 +665,28 @@ def main():
         return
 
     if len(args) == 0:
-        p.error("Requirement (name and optional version) missing")
-    if len(args) > 2:
-        p.error("A requirement is a name and an optional version")
-    req = Req(' '.join(args))
+        p.error("Requirement(s) missing")
+    reqs = []
+    for arg in args:
+        if '-' in arg:
+            name, version = arg.split('-', 1)
+            reqs.append(Req(name + ' ' + version))
+        else:
+            reqs.append(Req(arg))
+
+    if verbose:
+        print "Requirements:", reqs
 
     print "prefix:", prefix
     check_write()
     history.init()
-    if opts.remove:                               #  --remove
-        remove_req(req)
-        history.update()
-        return
-
-    dists = get_dists(req,                        #  dists
-                      'root' if opts.no_deps else 'recur')
-
-    # warn the user about packages which depend on what will be updated
-    depend_warn([dist_naming.filename_dist(d) for d in dists])
-
-    # packages which are installed currently
-    sys_inst = set(egginst.get_installed(sys.prefix))
-    if prefix == sys.prefix:
-        prefix_inst = sys_inst
-    else:
-        prefix_inst = set(egginst.get_installed(prefix))
-    all_inst = sys_inst | prefix_inst
-
-    # these are the packahes which are being excluded from being installed
-    if opts.forceall:
-        exclude = set()
-    else:
-        exclude = all_inst
-        if opts.force:
-            exclude.discard(dist_naming.filename_dist(dists[-1]))
-
-    # fetch distributions
-    if not isdir(config.get('local')):
-        os.makedirs(config.get('local'))
-    for dist in iter_dists_excl(dists, exclude):
-        c.fetch_dist(dist, config.get('local'),
-                     check_md5=opts.force or opts.forceall,
-                     dry_run=dry_run)
-
-    # remove packages (in reverse install order)
-    for dist in dists[::-1]:
-        fn = dist_naming.filename_dist(dist)
-        if fn in all_inst:
-            # if the distribution (which needs to be installed) is already
-            # installed don't remove it
-            continue
-        cname = cname_fn(fn)
-        # only remove packages installed in prefix
-        for fn_inst in prefix_inst:
-            if cname == cname_fn(fn_inst):
-                egginst_remove(fn_inst)
-
-    # install packages
-    installed_something = False
-    for dist in iter_dists_excl(dists, exclude):
-        installed_something = True
-        egginst_install(dist)
+    for req in reqs:
+        if opts.remove:                           #  --remove
+            remove_req(req)
+        else:
+            install_req(req, opts)
 
     history.update()
-    if not installed_something:
-        print "No update necessary, %s is up-to-date." % req
-        print_installed_info(req.name)
 
 
 if __name__ == '__main__':
