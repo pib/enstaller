@@ -390,9 +390,12 @@ def revert(rev_in):
     if state == curr:
         print "Nothing to revert"
         return
+
+    # remove packages
     for fn in curr - state:
         egginst_remove(fn)
 
+    # install packages (fetch from server if necessary)
     to_install = []
     need_fetch = []
     for fn in state - curr:
