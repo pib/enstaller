@@ -1,13 +1,15 @@
 import json
-from os.path import expanduser
+from os.path import dirname, expanduser
 
-
+from indexed_repo.chain import Chain
 
 
 
 if __name__ == '__main__':
-    fi = open(expanduser('~/buildware/scripts/epd_index.json'))
+    path = expanduser('~/buildware/scripts/index.json')
+    fi = open(path)
     index = json.load(fi)
     fi.close()
+    index['url'] = 'file://%s/' % dirname(path)
 
-    print index
+    c = Chain([index], verbose=1)

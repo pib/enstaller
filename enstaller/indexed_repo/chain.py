@@ -46,6 +46,10 @@ class Chain(object):
         Add a repo to the chain, i.e. read the index file of the url,
         parse it and update the index.
         """
+        if isinstance(repo, dict):
+            self.add_product(repo)
+            return
+
         if self.verbose:
             print "Adding repository:"
             print "   URL:", repo
@@ -89,6 +93,12 @@ class Chain(object):
             dist = repo + distname
             self.index[dist] = spec
             self.groups[spec['cname']].append(dist)
+
+
+    def add_product(self, product):
+         if self.verbose:
+            print "Adding product:"
+            print "   URL:", product['url']
 
 
     def get_version_build(self, dist):
