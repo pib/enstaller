@@ -47,7 +47,7 @@ class Chain(object):
         parse it and update the index.
         """
         if isinstance(repo, dict):
-            self.add_product(repo)
+            self.add_resource(repo)
             return
 
         if self.verbose:
@@ -95,10 +95,31 @@ class Chain(object):
             self.groups[spec['cname']].append(dist)
 
 
-    def add_product(self, product):
-         if self.verbose:
+    def add_resource(self, resource):
+        if self.verbose:
             print "Adding product:"
-            print "   URL:", product['url']
+            print "   URL:", resource['url']
+
+        from custom_tools import platform
+        new_repos = set()
+        for cname, project in resource['eggs'].iteritems():
+            files = project['files']
+            print cname
+            for path, data in files.iteritems():
+                if data.get('platforms', 'all') not in (platform, 'all'):
+                    continue
+                dist = resource['url'] + path
+                repo, filename = dist_naming.split_dist(dist)
+                new_repos.add(repo)
+                name, version, build = dist_naming.split_eggname(filename)
+                spec = dict(metadata_version='1.1',
+                            name=name, version=version, build=build,
+                            python=data.get('depends', '2.7'),
+                            packages=data.get('depends', []))
+                add_Reqs_to_spec(spec)
+                self.index[dist] = spec
+                self.groups[cname].append(dist)
+        print new_repos
 
 
     def get_version_build(self, dist):
