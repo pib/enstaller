@@ -444,7 +444,7 @@ def install_req(req, opts):
         prefix_inst = set(egginst.get_installed(prefix))
     all_inst = sys_inst | prefix_inst
 
-    # these are the packahes which are being excluded from being installed
+    # these are the packages which are being excluded from being installed
     if opts.forceall:
         exclude = set()
     else:
