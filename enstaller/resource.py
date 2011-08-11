@@ -35,11 +35,10 @@ class Resources(object):
         else:
             raise Exception('unsupported URL: %r' % url)
 
-        if index['platform'] != custom_plat:
-            raise Exception('index file for platform %s, but running %s' %
-                            (index['platform'], custom_plat))
-
         if 'eggs' in index:
+            if index['platform'] != custom_plat:
+                raise Exception('index file for platform %s, but running %s' %
+                                (index['platform'], custom_plat))
             self._add_egg_repos(url, index)
 
         self.index.append(index)
