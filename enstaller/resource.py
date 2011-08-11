@@ -4,9 +4,10 @@ from collections import defaultdict
 from os.path import expanduser, join
 
 from plat import custom_plat
-from utils import get_installed_info
+from utils import get_installed_info, comparable_version
+from verlib import IrrationalVersionError
 from indexed_repo.chain import Chain, Req
-from indexed_repo.dist_naming import split_dist, split_eggname
+from indexed_repo import dist_naming
 from indexed_repo.requirement import add_Reqs_to_spec
 
 
@@ -51,7 +52,7 @@ class Resources(object):
 
         for cname, project in index['eggs'].iteritems():
             for distname, data in project['files'].iteritems():
-                name, version, build = split_eggname(distname)
+                name, version, build = dist_naming.split_eggname(distname)
                 spec = dict(metadata_version='1.1',
                             name=name, version=version, build=build,
                             python=data.get('python', '2.7'),
@@ -75,13 +76,12 @@ class Resources(object):
             d.update(info)
             res[cname] = d
 
-            c = self.chain
-            for cname in c.groups.iterkeys():
-                dist = c.get_dist(Req(cname))
+            for cname in self.chain.groups.iterkeys():
+                dist = self.chain.get_dist(Req(cname))
                 if dist is None:
                     continue
-                repo, fn = split_dist(dist)
-                n, v, b = split_eggname(fn)
+                repo, fn = dist_naming.split_dist(dist)
+                n, v, b = dist_naming.split_eggname(fn)
                 if cname not in res:
                     d = defaultdict(str)
                     d['name'] = n
@@ -93,7 +93,7 @@ class Resources(object):
             try:
                 n, v, b = dist_naming.split_eggname(fn)
                 return comparable_version(v), b
-            except:
+            except IrrationalVersionError:
                 return None
 
         for d in res.itervalues():
