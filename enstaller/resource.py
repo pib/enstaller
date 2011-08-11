@@ -4,7 +4,7 @@ from collections import defaultdict
 from os.path import expanduser, join
 
 from plat import custom_plat
-from utils import get_installed_info, comparable_version
+from utils import open_with_auth, get_installed_info, comparable_version
 from verlib import IrrationalVersionError
 from indexed_repo.chain import Chain, Req
 from indexed_repo import dist_naming
@@ -27,9 +27,14 @@ class Resources(object):
         if self.verbose:
             print "Adding product:", url
 
+        index_fn = '.index-%s.json' % custom_plat
         if url.startswith('file://'):
             path = url[7:]
-            fi = open(join(path, 'index-%s.json' % custom_plat))
+            fi = open(join(path, index_fn))
+            index = json.load(fi)
+            fi.close()
+        elif url.startswith(('http://', 'https://')):
+            fi = open_with_auth(url + index_fn)
             index = json.load(fi)
             fi.close()
         else:
@@ -114,7 +119,9 @@ class Resources(object):
 
 
 if __name__ == '__main__':
-    r = Resources(['file://' + expanduser('~/buildware/scripts')], verbose=1)
+    #url = 'file://' + expanduser('~/buildware/scripts')
+    url = 'https://EPDUser:Epd789@www.enthought.com/repo/epd/'
+    r = Resources([url], verbose=1)
 
     req = Req('epd')
     print r.chain.get_dist(req)
