@@ -23,11 +23,9 @@ class Resources(object):
 
 
     def add_product(self, url):
-        if not url.endswith('/'):
-            url += '/'
+        url = url.rstrip('/') + '/'
         if self.verbose:
-            print "Adding product:"
-            print "   URL:", url
+            print "Adding product:", url
 
         if url.startswith('file://'):
             path = url[7:]
@@ -35,7 +33,11 @@ class Resources(object):
             index = json.load(fi)
             fi.close()
         else:
-            raise Exception
+            raise Exception('unsupported URL: %r' % url)
+
+        if index['platform'] != custom_plat:
+            raise Exception('index file for platform %s, but running %s' %
+                            (index['platform'], custom_plat))
 
         if 'eggs' in index:
             self._add_egg_repos(url, index)
@@ -112,7 +114,7 @@ class Resources(object):
 
 
 if __name__ == '__main__':
-    r = Resources(['file://' + expanduser('~/buildware/scripts')])
+    r = Resources(['file://' + expanduser('~/buildware/scripts')], verbose=1)
 
     req = Req('epd')
     print r.chain.get_dist(req)
