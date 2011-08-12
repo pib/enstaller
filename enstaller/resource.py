@@ -14,7 +14,10 @@ from indexed_repo.requirement import add_Reqs_to_spec
 
 class Resources(object):
 
-    def __init__(self, urls, verbose=False):
+    def __init__(self, urls, verbose=False, prefix=None, platform=None):
+        self.prefix = prefix or sys.prefix
+        self.plat = platform or custom_plat
+
         self.verbose = verbose
         self.index = []
         self.chain = Chain(verbose=verbose)
@@ -27,7 +30,7 @@ class Resources(object):
         if self.verbose:
             print "Adding product:", url
 
-        index_fn = '.index-%s.json' % custom_plat
+        index_fn = '.index-%s.json' % self.plat
         if url.startswith('file://'):
             path = url[7:]
             fi = open(join(path, index_fn))
@@ -40,9 +43,9 @@ class Resources(object):
         else:
             raise Exception('unsupported URL: %r' % url)
 
-        if 'platform' in index and index['platform'] != custom_plat:
+        if 'platform' in index and index['platform'] != self.plat:
             raise Exception('index file for platform %s, but running %s' %
-                            (index['platform'], custom_plat))
+                            (index['platform'], self.plat))
 
         if 'eggs' in index:
             self._add_egg_repos(url, index)
@@ -75,9 +78,9 @@ class Resources(object):
         import egginst
         # the result is a dict mapping cname to ...
         res = {}
-        for cname in egginst.get_installed_cnames(sys.prefix):
+        for cname in egginst.get_installed_cnames(self.prefix):
             d = defaultdict(str)
-            info = get_installed_info(sys.prefix, cname)
+            info = get_installed_info(self.prefix, cname)
             if info is None:
                 continue
             d.update(info)
