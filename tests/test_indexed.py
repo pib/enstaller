@@ -36,6 +36,7 @@ class TestDistNaming(unittest.TestCase):
 
     def test_split_eggname(self):
         for fn, nvb in [
+            ('Examples-7.0.egg', ('Examples', '7.0', 1)),
             ('numpy-1.3.4-7.egg', ('numpy', '1.3.4', 7)),
             ('python_dateutil-0.5-12.egg', ('python_dateutil', '0.5', 12)),
             ]:
