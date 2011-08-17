@@ -211,27 +211,22 @@ def read():
         return read.cache
 
     path = get_path()
-    read.cache = dict(default)
+    read.cache = {}
     if path is None:
-        return read()
+        return read.cache
 
-    d = {}
-    execfile(path, d)
-    for k in default.iterkeys():
-        if not d.has_key(k):
-            continue
-        v = d[k]
+    execfile(path, read.cache)
+    for k in read.cache:
+        v = read.cache[k]
         if k == 'IndexedRepos':
             read.cache[k] = [arch_filled_url(url) for url in v]
         elif k in ('prefix', 'local'):
             read.cache[k] = abs_expanduser(v)
-        else:
-            read.cache[k] = v
-    return read()
+    return read.cache
 
 
-def get(key):
-    return read()[key]
+def get(key, default_val=None):
+    return read().get(key) or default_val or default.get(key)
 
 
 def print_config():

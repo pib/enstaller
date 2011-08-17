@@ -15,8 +15,9 @@ from requirement import Req, add_Reqs_to_spec
 
 class Chain(object):
 
-    def __init__(self, repos=[], verbose=False):
+    def __init__(self, repos=[], verbose=False, file_action_callback=None):
         self.verbose = verbose
+        self.file_action_callback = file_action_callback or pprint_fn_action
 
         # maps distributions to specs
         self.index = {}
@@ -350,9 +351,8 @@ class Chain(object):
             if self.verbose:
                 print "Not forcing refetch, %r already exists" % dst
             return
-
-        pprint_fn_action(fn, ('copying', 'downloading')
-                             [dist.startswith(('http://', 'https://'))])
+        self.file_action_callback(fn, ('copying', 'downloading')
+                                  [dist.startswith(('http://', 'https://'))])
         if dry_run:
             return
 
