@@ -1,13 +1,16 @@
 import unittest
 from os.path import dirname, join
 
-import enstaller.history as history
+from enstaller.history import History
 
 
-history.PATH = join(dirname(__file__), 'history')
+PATH = join(dirname(__file__), 'history')
 
 
 class TestHistory(unittest.TestCase):
+    def setUp(self):
+        self.history = History()
+        self.history.path = PATH
 
     def test_find_revision(self):
         times = [
@@ -26,14 +29,14 @@ class TestHistory(unittest.TestCase):
             ('2011-08-01 23:05:07 CDT', 2),
             ('2011-08-01 23:05:08 CDT', 2),
             ]:
-            self.assertEqual(history.find_revision(times, dt), res)
+            self.assertEqual(self.history.find_revision(times, dt), res)
 
     def test_get_state(self):
-        self.assertEqual(history.get_state(0),
+        self.assertEqual(self.history.get_state(0),
                          set(['appinst-2.1.0-1.egg',
                               'basemap-1.0.1-1.egg',
                               'biopython-1.57-2.egg']))
-        self.assertEqual(history.get_state(),
+        self.assertEqual(self.history.get_state(),
                          set(['basemap-1.0.2-1.egg',
                               'biopython-1.57-2.egg',
                               'numpy-1.7.0-1.egg']))

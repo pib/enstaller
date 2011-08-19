@@ -11,15 +11,15 @@ import string
 import subprocess
 import textwrap
 from argparse import ArgumentParser
-from os.path import basename, isdir, isfile, join
-from optparse import OptionParser
+from os.path import isdir, isfile, join
 
 import egginst
-from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
+from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action, \
+                   console_file_progress
 
 from enstaller import __version__
 import config
-import history
+from history import History
 from proxy.api import setup_proxy
 from utils import (canonical, cname_fn, get_info, comparable_version,
                    shorten_repo, get_installed_info, get_available)
@@ -31,7 +31,7 @@ class DistributionNotFound(Exception):
     pass
 
 
-def console_progress_callback():
+class DistributionVersionMismatch(Exception):
     pass
 
 
@@ -46,12 +46,15 @@ class Enstaller(object):
         self.chain = chain
         self.prefixes = prefixes or [sys.prefix]
         self.dry_run = dry_run
+        self.egg_dir = config.get('local',
+                                  join(self.prefixes[0], 'LOCAL-REPO'))
+
 
         # Callback to be called before an install/remove is done
         #
         # Signature should be callback(enst, pkgs, action)
         #   enst: This Enstaller instance
-        #   pkgs: a list of packages to be installed (egg names)
+        #   pkgs: a list of packages to be installed (dists)
         #   action: 'install' or 'remove'
         self.pre_install_callback = None
 
@@ -127,7 +130,7 @@ class Enstaller(object):
                     eggs.append(info['egg_name'])
         return eggs
 
-    def get_dist(self, req):
+    def get_dist_meta(self, req):
         dist = self.chain.get_dist(req)
         if dist:
             return self.chain.index[dist]
@@ -158,8 +161,7 @@ class Enstaller(object):
 
     def install_egg(self, dist):
         repo, eggname = dist_naming.split_dist(dist)
-        egg_dir = config.get('local', join(self.prefixes[0], 'LOCAL-REPO'))
-        pkg_path = join(egg_dir, eggname)
+        pkg_path = join(self.egg_dir, eggname)
         if (sys.platform == 'win32' and
             eggname.lower().startswith(('appinst-', 'pywin32-'))):
             self.egginst_subprocess(pkg_path, 'install')
@@ -169,6 +171,7 @@ class Enstaller(object):
             return
         ei = egginst.EggInst(pkg_path, self.prefixes[0],
                              noapp=config.get('noapp'))
+        ei.progress_callback = console_file_progress
         ei.install()
         info = self.get_installed_info(cname_fn(eggname))
         path = join(info['meta_dir'], '__enpkg__.txt')
@@ -185,6 +188,7 @@ class Enstaller(object):
             return
         ei = egginst.EggInst(eggname, self.prefixes[0],
                              noapp=config.get('noapp'))
+        ei.progress_callback = console_file_progress
         ei.remove()
 
     def install(self, req, mode='recur', force=False, force_all=False):
@@ -214,13 +218,12 @@ class Enstaller(object):
         self.set_chain_callbacks()
 
         # fetch distributions
-        egg_dir = config.get('local', join(self.prefixes[0], 'LOCAL-REPO'))
-        if not isdir(egg_dir):
-            os.makedirs(egg_dir)
+        if not isdir(self.egg_dir):
+            os.makedirs(self.egg_dir)
         for dist, eggname in dists:
             if eggname in exclude:
                 continue
-            self.chain.fetch_dist(dist, egg_dir, check_md5=force or force_all,
+            self.chain.fetch_dist(dist, self.egg_dir, check_md5=force or force_all,
                                   dry_run=self.dry_run)
 
         # remove packages (in reverse install order)
@@ -246,7 +249,21 @@ class Enstaller(object):
         return installed_count
 
     def remove(self, req):
-        pass
+        d = self.get_installed_info(req.name)[0][1]
+        if not d:
+            raise DistributionNotFound(
+                "Package %r does not seem to be installed." % req.name)
+        pkg = d['egg_name'][:-4]
+        if req.version:
+            v_a, b_a = pkg.split('-')[1:3]
+            if req.version != v_a or (req.build and req.build != int(b_a)):
+                raise DistributionVersionMismatch(
+                    "Version mismatch: %s is installed cannot remove %s." %
+                    (pkg, req))
+        if self.pre_install_callback:
+            dist = self.chain.get_dist(req)
+            self.pre_install_callback(self, [dist], 'remove')
+        self.remove_egg(d['egg_name'])
 
 
 def print_path(enst):
@@ -257,58 +274,6 @@ def print_path(enst):
 
     for command in enst.path_commands():
         print command
-
-
-def egginst_subprocess(pkg_path, remove):
-    # only used on Windows
-    path = join(sys.prefix, bin_dir_name, 'egginst-script.py')
-    args = [sys.executable, path, '--prefix', prefix]
-    if dry_run:
-        args.append('--dry-run')
-    if remove:
-        args.append('--remove')
-    if config.get('noapp'):
-        args.append('--noapp')
-    args.append(pkg_path)
-    if verbose:
-        print 'CALL: %r' % args
-    subprocess.call(args)
-
-
-def egginst_remove(pkg):
-    fn = basename(pkg)
-    if (sys.platform == 'win32'  and
-            fn.lower().startswith(('appinst-', 'pywin32-'))):
-        if verbose:
-            print "Starting subprocess:"
-        egginst_subprocess(pkg, remove=True)
-        return
-    pprint_fn_action(fn, 'removing')
-    if dry_run:
-        return
-    ei = egginst.EggInst(pkg, prefix, noapp=config.get('noapp'))
-    ei.remove()
-
-
-def egginst_install(dist):
-    repo, fn = dist_naming.split_dist(dist)
-    pkg_path = join(config.get('local'), fn)
-    if (sys.platform == 'win32'  and
-            fn.lower().startswith(('appinst-', 'pywin32-'))):
-        if verbose:
-            print "Starting subprocess:"
-        egginst_subprocess(pkg_path, remove=False)
-        return
-    pprint_fn_action(fn, 'installing')
-    if dry_run:
-        return
-    ei = egginst.EggInst(pkg_path, prefix, noapp=config.get('noapp'))
-    ei.install()
-    info = get_installed_info(prefix, cname_fn(fn))
-    path = join(info['meta_dir'], '__enpkg__.txt')
-    fo = open(path, 'w')
-    fo.write("repo = %r\n" % repo)
-    fo.close()
 
 
 def check_write(enst):
@@ -387,7 +352,7 @@ def list_option(enst, pat):
 def whats_new(enst):
     fmt = '%-25s %-15s %s'
     print fmt % ('Name', 'installed', 'available')
-    print 60* "="
+    print 60 * "="
 
     inst = set(enst.get_installed_eggs())
 
@@ -396,10 +361,10 @@ def whats_new(enst):
         if not dist_naming.is_valid_eggname(egg_name):
             continue
         in_n, in_v, in_b = dist_naming.split_eggname(egg_name)
-        dist = enst.get_dist(Req(in_n))
-        if dist is None:
+        spec = enst.get_dist_meta(Req(in_n))
+        if spec is None:
             continue
-        av_v = dist['version']
+        av_v = spec['version']
         if (av_v != in_v and
                     comparable_version(av_v) > comparable_version(in_v)):
             print fmt % (in_n, in_v, av_v)
@@ -477,19 +442,14 @@ def remove_req(enst, req):
     Tries remove a package from prefix given a requirement object.
     This function is only used for the --remove option.
     """
-    d = enst.get_installed_info(req.name)[0][1]
-    if not d:
-        print "Package %r does not seem to be installed." % req.name
+    try:
+        enst.remove(req)
+    except DistributionNotFound as e:
+        print e.message
         return
-    pkg = d['egg_name'][:-4]
-    if req.version:
-        v_a, b_a = pkg.split('-')[1:3]
-        if req.version != v_a or (req.build and req.build != int(b_a)):
-            print("Version mismatch: %s is installed cannot remove %s." %
-                  (pkg, req))
-            return
-    depend_warn(enst, [pkg], ignore_version=True)
-    egginst_remove(pkg)
+    except DistributionVersionMismatch as e:
+        print e.message
+        return
 
 
 def check_available(cname):
@@ -513,33 +473,7 @@ Once you have obtained a subscription, you can proceed here.
     return True
 
 
-def get_dists(enst, req, mode):
-    """
-    resolve the requirement
-    """
-    dists = enst.chain.install_sequence(req, mode)
-    if dists:
-        if verbose:
-            print "Distributions in install sequence:"
-            for d in dists:
-                print '    ' + d
-        return dists
-
-    print "No distribution found for requirement '%s'." % req
-    versions = enst.chain.list_versions(req.name)
-    if versions:
-        print "Versions for package %r are: %s" % (req.name,
-                                                   ', '.join(versions))
-    info = enst.get_installed_info(req.name)[0][1]
-    if info:
-        print "%(egg_name)s was installed on: %(mtime)s" % info
-    elif 'EPD_free' in sys.version:
-        if check_available(req.name):
-            return get_dists(enst, req, mode)
-    sys.exit(1)
-
-
-def add_url(url):
+def add_url(url, verbose):
     url = dist_naming.cleanup_reponame(url)
 
     arch_url = config.arch_filled_url(url)
@@ -552,7 +486,8 @@ def add_url(url):
     config.prepend_url(url)
 
 
-def revert(rev_in):
+def revert(enst, rev_in):
+    history = History(enst.prefixes[0])
     try:
         rev = int(rev_in)
     except ValueError:
@@ -575,25 +510,27 @@ def revert(rev_in):
 
     # remove packages
     for fn in curr - state:
-        egginst_remove(fn)
+        enst.remove_egg(fn)
 
     # install packages (fetch from server if necessary)
     to_install = []
     need_fetch = []
     for fn in state - curr:
         to_install.append(fn)
-        if not isfile(join(config.get('local'), fn)):
+        if not isfile(join(enst.egg_dir, fn)):
             need_fetch.append(fn)
     if need_fetch:
         for fn in need_fetch:
-            dist = c.get_dist(filename_as_req(fn))
+            dist = enst.chain.get_dist(filename_as_req(fn))
             if dist:
-                c.fetch_dist(dist, config.get('local'), dry_run=dry_run)
+                enst.chain.fetch_dist(dist, enst.egg_dir,
+                                      dry_run=enst.dry_run)
     for fn in to_install:
         pprint_fn_action(fn, 'installing')
-        egg_path = join(config.get('local'), fn)
+        egg_path = join(enst.egg_dir, fn)
         if isfile(egg_path):
             ei = egginst.EggInst(egg_path)
+            ei.progress_callback = console_file_progress
             ei.install()
 
     history.update()
@@ -701,28 +638,6 @@ def main():
     if (args.list or args.search) and args.cnames:
         pat = re.compile(args.cnames[0], re.I)
 
-    if args.log:                                  #  --log
-        history.print_log()
-        return
-
-    if args.sys_config:                           #  --sys-config
-        config.get_path = lambda: config.system_config_path
-
-    if args.config:                               #  --config
-        config.print_config()
-        return
-
-    if args.userpass:                             #  --userpass
-        config.change_auth()
-        return
-
-    if args.proxy:                                #  --proxy
-        setup_proxy(args.proxy)
-    elif config.get('proxy'):
-        setup_proxy(config.get('proxy'))
-    else:
-        setup_proxy()
-
     if args.sys_prefix:
         prefix = sys.prefix
     elif args.prefix:
@@ -733,6 +648,29 @@ def main():
         prefixes = [prefix]
     else:
         prefixes = [prefix, sys.prefix]
+
+    if args.log:                                  # --log
+        History(prefix).print_log()
+        return
+
+    if args.sys_config:                           # --sys-config
+        config.get_path = lambda: config.system_config_path
+
+    if args.config:                               # --config
+        config.print_config()
+        return
+
+    if args.userpass:                             # --userpass
+        config.change_auth()
+        return
+
+    if args.proxy:                                # --proxy
+        setup_proxy(args.proxy)
+    elif config.get('proxy'):
+        setup_proxy(config.get('proxy'))
+    else:
+        setup_proxy()
+
     dry_run = args.dry_run
     verbose = args.verbose
 
@@ -743,28 +681,30 @@ def main():
     else:
         enst.pre_install_callback = depend_warn
     enst.file_action_callback = pprint_fn_action
+    enst.download_progress_callback = console_file_progress
+    enst.install_progress_callback = console_file_progress
 
-    if args.add_url:                              #  --add-url
-        add_url(args.add_url)
+    if args.add_url:                              # --add-url
+        add_url(args.add_url, args.verbose)
         return
 
-    if args.path:                                 #  --path
+    if args.path:                                 # --path
         print_path(enst)
         return
 
-    if args.list:                                 #  --list
+    if args.list:                                 # --list
         list_option(enst, pat)
         return
 
-    if args.revert:                               #  --revert
-        revert(args.revert)
+    if args.revert:                               # --revert
+        revert(enst, args.revert)
         return
 
-    if args.search:                               #  --search
+    if args.search:                               # --search
         search(enst, pat)
         return
 
-    if args.info:                                 #  --info
+    if args.info:                                 # --info
         if len(args.cnames) != 1:
             p.error("Option requires one argument (name of package)")
         info_option(enst, canonical(args.cnames[0]))
@@ -797,14 +737,14 @@ def main():
 
     print "prefix:", prefix
     check_write(enst)
-    history.init()
-    for req in reqs:
-        if args.remove:                           #  --remove
-            remove_req(enst, req)
-        else:
-            install_req(enst, req, args)
 
-    history.update()
+    with History(prefix):
+        for req in reqs:
+            if args.remove:                           # --remove
+                remove_req(enst, req)
+            else:
+                install_req(enst, req, args)
+
 
 if __name__ == '__main__':
     main()

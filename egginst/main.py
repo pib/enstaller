@@ -15,7 +15,8 @@ import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from utils import (on_win, bin_dir_name, rel_site_packages,
-                   pprint_fn_action, rm_empty_dir, rm_rf, human_bytes)
+                   pprint_fn_action, rm_empty_dir, rm_rf, human_bytes,
+                   console_file_progress)
 import scripts
 
 
@@ -46,6 +47,7 @@ class EggInst(object):
         self.prefix = abspath(prefix)
         self.hook = bool(hook)
         self.noapp = noapp
+        self.progress_callback = console_file_progress
 
         self.bin_dir = join(self.prefix, bin_dir_name)
 
@@ -165,24 +167,17 @@ class EggInst(object):
 
 
     def extract(self):
-        cur = n = 0
+        progress_data = {}
+        n = 0
         size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
-        sys.stdout.write('%9s [' % human_bytes(size))
+        self.progress_callback(0, size, progress_data)
+
         for name in self.arcnames:
             n += self.z.getinfo(name).file_size
-            if size == 0:
-                rat = 1
-            else:
-                rat = float(n) / size
-            if rat * 64 >= cur:
-                sys.stdout.write('.')
-                sys.stdout.flush()
-                cur += 1
+            self.progress_callback(n, size, progress_data)
             self.write_arcname(name)
 
         self.installed_size = size
-        sys.stdout.write('.' * (65 - cur) + ']\n')
-        sys.stdout.flush()
 
 
     def get_dst(self, arcname):
