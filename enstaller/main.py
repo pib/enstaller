@@ -571,9 +571,6 @@ def install_req(enst, req, opts):
 
 
 def main():
-    # REMOVE THIS AFTER DONE TESTING
-    sys.argv[0] = 'enpkg'
-    # usage="usage: %prog [options] [name] [version]",
     p = ArgumentParser(description=__doc__)
     p.add_argument('cnames', metavar='CNAME', nargs='*',
                    help='package(s) to work on')
