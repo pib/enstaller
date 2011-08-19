@@ -279,19 +279,18 @@ class EggInst(object):
             return
 
         self.read_meta()
-        cur = n = 0
+        n = 0
         nof = len(self.files) # number of files
-        sys.stdout.write('%9s [' % human_bytes(self.installed_size))
+        progress_data = {}
+        self.progress_callback(0, self.installed_size, progress_data)
+
         self.install_app(remove=True)
         self.run('pre_egguninst.py')
 
         for p in self.files:
             n += 1
-            rat = float(n) / nof
-            if rat * 64 >= cur:
-                sys.stdout.write('.')
-                sys.stdout.flush()
-                cur += 1
+            self.progress_callback(n, nof, progress_data)
+
             rm_rf(p)
             if p.endswith('.py'):
                 rm_rf(p + 'c')
@@ -301,8 +300,6 @@ class EggInst(object):
             rm_empty_dir(self.pkg_dir)
         else:
             rm_empty_dir(self.egginfo_dir)
-        sys.stdout.write('.' * (65 - cur) + ']\n')
-        sys.stdout.flush()
 
 
 def get_installed_cnames(prefix=sys.prefix):

@@ -31,6 +31,7 @@ def console_file_progress(so_far, total, state):
         state['cur'] += 1
 
     if total and so_far == total:
+        sys.stdout.write('.' * (65 - state['cur']))
         sys.stdout.write(']\n')
         sys.stdout.flush()
 

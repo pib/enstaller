@@ -35,6 +35,10 @@ class DistributionVersionMismatch(Exception):
     pass
 
 
+def noop_callback(*args):
+    pass
+
+
 class Enstaller(object):
     """ enpkg back-end
 
@@ -49,22 +53,21 @@ class Enstaller(object):
         self.egg_dir = config.get('local',
                                   join(self.prefixes[0], 'LOCAL-REPO'))
 
-
         # Callback to be called before an install/remove is done
         #
         # Signature should be callback(enst, pkgs, action)
         #   enst: This Enstaller instance
         #   pkgs: a list of packages to be installed (dists)
         #   action: 'install' or 'remove'
-        self.pre_install_callback = None
+        self.pre_install_callback = noop_callback
 
         # Callback to be called with download status of an individual
         # egg
-        self.download_progress_callback = None
+        self.download_progress_callback = noop_callback
 
         # Callback to be called with install status of an individual
         # egg
-        self.install_progress_callback = None
+        self.install_progress_callback = noop_callback
 
         # Callback to be called immediately before an individual
         # package is downloaded, copied, installed, removed
@@ -72,7 +75,7 @@ class Enstaller(object):
         # Signature should be callback(egg_name, action)
         #   egg_name: name of the egg being installed
         #   action: 'copying', 'downloading', 'installing', 'removing'
-        self.file_action_callback = None
+        self.file_action_callback = noop_callback
 
     def path_commands(self):
         commands = []
@@ -180,9 +183,9 @@ class Enstaller(object):
             return
         ei = egginst.EggInst(pkg_path, self.prefixes[0],
                              noapp=config.get('noapp'))
-        ei.progress_callback = console_file_progress
+        ei.progress_callback = self.install_progress_callback
         ei.install()
-        info = self.get_installed_info(cname_fn(eggname))
+        info = self.get_installed_info(cname_fn(eggname))[0][1]
         path = join(info['meta_dir'], '__enpkg__.txt')
         with open(path, 'w') as f:
             f.write('repo = %r\n' % repo)
@@ -197,7 +200,7 @@ class Enstaller(object):
             return
         ei = egginst.EggInst(eggname, self.prefixes[0],
                              noapp=config.get('noapp'))
-        ei.progress_callback = console_file_progress
+        ei.progress_callback = self.install_progress_callback
         ei.remove()
 
     def install(self, req, mode='recur', force=False, force_all=False):
@@ -243,7 +246,7 @@ class Enstaller(object):
 
             # Get the currently installed version, to remove
             info = self.get_installed_info(cname_fn(eggname))[0][1]
-            eggname = info['egg_name']
+            eggname = info and info.get('egg_name')
             if not eggname:
                 continue
             self.remove_egg(eggname)
