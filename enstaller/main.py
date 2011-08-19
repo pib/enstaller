@@ -156,8 +156,17 @@ class Enstaller(object):
         self.chain.file_action_callback = self.file_action_callback
         self.chain.download_progress_callback = self.download_progress_callback
 
-    def egginst_subprocess(egg_path, action):
-        pass
+    def egginst_subprocess(self, egg_path, action):
+        path = join(sys.prefix, bin_dir_name, 'egginst-script.py')
+        args = [sys.executable, path, '--prefix', self.prefixes[0]]
+        if self.dry_run:
+            args.append('--dry-run')
+        if action == 'remove':
+            args.append('--remove')
+        if config.get('noapp'):
+            args.append('--noapp')
+        args.append(egg_path)
+        subprocess.call(args)
 
     def install_egg(self, dist):
         repo, eggname = dist_naming.split_dist(dist)
