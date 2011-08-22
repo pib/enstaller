@@ -52,14 +52,13 @@ If you are not subscribed to EPD, just hit Return.
 """
     username = raw_input('Username: ').strip()
     if not username:
-        return None
+        return None, None
     for dummy in xrange(3):
         password = getpass('Password: ')
         password2 = getpass('Confirm password: ')
         if password == password2:
-            userpass = username + ':' + password
-            return userpass.encode('base64').strip()
-    return None
+            username, password
+    return None, None
 
 RC_TMPL = """\
 # enstaller configuration file
@@ -127,8 +126,10 @@ def write(proxy=None):
     else:
         path = home_config_path
 
-    auth = input_auth()
-    if auth:
+    username, password = input_auth()
+    if username and password:
+        userpass = username + ':' + password
+        auth = userpass.encode('base64').strip()
         auth_section = """
 # The EPD subscriber authentication is required to access the EPD repository.
 # To change this setting, use the 'enpkg --userpass' command which will ask
@@ -155,7 +156,13 @@ EPD_auth = %r
     clear_cache()
 
 
-def change_auth():
+def get_auth():
+    auth = get('EPD_auth')
+    userpass = auth.decode('base64')
+    return userpass.split(':')
+
+
+def change_auth(username, password):
     path = get_path()
     if path is None:
         write()
@@ -163,9 +170,12 @@ def change_auth():
     fi = open(path)
     data = fi.read()
     fi.close()
-    auth = input_auth()
-    if not auth:
+
+    if not (username and password):
         return
+    userpass = username + ':' + password
+    auth = userpass.encode('base64').strip()
+
     pat = re.compile(r'^EPD_auth\s*=.*$', re.M)
     authline = 'EPD_auth = %r' % auth
     if pat.search(data):

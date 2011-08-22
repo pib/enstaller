@@ -670,7 +670,8 @@ def main():
         return
 
     if args.userpass:                             # --userpass
-        config.change_auth()
+        username, password = config.input_auth()
+        config.change_auth(username, password)
         return
 
     if args.proxy:                                # --proxy
