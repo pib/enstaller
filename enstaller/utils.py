@@ -128,6 +128,8 @@ Please make sure you are using the correct authentication.
 Use "enpkg --userpass" to update authentication in configuration file.
 """)
                 sys.exit(1)
+            else:
+                raise
     else:
         sys.exit("Error: invalid url: %r" % url)
 
