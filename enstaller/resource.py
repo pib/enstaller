@@ -4,6 +4,7 @@ from collections import defaultdict
 import logging
 from os import makedirs
 from os.path import isdir, join
+import re
 
 import config
 import egginst
@@ -147,6 +148,21 @@ class Resources(object):
                                    for pkg in self.get_status().values()
                                    if pkg['status'] != 'installable'])
         return self._installed
+
+    def search(self, text):
+        """ Search for eggs with name or description containing the given text.
+
+        Returns a list of canonical names for the matching eggs.
+        """
+        regex = re.compile(re.escape(text), re.IGNORECASE)
+        results = []
+        for product in self.index:
+            for cname, metadata in product.get('eggs', {}).iteritems():
+                name = metadata.get('name', '')
+                description = metadata.get('description', '')
+                if regex.search(name) or regex.search(description):
+                    results.append(cname)
+        return results
 
     def install(self, req):
         # Convert cnames to Req instances
