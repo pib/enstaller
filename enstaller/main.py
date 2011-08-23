@@ -133,6 +133,29 @@ class Enstaller(object):
                     eggs.append(info['egg_name'])
         return eggs
 
+    def get_install_sequence(self, req, mode='recur',
+                             force=False, force_all=False):
+        """ Return the list of distributions for which action must be taken.
+
+        Compare with 'Chain.install_sequence', which returns the list of
+        distributions that must be installed, regardless of their current
+        installation status.
+        """
+        dists = self.chain.install_sequence(req, mode)
+        if not dists:
+            raise DistributionNotFound(
+                "No distribution found for requirement '%s'" % req)
+
+        # Filter dists that we do not actually need to install.
+        if not force_all:
+            exclude = set(self.get_installed_eggs()) # currently installed
+            if force:
+                exclude.discard(dist_naming.filename_dist(dists[-1]))
+            is_excluded = lambda d: dist_naming.filename_dist(d) not in exclude
+            dists = filter(is_excluded, dists)
+
+        return dists
+
     def get_dist_meta(self, req):
         dist = self.chain.get_dist(req)
         if dist:
@@ -204,46 +227,27 @@ class Enstaller(object):
         ei.remove()
 
     def install(self, req, mode='recur', force=False, force_all=False):
-        dists = self.chain.install_sequence(req, mode)
-        if not dists:
-            raise DistributionNotFound(
-                "No distribution found for requirement '%s'" % req)
-
+        # get distributions that need to be installed
+        dists = self.get_install_sequence(req, mode, force, force_all)
+        
         if self.pre_install_callback:
             self.pre_install_callback(self, dists, 'install')
+        self.set_chain_callbacks()
 
         # Get eggname for each dist, since it's used so much
         dists = [(dist, dist_naming.filename_dist(dist))
                  for dist in dists]
 
-        # packages which are intalled currently
-        all_inst = set(self.get_installed_eggs())
-
-        # packages being excluded from being installed
-        if force_all:
-            exclude = set()
-        else:
-            exclude = all_inst
-            if force:
-                exclude.discard(dist_naming.filename_dist(dists[-1]))
-
-        self.set_chain_callbacks()
-
         # fetch distributions
         if not isdir(self.egg_dir):
             os.makedirs(self.egg_dir)
         for dist, eggname in dists:
-            if eggname in exclude:
-                continue
-            self.chain.fetch_dist(dist, self.egg_dir, check_md5=force or force_all,
+            self.chain.fetch_dist(dist, self.egg_dir,
+                                  check_md5=force or force_all,
                                   dry_run=self.dry_run)
 
         # remove packages (in reverse install order)
         for dist, eggname in reversed(dists):
-            # Don't remove the file if it's already the right version
-            if eggname in all_inst:
-                continue
-
             # Get the currently installed version, to remove
             info = self.get_installed_info(cname_fn(eggname))[0][1]
             eggname = info and info.get('egg_name')
@@ -254,8 +258,6 @@ class Enstaller(object):
         # install packages
         installed_count = 0
         for dist, eggname in dists:
-            if eggname in exclude:
-                continue
             self.install_egg(dist)
             installed_count += 1
         return installed_count
