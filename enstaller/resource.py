@@ -164,13 +164,26 @@ class Resources(object):
                     results.append(cname)
         return results
 
-    def install(self, req):
+    def _req_list(self, reqs):
+        """ Take a single req or a list of reqs and return a list of
+        Req instances
+        """
+        if not isinstance(reqs, list):
+            reqs = [reqs]
+
         # Convert cnames to Req instances
-        if isinstance(req, str):
-            req = Req(req)
+        for i, req in enumerate(reqs):
+            if not isinstance(req, Req):
+                reqs[i] = Req(req)
+        return reqs
+
+    def install(self, reqs):
+        reqs = self._req_list(reqs)
 
         with self.history:
-            installed_count = self.enst.install(req)
+            installed_count = 0
+            for req in reqs:
+                installed_count += self.enst.install(req)
 
         # Clear the cache, since the status of several packages could now be
         # invalid
@@ -178,13 +191,12 @@ class Resources(object):
 
         return installed_count
 
-    def uninstall(self, req):
-        # Convert cnames to Req instances
-        if isinstance(req, str):
-            req = Req(req)
+    def uninstall(self, reqs):
+        reqs = self._req_list(reqs)
 
         with self.history:
-            self.enst.remove(req)
+            for req in reqs:
+                self.enst.remove(req)
 
         self.clear_cache()
         return 1
