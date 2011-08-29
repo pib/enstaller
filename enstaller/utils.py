@@ -103,16 +103,32 @@ def open_with_auth(url):
     return urllib2.urlopen(request)
 
 
-def write_data_from_url(fo, url, md5=None, size=None):
+def noop_download_progress(so_far, total, state):
+    pass
+
+
+def write_data_from_url(fo, url, md5=None, size=None,
+                        progress_callback=noop_download_progress):
     """
-    Read data from the url and write to the file handle fo, which must be
-    open for writing.  Optionally check the MD5.  When the size in bytes
-    is provided, a progress bar is displayed using the download/copy.
+    Read data from the url and write to the file handle fo, which must
+    be open for writing.  Optionally check the MD5.  When the size in
+    bytes and progress_callback are provided, the callback is called
+    with progress updates as the download/copy occurs. If no size is
+    provided, the callback will be called with None for the total
+    size.
+
+    The callback will be called with 0% progress at the beginning and
+    100% progress at the end, so these two states can be used for any
+    initial and final display.
+
+    progress_callback signature: callback(so_far, total, state)
+      so_far -- bytes so far
+      total -- bytes total, if known, otherwise None
+      state -- an initially empty dict which the function can store things in if
+               needed
     """
-    if size:
-        sys.stdout.write('%9s [' % human_bytes(size))
-        sys.stdout.flush()
-        n = cur = 0
+    progress_data = {}
+    progress_callback(0, size, progress_data)
 
     if url.startswith('file://'):
         path = url[7:]
@@ -140,6 +156,7 @@ Use "enpkg --userpass" to update authentication in configuration file.
     else:
         buffsize = 256
 
+    n = 0
     while True:
         chunk = fi.read(buffsize)
         if not chunk:
@@ -147,17 +164,8 @@ Use "enpkg --userpass" to update authentication in configuration file.
         fo.write(chunk)
         if md5:
             h.update(chunk)
-        if not size:
-            continue
         n += len(chunk)
-        if float(n) / size * 64 >= cur:
-            sys.stdout.write('.')
-            sys.stdout.flush()
-            cur += 1
-
-    if size:
-        sys.stdout.write(']\n')
-        sys.stdout.flush()
+        progress_callback(n, size, progress_data)
 
     fi.close()
 

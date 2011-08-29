@@ -4,11 +4,12 @@ from collections import defaultdict
 import logging
 from os import makedirs
 from os.path import isdir, join
+import re
 
 import config
 import egginst
-from enstaller import main as enstaller_main
-from enstaller.main import egginst_install, egginst_remove
+from enstaller import Enstaller
+from enstaller.history import History
 from plat import custom_plat
 from utils import open_with_auth, get_installed_info, comparable_version, \
     cname_fn
@@ -23,12 +24,12 @@ logger = logging.getLogger(__name__)
 class Resources(object):
 
     def __init__(self, urls, verbose=False, prefix=None, platform=None):
-        self.prefix = prefix or sys.prefix
         self.plat = platform or custom_plat
-
+        self.prefix = prefix
         self.verbose = verbose
         self.index = []
-        self.chain = Chain(verbose=verbose)
+        self.history = History(prefix)
+        self.enst = Enstaller(Chain(verbose=verbose), [prefix or sys.prefix])
         for url in urls:
             self.add_product(url)
 
@@ -74,7 +75,7 @@ class Resources(object):
             repos = [url + path + '/' for path in index['egg_repos']]
         else:
             repos = [url]
-        self.chain.repos.extend(repos)
+        self.enst.chain.repos.extend(repos)
 
         for cname, project in index['eggs'].iteritems():
             for distname, data in project['files'].iteritems():
@@ -86,12 +87,12 @@ class Resources(object):
                 add_Reqs_to_spec(spec)
                 assert spec['cname'] == cname, distname
                 dist = repos[data.get('repo', 0)] + distname
-                self.chain.index[dist] = spec
-                self.chain.groups[cname].append(dist)
+                self.enst.chain.index[dist] = spec
+                self.enst.chain.groups[cname].append(dist)
 
     def get_installed_cnames(self):
         if not self._installed_cnames:
-            self._installed_cnames = egginst.get_installed_cnames(self.prefix)
+            self._installed_cnames = self.enst.get_installed_cnames()
         return self._installed_cnames
 
     def get_status(self):
@@ -100,14 +101,14 @@ class Resources(object):
             res = {}
             for cname in self.get_installed_cnames():
                 d = defaultdict(str)
-                info = get_installed_info(self.prefix, cname)
+                info = self.enst.get_installed_info(cname)[0][1]
                 if info is None:
                     continue
                 d.update(info)
                 res[cname] = d
 
-                for cname in self.chain.groups.iterkeys():
-                    dist = self.chain.get_dist(Req(cname))
+                for cname in self.enst.chain.groups.iterkeys():
+                    dist = self.enst.chain.get_dist(Req(cname))
                     if dist is None:
                         continue
                     repo, fn = dist_naming.split_dist(dist)
@@ -148,51 +149,41 @@ class Resources(object):
                                    if pkg['status'] != 'installable'])
         return self._installed
 
-    def install(self, req):
+    def search(self, text):
+        """ Search for eggs with name or description containing the given text.
+
+        Returns a list of canonical names for the matching eggs.
+        """
+        regex = re.compile(re.escape(text), re.IGNORECASE)
+        results = []
+        for product in self.index:
+            for cname, metadata in product.get('eggs', {}).iteritems():
+                name = metadata.get('name', '')
+                description = metadata.get('description', '')
+                if regex.search(name) or regex.search(description):
+                    results.append(cname)
+        return results
+
+    def _req_list(self, reqs):
+        """ Take a single req or a list of reqs and return a list of
+        Req instances
+        """
+        if not isinstance(reqs, list):
+            reqs = [reqs]
+
         # Convert cnames to Req instances
-        if isinstance(req, str):
-            req = Req(req)
+        for i, req in enumerate(reqs):
+            if not isinstance(req, Req):
+                reqs[i] = Req(req)
+        return reqs
 
-        logger.debug('Installing %s' % req.name)
+    def install(self, reqs):
+        reqs = self._req_list(reqs)
 
-        # 1. get list of package and all its dependencies, as URLs to .eggs
-        dists = [(dist, dist_naming.filename_dist(dist))
-                 for dist in self.chain.install_sequence(req)]
-
-        # 2. get list of currently installed packages
-        installed = self.get_installed()
-
-        # 3. download .eggs
-        egg_storage = config.get('local')
-        logger.debug('Storing dowloaded eggs at %s' % egg_storage)
-        if not isdir(egg_storage):
-            makedirs(egg_storage)
-        for dist, eggname in dists:
-            if eggname in installed:
-                logger.debug('Skipping re-downloading %s' % eggname)
-                continue
-            logger.debug('Downloading %s' % eggname)
-            self.chain.fetch_dist(dist, egg_storage)
-
-        # 4. remove existing versions of packages to be installed
-        for dist, eggname in reversed(dists):
-            if eggname in installed:
-                logger.debug('Skipping removing %s' % eggname)
-                continue
-            logger.debug('Removing old %s' % eggname)
-            enstaller_main.prefix = self.prefix
-            egginst_remove(cname_fn(eggname))
-
-        # 5. install new versions of packages
-        installed_count = 0
-        for dist, eggname in dists:
-            if eggname in installed:
-                logger.debug('Skipping re-installing %s' % eggname)
-                continue
-            logger.debug('Installing %s' % eggname)
-            installed_count += 1
-            enstaller_main.prefix = self.prefix
-            egginst_install(dist)
+        with self.history:
+            installed_count = 0
+            for req in reqs:
+                installed_count += self.enst.install(req)
 
         # Clear the cache, since the status of several packages could now be
         # invalid
@@ -200,13 +191,13 @@ class Resources(object):
 
         return installed_count
 
-    def uninstall(self, req):
-        # Convert cnames to Req instances
-        if isinstance(req, str):
-            req = Req(req)
+    def uninstall(self, reqs):
+        reqs = self._req_list(reqs)
 
-        enstaller_main.prefix = self.prefix
-        egginst_remove(req.name)
+        with self.history:
+            for req in reqs:
+                self.enst.remove(req)
+
         self.clear_cache()
         return 1
 
@@ -217,7 +208,7 @@ if __name__ == '__main__':
     r = Resources([url], verbose=1)
 
     req = Req('epd')
-    print r.chain.get_dist(req)
-    r.chain.print_repos()
+    print r.enst.chain.get_dist(req)
+    r.enst.chain.print_repos()
     for v in r.get_status().itervalues():
         print '%(name)-20s %(version)16s %(a-ver)16s %(status)12s' % v
