@@ -1,5 +1,6 @@
-2011-??-??   4.4.2:
+2011-??-??   4.5.0:
 -------------------
+* refactor to separate enpkg backend from frontend
 
 
 
