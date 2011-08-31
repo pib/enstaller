@@ -173,7 +173,8 @@ class EggInst(object):
 
         for name in self.arcnames:
             n += self.z.getinfo(name).file_size
-            self.progress_callback(n, size)
+            if n:
+                self.progress_callback(n, size)
             self.write_arcname(name)
 
         self.installed_size = size

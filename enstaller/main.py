@@ -655,6 +655,7 @@ def main():
         prefix = args.prefix
     else:
         prefix = config.get('prefix')
+
     if prefix == sys.prefix:
         prefixes = [prefix]
     else:
