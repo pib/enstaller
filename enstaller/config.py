@@ -57,7 +57,7 @@ If you are not subscribed to EPD, just hit Return.
         password = getpass('Password: ')
         password2 = getpass('Confirm password: ')
         if password == password2:
-            username, password
+            return username, password
     return None, None
 
 RC_TMPL = """\
