@@ -229,7 +229,7 @@ class Enstaller(object):
     def install(self, req, mode='recur', force=False, force_all=False):
         # get distributions that need to be installed
         dists = self.get_install_sequence(req, mode, force, force_all)
-        
+
         if self.pre_install_callback:
             self.pre_install_callback(self, dists, 'install')
         self.set_chain_callbacks()

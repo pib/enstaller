@@ -167,14 +167,13 @@ class EggInst(object):
 
 
     def extract(self):
-        progress_data = {}
         n = 0
         size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
-        self.progress_callback(0, size, progress_data)
+        self.progress_callback(0, size)
 
         for name in self.arcnames:
             n += self.z.getinfo(name).file_size
-            self.progress_callback(n, size, progress_data)
+            self.progress_callback(n, size)
             self.write_arcname(name)
 
         self.installed_size = size
@@ -281,15 +280,14 @@ class EggInst(object):
         self.read_meta()
         n = 0
         nof = len(self.files) # number of files
-        progress_data = {}
-        self.progress_callback(0, self.installed_size, progress_data)
+        self.progress_callback(0, self.installed_size)
 
         self.install_app(remove=True)
         self.run('pre_egguninst.py')
 
         for p in self.files:
             n += 1
-            self.progress_callback(n, nof, progress_data)
+            self.progress_callback(n, nof)
 
             rm_rf(p)
             if p.endswith('.py'):

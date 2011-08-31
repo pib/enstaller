@@ -103,12 +103,8 @@ def open_with_auth(url):
     return urllib2.urlopen(request)
 
 
-def noop_download_progress(so_far, total, state):
-    pass
 
-
-def write_data_from_url(fo, url, md5=None, size=None,
-                        progress_callback=noop_download_progress):
+def write_data_from_url(fo, url, md5=None, size=None, progress_callback=None):
     """
     Read data from the url and write to the file handle fo, which must
     be open for writing.  Optionally check the MD5.  When the size in
@@ -124,11 +120,10 @@ def write_data_from_url(fo, url, md5=None, size=None,
     progress_callback signature: callback(so_far, total, state)
       so_far -- bytes so far
       total -- bytes total, if known, otherwise None
-      state -- an initially empty dict which the function can store things in if
-               needed
     """
-    progress_data = {}
-    progress_callback(0, size, progress_data)
+    if progress_callback is not None:
+        n = 0
+        progress_callback(0, size)
 
     if url.startswith('file://'):
         path = url[7:]
@@ -156,7 +151,6 @@ Use "enpkg --userpass" to update authentication in configuration file.
     else:
         buffsize = 256
 
-    n = 0
     while True:
         chunk = fi.read(buffsize)
         if not chunk:
@@ -164,8 +158,9 @@ Use "enpkg --userpass" to update authentication in configuration file.
         fo.write(chunk)
         if md5:
             h.update(chunk)
-        n += len(chunk)
-        progress_callback(n, size, progress_data)
+        if progress_callback is not None:
+            n += len(chunk)
+            progress_callback(n, size)
 
     fi.close()
 
