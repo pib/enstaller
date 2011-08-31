@@ -5,6 +5,7 @@ import logging
 from os import makedirs
 from os.path import isdir, join
 import re
+from urllib2 import urlopen, Request
 
 import config
 import egginst
@@ -23,15 +24,22 @@ logger = logging.getLogger(__name__)
 
 class Resources(object):
 
-    def __init__(self, urls, verbose=False, prefix=None, platform=None):
+    def __init__(self, index_root=None, urls=[], verbose=False, prefix=None,
+                 platform=None):
         self.plat = platform or custom_plat
         self.prefix = prefix
         self.verbose = verbose
         self.index = []
         self.history = History(prefix)
         self.enst = Enstaller(Chain(verbose=verbose), [prefix or sys.prefix])
+        self.product_index_path = 'products'
+        self.authenticate = True
+
         for url in urls:
             self.add_product(url)
+
+        if index_root:
+            self.load_index(index_root)
 
         # Cache attributes
         self._installed_cnames = None
@@ -43,23 +51,31 @@ class Resources(object):
         self._status = None
         self._installed = None
 
+    def _read_json_from_url(self, url):
+        req = Request(url)
+        username, password = config.get_auth()
+        if username and password and self.authenticate:
+                auth = (username + ':' + password).encode('base64')
+                req.add_header('Authorization', 'Basic ' + auth)
+        return json.load(urlopen(req))
+
+    def load_index(self, url):
+        url = url.rstrip('/')
+        index_url = '%s/%s' % (url, self.product_index_path)
+        index = self._read_json_from_url(index_url)
+
+        for product in index:
+            self.add_product('%s/products/%s' % (url, product['product']))
+
     def add_product(self, url):
-        url = url.rstrip('/') + '/'
+        url = url.rstrip('/')
+
         if self.verbose:
             print "Adding product:", url
 
-        index_fn = '.index-%s.json' % self.plat
-        if url.startswith('file://'):
-            path = url[7:]
-            fi = open(join(path, index_fn))
-            index = json.load(fi)
-            fi.close()
-        elif url.startswith(('http://', 'https://')):
-            fi = open_with_auth(url + index_fn)
-            index = json.load(fi)
-            fi.close()
-        else:
-            raise Exception('unsupported URL: %r' % url)
+        index_url = '%s/index-%s.json' % (url, self.plat)
+
+        index = self._read_json_from_url(index_url)
 
         if 'platform' in index and index['platform'] != self.plat:
             raise Exception('index file for platform %s, but running %s' %

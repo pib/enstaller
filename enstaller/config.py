@@ -110,7 +110,7 @@ IndexedRepos = [
 #noapp = True
 """
 
-def write(proxy=None):
+def write(username=None, password=None, proxy=None):
     """
     write the config file
     """
@@ -126,7 +126,8 @@ def write(proxy=None):
     else:
         path = home_config_path
 
-    username, password = input_auth()
+    if username is None and password is None:
+        username, password = input_auth()
     if username and password:
         userpass = username + ':' + password
         auth = userpass.encode('base64').strip()
@@ -165,7 +166,7 @@ def get_auth():
 def change_auth(username, password):
     path = get_path()
     if path is None:
-        write()
+        write(username, password)
         return
     fi = open(path)
     data = fi.read()
