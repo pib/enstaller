@@ -21,19 +21,21 @@ def console_file_progress(so_far, total):
 
     Displays a progress bar as the download progresses.
     """
+    if not total:
+        return
     global _cur
 
-    if total and so_far == 0:
+    if so_far == 0:
         sys.stdout.write('%9s [' % human_bytes(total))
         sys.stdout.flush()
         _cur = 0
 
-    if total and float(so_far) / total * 64 >= _cur:
+    if float(so_far) / total * 64 >= _cur:
         sys.stdout.write('.')
         sys.stdout.flush()
         _cur += 1
 
-    if total and so_far == total:
+    if so_far == total:
         sys.stdout.write('.' * (65 - _cur))
         sys.stdout.write(']\n')
         sys.stdout.flush()
