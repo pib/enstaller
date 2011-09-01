@@ -68,11 +68,11 @@ class Resources(object):
         for product in index:
             product_url = '%s/products/%s' % (url, product['product'])
             try:
-                self.add_product(product_url)
+                self.add_product(product_url, product['subscribed'])
             except HTTPError:
                 logger.exception('Error getting index file %s' % product_url)
 
-    def add_product(self, url):
+    def add_product(self, url, subscribed=True):
         url = url.rstrip('/')
 
         if self.verbose:
@@ -81,6 +81,7 @@ class Resources(object):
         index_url = '%s/index-%s.json' % (url, self.plat)
 
         index = self._read_json_from_url(index_url)
+        index['subscribed'] = subscribed
 
         if 'platform' in index and index['platform'] != self.plat:
             raise Exception('index file for platform %s, but running %s' %
@@ -136,6 +137,7 @@ class Resources(object):
                     n, v, b = dist_naming.split_eggname(fn)
                     if cname not in res:
                         d = defaultdict(str)
+                        d['name'] = d.get('name', cname)
                         res[cname] = d
                     res[cname]['a-egg'] = fn
                     res[cname]['a-ver'] = '%s-%d' % (v, b)
