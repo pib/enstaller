@@ -3,6 +3,7 @@ import re
 import sys
 import time
 import hashlib
+import logging
 import urlparse
 import urllib2
 from cStringIO import StringIO
@@ -13,6 +14,7 @@ from egginst.utils import human_bytes
 from enstaller import __version__
 from enstaller.verlib import NormalizedVersion, IrrationalVersionError
 
+logger = logging.getLogger(__name__)
 
 PY_VER = '%i.%i' % sys.version_info[:2]
 
@@ -97,8 +99,10 @@ def open_with_auth(url):
                                        params, query, frag))
         request = urllib2.Request(new_url)
         request.add_header("Authorization", "Basic " + auth)
+        logger.debug('Requesting %s with auth' % new_url)
     else:
         request = urllib2.Request(url)
+        logger.debug('Requesting %s without auth' % url)
     request.add_header('User-Agent', 'enstaller/%s' % __version__)
     return urllib2.urlopen(request)
 

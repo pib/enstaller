@@ -159,8 +159,11 @@ EPD_auth = %r
 
 def get_auth():
     auth = get('EPD_auth')
-    userpass = auth.decode('base64')
-    return userpass.split(':')
+    if auth:
+        userpass = auth.decode('base64')
+        return userpass.split(':')
+    else:
+        return None, None
 
 
 def change_auth(username, password):

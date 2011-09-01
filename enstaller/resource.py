@@ -5,7 +5,7 @@ import logging
 from os import makedirs
 from os.path import isdir, join
 import re
-from urllib2 import urlopen, Request
+from urllib2 import HTTPError, urlopen, Request
 
 import config
 import egginst
@@ -52,6 +52,7 @@ class Resources(object):
         self._installed = None
 
     def _read_json_from_url(self, url):
+        logger.debug('Reading JSON from URL: %s' % url)
         req = Request(url)
         username, password = config.get_auth()
         if username and password and self.authenticate:
@@ -65,7 +66,11 @@ class Resources(object):
         index = self._read_json_from_url(index_url)
 
         for product in index:
-            self.add_product('%s/products/%s' % (url, product['product']))
+            product_url = '%s/products/%s' % (url, product['product'])
+            try:
+                self.add_product(product_url)
+            except HTTPError:
+                logger.exception('Error getting index file %s' % product_url)
 
     def add_product(self, url):
         url = url.rstrip('/')
@@ -88,7 +93,7 @@ class Resources(object):
 
     def _add_egg_repos(self, url, index):
         if 'egg_repos' in index:
-            repos = [url + path + '/' for path in index['egg_repos']]
+            repos = [url + '/' + path + '/' for path in index['egg_repos']]
         else:
             repos = [url]
         self.enst.chain.repos.extend(repos)
@@ -131,7 +136,6 @@ class Resources(object):
                     n, v, b = dist_naming.split_eggname(fn)
                     if cname not in res:
                         d = defaultdict(str)
-                        d['name'] = n
                         res[cname] = d
                     res[cname]['a-egg'] = fn
                     res[cname]['a-ver'] = '%s-%d' % (v, b)
