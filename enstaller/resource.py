@@ -68,29 +68,31 @@ class Resources(object):
         for product in index:
             product_url = '%s/products/%s' % (url, product['product'])
             try:
-                self.add_product(product_url, product['subscribed'])
+                product['base_url'] = url
+                product['url'] = product_url.rstrip('/')
+                self.add_product(product)
             except HTTPError:
                 logger.exception('Error getting index file %s' % product_url)
 
-    def add_product(self, url, subscribed=True):
-        url = url.rstrip('/')
+    def add_product(self, index):
 
         if self.verbose:
             print "Adding product:", url
 
-        index_url = '%s/index-%s.json' % (url, self.plat)
+        index['index_url'] = '%s/index-%s.json' % (index['url'], self.plat)
 
-        index = self._read_json_from_url(index_url)
-        index['subscribed'] = subscribed
+        product_index = self._read_json_from_url(index['index_url'])
+        index.update(product_index)
 
         if 'platform' in index and index['platform'] != self.plat:
             raise Exception('index file for platform %s, but running %s' %
                             (index['platform'], self.plat))
 
         if 'eggs' in index:
-            self._add_egg_repos(url, index)
+            self._add_egg_repos(index['url'], index)
 
         self.index.append(index)
+        return index
 
     def _add_egg_repos(self, url, index):
         if 'egg_repos' in index:
