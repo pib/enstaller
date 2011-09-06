@@ -340,27 +340,27 @@ def info_option(enst, cname):
     print_installed_info(enst, cname)
 
 
-def print_installed(group):
+def print_installed(prefix, pat=None):
     fmt = '%-20s %-20s %s'
     print fmt % ('Project name', 'Version', 'Repository')
     print 60 * '='
-    for prefix, info in group:
+    for cname in egginst.get_installed_cnames(prefix):
+        if pat and not pat.search(cname):
+            continue
+        info = get_installed_info(prefix, cname)
         if info is None:
             continue
         print fmt % (info['name'], info['version'], info.get('repo', '-'))
 
 
-def list_option(enst, pat):
-    info_groups = zip(*[enst.get_installed_info(cname)
-                        for cname in enst.get_installed_cnames()
-                        if not pat or pat.search(cname)])
-    for group in reversed(info_groups):
-        prefix = group[0][0]
-        if prefix == sys.prefix:
-            print 'sys.prefix:', prefix
-        else:
-            print 'prefix:', prefix
-        print_installed(group)
+def list_option(prefix, pat=None):
+    print "sys.prefix:", sys.prefix
+    print_installed(sys.prefix, pat)
+    if prefix == sys.prefix:
+        return
+    print
+    print "prefix:", prefix
+    print_installed(prefix, pat)
 
 
 def whats_new(enst):
@@ -677,6 +677,10 @@ def main():
         config.change_auth(username, password)
         return
 
+    if args.list:                                 # --list
+        list_option(prefix, pat)
+        return
+
     if args.proxy:                                # --proxy
         setup_proxy(args.proxy)
     elif config.get('proxy'):
@@ -703,10 +707,6 @@ def main():
 
     if args.path:                                 # --path
         print_path(enst)
-        return
-
-    if args.list:                                 # --list
-        list_option(enst, pat)
         return
 
     if args.revert:                               # --revert
