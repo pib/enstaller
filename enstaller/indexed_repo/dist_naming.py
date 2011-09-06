@@ -60,7 +60,7 @@ def filename_dist(dist):
     return split_dist(dist)[1]
 
 
-egg_pat = re.compile(r'([\w.]+)-([\w.]+)(-(\d+))?\.egg$')
+egg_pat = re.compile(r'([\w.]+)-([\w.]+)-(\d+)?\.egg$')
 
 def is_valid_eggname(eggname):
     return bool(egg_pat.match(eggname))
@@ -68,7 +68,7 @@ def is_valid_eggname(eggname):
 def split_eggname(eggname):
     m = egg_pat.match(eggname)
     assert m, eggname
-    return m.group(1), m.group(2), int(m.group(4) or 1)
+    return m.group(1), m.group(2), int(m.group(3))
 
 
 def dirname_repo(repo):
