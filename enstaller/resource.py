@@ -208,6 +208,8 @@ class Resources(object):
                     return comparable_version(v), b
                 except IrrationalVersionError:
                     return None
+                except AssertionError:
+                    return None
 
             for d in res.itervalues():
                 if d['egg_name']:                    # installed
