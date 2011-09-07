@@ -1,11 +1,13 @@
 import sys
 import json
 from collections import defaultdict
+from httplib import HTTPConnection
 import logging
 from os import makedirs
 from os.path import isdir, join
 import re
 from urllib2 import HTTPError, urlopen, Request
+from urlparse import urlsplit
 
 import config
 import egginst
@@ -51,19 +53,29 @@ class Resources(object):
         self._status = None
         self._installed = None
 
+    def _http_auth(self):
+        username, password = config.get_auth()
+        if username and password and self.authenticate:
+            return (username + ':' + password).encode('base64')
+        else:
+            return None
+
     def _read_json_from_url(self, url):
         logger.debug('Reading JSON from URL: %s' % url)
         req = Request(url)
-        username, password = config.get_auth()
-        if username and password and self.authenticate:
-                auth = (username + ':' + password).encode('base64')
-                req.add_header('Authorization', 'Basic ' + auth)
+        auth = self._http_auth()
+        if auth:
+            req.add_header('Authorization', auth)
         return json.load(urlopen(req))
 
     def load_index(self, url):
         url = url.rstrip('/')
         index_url = '%s/%s' % (url, self.product_index_path)
-        index = self._read_json_from_url(index_url)
+        try:
+            index = self._read_json_from_url(index_url)
+        except HTTPError as e:
+            logger.exception('Error getting products file %s' % index_url)
+            return
 
         for product in index:
             product_url = '%s/products/%s' % (url, product['product'])
@@ -74,14 +86,60 @@ class Resources(object):
             except HTTPError:
                 logger.exception('Error getting index file %s' % product_url)
 
+    def _read_product_index(self, product_url):
+        """ Get the product index.
+
+        Try the platform-independent one first, then try the
+        platform-specific one if that one doesn't exist. Does both
+        HTTP requests simultaneously.
+
+        """
+        independent = urlsplit('%s/index.json' % (product_url))
+        specific = urlsplit('%s/index-%s.json' % (product_url, self.plat))
+        logger.debug('Trying for JSON from URLs: %s, %s' %
+                     (independent.geturl(), specific.geturl()))
+        conn1 = HTTPConnection(independent.netloc)
+        conn2 = HTTPConnection(specific.netloc)
+        auth = self._http_auth()
+        if auth:
+            headers = {'Authorization': auth}
+        else:
+            headers = {}
+        conn1.request('GET', independent.path, headers=headers)
+        conn2.request('GET', specific.path, headers=headers)
+
+        try:
+            res = conn1.getresponse()
+            if res.status == 200:
+                data = res.read()
+                return independent, json.loads(data)
+            res = conn2.getresponse()
+            if res.status == 200:
+                data = res.read()
+                return specific, json.loads(data)
+            else:
+                raise HTTPError(specific, res.code, res.reason, res.msg)
+        except ValueError:
+            logger.exception('Error parsing index for %s' % product_url)
+            logger.error('Invalid index file: """%s"""' % data)
+            return None, None
+        except HTTPError:
+            logger.exception('Error reading index for %s' % product_url)
+            return None, None
+        finally:
+            conn1.close()
+            conn2.close()
+
     def add_product(self, index):
 
         if self.verbose:
-            print "Adding product:", url
+            print "Adding product:", index['url']
 
-        index['index_url'] = '%s/index-%s.json' % (index['url'], self.plat)
+        index_url, product_index = self._read_product_index(index['url'])
+        if product_index is None:
+            return
 
-        product_index = self._read_json_from_url(index['index_url'])
+        index['index_url'] = index_url
         index.update(product_index)
 
         if 'platform' in index and index['platform'] != self.plat:
