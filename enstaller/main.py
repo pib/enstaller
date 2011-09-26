@@ -501,7 +501,7 @@ def add_url(url, verbose):
     config.prepend_url(url)
 
 
-def revert(enst, rev_in):
+def revert(enst, rev_in, quiet=False):
     history = History(enst.prefixes[0])
     try:
         rev = int(rev_in)

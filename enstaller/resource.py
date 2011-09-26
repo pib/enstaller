@@ -13,6 +13,7 @@ import config
 import egginst
 from enstaller import Enstaller
 from enstaller.history import History
+from enstaller.main import revert
 from plat import custom_plat
 from utils import open_with_auth, get_installed_info, comparable_version, \
     cname_fn
@@ -285,6 +286,9 @@ class Resources(object):
         self.clear_cache()
         return 1
 
+    def revert(self, revert_to):
+        revert(self.enst, str(revert_to), quiet=True)
+        self.clear_cache()
 
 if __name__ == '__main__':
     #url = 'file://' + expanduser('~/buildware/scripts')

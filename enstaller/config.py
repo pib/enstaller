@@ -167,6 +167,10 @@ def get_auth():
 
 
 def change_auth(username, password):
+    # clear the cache so the next get_auth is correct
+    if hasattr(read, 'cache'):
+        del read.cache
+
     path = get_path()
     if path is None:
         write(username, password)
