@@ -208,10 +208,11 @@ def prepend_url(url):
     f.close()
 
 
-def arch_filled_url(url):
+def filled_url(url):
     from indexed_repo.dist_naming import cleanup_reponame
 
-    return cleanup_reponame(url.replace('{ARCH}', plat.arch))
+    return cleanup_reponame(url.replace('{ARCH}', plat.arch)
+                               .replace('{SUBDIR}', plat.subdir))
 
 
 def clear_cache():
@@ -236,7 +237,7 @@ def read():
     for k in read.cache:
         v = read.cache[k]
         if k == 'IndexedRepos':
-            read.cache[k] = [arch_filled_url(url) for url in v]
+            read.cache[k] = [filled_url(url) for url in v]
         elif k in ('prefix', 'local'):
             read.cache[k] = abs_expanduser(v)
     return read.cache
