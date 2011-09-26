@@ -7,6 +7,7 @@ enpkg can access distributions from local and HTTP repositories.
 import os
 import re
 import sys
+import site
 import string
 import subprocess
 import textwrap
@@ -625,6 +626,9 @@ def main():
                         "~/.enstaller4rc exists")
     p.add_argument("--sys-prefix", action="store_true",
                    help="use sys.prefix as the install prefix")
+    p.add_argument("--user", action="store_true",
+                   help="install into user prefix, i.e. --prefix=%r" %
+                           site.USER_BASE)
     p.add_argument("--userpass", action="store_true",
                    help="change EPD authentication in configuration file")
     p.add_argument('-v', "--verbose", action="store_true")
@@ -638,6 +642,9 @@ def main():
     if len(args.cnames) > 0 and (args.config or args.path or args.userpass or
                                  args.revert or args.log or args.whats_new):
         p.error("Option takes no arguments")
+
+    if args.user:
+        args.prefix = site.USER_BASE
 
     if args.prefix and args.sys_prefix:
         p.error("Options --prefix and --sys-prefix exclude each ohter")
