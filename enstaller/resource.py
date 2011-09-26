@@ -4,11 +4,13 @@ from collections import defaultdict
 from httplib import HTTPConnection
 import logging
 from os import makedirs
-from os.path import isdir, join
+from os.path import isdir, join, split, exists
 import re
 from urllib2 import HTTPError, urlopen, Request
 from urlparse import urlsplit
+from datetime import datetime
 
+from traits.etsconfig.api import ETSConfig
 import config
 import egginst
 from enstaller import Enstaller
@@ -36,6 +38,20 @@ class Resources(object):
         self.enst = Enstaller(Chain(verbose=verbose), [prefix or sys.prefix])
         self.product_index_path = 'products'
         self.authenticate = True
+
+        # The prefix of the EPD installation to support multiple EPD installs.
+        pref = '' if prefix is None else split(sys.prefix)[1]
+        self._cache_dir = join(ETSConfig.application_data,'cache',pref)
+        if not exists(self._cache_dir):
+            makedirs(self._cache_dir)
+
+        # The index cache file.
+        self._cache_file = join(self._cache_dir, 'product_cache.json')
+        try:
+            with open(self._cache_file) as f:
+                self._product_cache = json.load(f)
+        except (IOError, ValueError):
+            self._product_cache = {}
 
         for url in urls:
             self.add_product(url)
@@ -78,15 +94,47 @@ class Resources(object):
             return
 
         for product in index:
-            product_url = '%s/products/%s' % (url, product['product'])
+            product_name = product['product']
+            product_url = '%s/products/%s' % (url, product_name)
             try:
                 product['base_url'] = url
                 product['url'] = product_url.rstrip('/')
                 self.add_product(product)
+                self._product_cache[product_name] = dict(
+                    product=product_name,
+                    last_update=product['last_update'],
+                    url=product_url)
             except HTTPError:
                 logger.exception('Error getting index file %s' % product_url)
 
-    def _read_product_index(self, product_url):
+        with open(self._cache_file, 'w') as f:
+            json.dump(self._product_cache, f, indent=4)
+
+    def _read_product_index_cached(self, index):
+        """ Try to read product index from cache if it is updated. """
+        use_cache = False
+        cached_prod = self._product_cache.get(index['product'])
+        cache_dir = join(self._cache_dir, index['product'])
+        if cached_prod:
+            fmt = '%Y-%m-%d %H:%M:%S'
+            new_time = datetime.strptime(index['last_update'], fmt)
+            old_time = datetime.strptime(cached_prod['last_update'], fmt)
+            if new_time == old_time:
+                # Try loading the product index from the cached files.
+                for suffix in ('', '-' + self.plat):
+                    cache_file = join(cache_dir, 'index%s.json' % suffix)
+                    try:
+                        return cache_file, json.load(open(cache_file))
+                    except (ValueError, IOError) as e:
+                        logger.error('Error loading product index cache - %s' %
+                                     index['product'])
+        else:
+            # Ensure cache directory exists for writing new cache files.
+            if not exists(cache_dir):
+                makedirs(cache_dir)
+        return None, None
+
+    def _read_product_index(self, index):
         """ Get the product index.
 
         Try the platform-independent one first, then try the
@@ -94,6 +142,12 @@ class Resources(object):
         HTTP requests simultaneously.
 
         """
+        # Try to load index from cache.
+        url, data = self._read_product_index_cached(index)
+        if url is not None:
+            return url, data
+
+        product_url = index['url']
         independent = urlsplit('%s/index.json' % (product_url))
         specific = urlsplit('%s/index-%s.json' % (product_url, self.plat))
         logger.debug('Trying for JSON from URLs: %s, %s' %
@@ -112,13 +166,21 @@ class Resources(object):
             res = conn1.getresponse()
             if res.status == 200:
                 data = res.read()
+                cache_file = join(self._cache_dir, index['product'], 'index.json')
+                with open(cache_file, 'wb') as f:
+                    f.write(data)
                 return independent, json.loads(data)
             res = conn2.getresponse()
             if res.status == 200:
                 data = res.read()
+                cache_file = join(self._cache_dir, index['product'],
+                                  'index-%s.json' % self.plat)
+                with open(cache_file, 'wb') as f:
+                    f.write(data)
                 return specific, json.loads(data)
             else:
-                raise HTTPError(specific, res.code, res.reason, res.msg)
+                raise HTTPError(specific, res.status, res.reason, res.msg, None)
+
         except ValueError:
             logger.exception('Error parsing index for %s' % product_url)
             logger.error('Invalid index file: """%s"""' % data)
@@ -135,7 +197,7 @@ class Resources(object):
         if self.verbose:
             print "Adding product:", index['url']
 
-        index_url, product_index = self._read_product_index(index['url'])
+        index_url, product_index = self._read_product_index(index)
         if product_index is None:
             return
 
