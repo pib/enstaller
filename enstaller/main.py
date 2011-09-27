@@ -157,6 +157,16 @@ class Enstaller(object):
 
         return dists
 
+    def full_install_set(self, reqs):
+        """ Return a set of the cnames of all packages which would be
+        installed if all the requested packages were installed
+        """
+        all_pkgs = set()
+        for req in reqs:
+            all_pkgs |= set([cname_fn(dist_naming.filename_dist(d))
+                              for d in self.get_install_sequence(req)])
+        return all_pkgs
+
     def get_dist_meta(self, req):
         dist = self.chain.get_dist(req)
         if dist:
