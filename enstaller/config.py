@@ -16,7 +16,7 @@ try:
 except ImportError:
     keyring = None
 
-KEYRING_SERVICE_NAME = 'EPD'
+KEYRING_SERVICE_NAME = 'Enthought.com'
 
 config_fn = ".enstaller4rc"
 home_config_path = abs_expanduser("~/" + config_fn)

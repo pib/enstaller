@@ -10,7 +10,6 @@ kwds = {} # Additional keyword arguments for setup
 d = {}
 execfile(convert_path('enstaller/__init__.py'), d)
 kwds['version'] = d['__version__']
-kwds['requires'] = d['__requires__']
 
 f = open('README.rst')
 kwds['long_description'] = f.read()
