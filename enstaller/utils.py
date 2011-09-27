@@ -88,7 +88,9 @@ def open_with_auth(url):
     if auth:
         auth = urllib2.unquote(auth).encode('base64').strip()
     elif 'enthought.com/repo/' in url and 'repo/pypi/eggs/' not in url:
-        auth = config.get('EPD_auth')
+        username, password = config.get_auth()
+        if username and password:
+            auth = ('%s:%s' % (username, password)).encode('base64')
         if auth is None:
             userpass = config.get('EPD_userpass')
             if userpass:
