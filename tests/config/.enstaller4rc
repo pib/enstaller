@@ -1,0 +1,9 @@
+EPD_auth = 'Zm9vOmJhcg=='
+
+IndexedRepos = [
+    'https://www.enthought.com/repo/ets/eggs/MacOSX/{ARCH}/',
+    'https://www.enthought.com/repo/epd/GPL-eggs/MacOSX/{ARCH}/',
+    'https://www.enthought.com/repo/epd/eggs/MacOSX/{ARCH}/',
+    # The Enthought PyPI build mirror:
+    'http://www.enthought.com/repo/pypi/eggs/MacOSX/{ARCH}/',
+]
