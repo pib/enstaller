@@ -135,13 +135,18 @@ def write(username=None, password=None, proxy=None):
     if username is None and password is None:
         username, password = input_auth()
     if username and password:
-        keyring.set_password(KEYRING_SERVICE_NAME, username, password)
+        if keyring:
+            keyring.set_password(KEYRING_SERVICE_NAME, username, password)
+            authline = 'EPD_username = %r' % username
+        else:
+            auth = ('%s:%s' % (username, password)).encode('base64')
+            authline = 'EPD_auth = %r' % auth.strip()
         auth_section = """
 # The EPD subscriber authentication is required to access the EPD repository.
 # To change this setting, use the 'enpkg --userpass' command which will ask
 # you for your username and password.
-EPD_username = %r
-""" % username
+%s
+""" % authline
     else:
         auth_section = ''
 

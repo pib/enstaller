@@ -80,3 +80,23 @@ class EnstallerTestCase(TestCase):
             self.assertEqual(config.get_auth(), ('foo', 'bar'))
         finally:
             config.keyring = keyring
+
+    def test_enstaller_userpass_no_keyring_new_config(self):
+        """ Username and password should be stored properly in a new
+        config file, even with no keyring module
+        """
+        config.home_config_path = self.base_cfg + '.new'
+        if isfile(config.home_config_path):
+            os.unlink(config.home_config_path)
+        config.clear_cache()
+
+        keyring = config.keyring
+        config.keyring = None
+        try:
+            config.change_auth('foo', 'bar')
+            config_contents = open(config.home_config_path).read()
+            self.assertTrue("EPD_auth = 'Zm9vOmJhcg=='" in config_contents)
+            self.assertEqual(config.get_auth(), ('foo', 'bar'))
+        finally:
+            config.keyring = keyring
+
