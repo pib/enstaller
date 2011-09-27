@@ -11,6 +11,12 @@ from enstaller import __version__
 from utils import PY_VER, abs_expanduser
 import plat
 
+try:
+    import keyring
+except ImportError:
+    keyring = None
+
+KEYRING_SERVICE_NAME = 'EPD'
 
 config_fn = ".enstaller4rc"
 home_config_path = abs_expanduser("~/" + config_fn)
@@ -129,14 +135,13 @@ def write(username=None, password=None, proxy=None):
     if username is None and password is None:
         username, password = input_auth()
     if username and password:
-        userpass = username + ':' + password
-        auth = userpass.encode('base64').strip()
+        keyring.set_password(KEYRING_SERVICE_NAME, username, password)
         auth_section = """
 # The EPD subscriber authentication is required to access the EPD repository.
 # To change this setting, use the 'enpkg --userpass' command which will ask
 # you for your username and password.
-EPD_auth = %r
-""" % auth
+EPD_username = %r
+""" % username
     else:
         auth_section = ''
 
@@ -158,12 +163,27 @@ EPD_auth = %r
 
 
 def get_auth():
-    auth = get('EPD_auth')
-    if auth:
-        userpass = auth.decode('base64')
-        return userpass.split(':')
+    old_auth = get('EPD_auth')
+    if old_auth:
+        username, password = old_auth.decode('base64').split(':')
+        if not keyring:
+            return username, password
+        else:
+            change_auth(username, password)
+    username = get('EPD_username')
+    if username:
+        password = keyring.get_password(KEYRING_SERVICE_NAME, username)
+    if username and password:
+        return username, password
     else:
         return None, None
+
+
+def clear_auth():
+    username = get('EPD_username')
+    if username and keyring:
+        keyring.set_password(KEYRING_SERVICE_NAME, username, '')
+    change_auth('', None)
 
 
 def change_auth(username, password):
@@ -178,14 +198,22 @@ def change_auth(username, password):
     data = fi.read()
     fi.close()
 
-    if not (username and password):
+    if username is None and password is None:
         return
-    userpass = username + ':' + password
-    auth = userpass.encode('base64').strip()
 
-    pat = re.compile(r'^EPD_auth\s*=.*$', re.M)
-    authline = 'EPD_auth = %r' % auth
-    if pat.search(data):
+    if username and password:
+        if keyring:
+            keyring.set_password(KEYRING_SERVICE_NAME, username, password)
+            authline = 'EPD_username = %r' % username
+        else:
+            auth = ('%s:%s' % (username, password)).encode('base64')
+            authline = 'EPD_auth = %r' % auth.strip()
+
+    pat = re.compile(r'^(EPD_auth|EPD_username)\s*=.*$', re.M)
+
+    if username == '':
+        data = pat.sub('', data)
+    elif pat.search(data):
         data = pat.sub(authline, data)
     else:
         lines = data.splitlines()
