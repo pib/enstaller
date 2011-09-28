@@ -13,6 +13,17 @@ import plat
 
 try:
     import keyring
+    import keyring.backend
+    # Don't use keyring backends that require console input or just do
+    # more or less the same thing we're already doing
+    keyring.backend._all_keyring = [keyring.backend.OSXKeychain(),
+                                    keyring.backend.GnomeKeyring(),
+                                    keyring.backend.KDEKWallet(),
+                                    keyring.backend.Win32CryptoKeyring(),
+                                    keyring.backend.Win32CryptoRegistry(),
+                                    keyring.backend.WinVaultKeyring()]
+    if keyring.get_keyring().supported() < 0:
+        keyring = None
 except ImportError:
     keyring = None
 
