@@ -41,7 +41,7 @@ class Resources(object):
         self.index = []   # list of dicts of product metadata
         self.history = History(prefix)
         self.enst = Enstaller(Chain(verbose=verbose), [prefix or sys.prefix])
-        self.product_index_path = 'products'
+        self.product_list_path = 'products'
         self.authenticate = True
 
         # The prefix of the EPD installation to support multiple EPD installs.
@@ -95,7 +95,7 @@ class Resources(object):
         """ Append to self.index, the metadata for all products found at url_root
         """
         url_root = url_root.rstrip('/')
-        index_url = '%s/%s' % (url_root, self.product_index_path)
+        index_url = '%s/%s' % (url_root, self.product_list_path)
         try:
             index_online = self._read_json_from_url(index_url)
         except HTTPError:
@@ -114,12 +114,12 @@ class Resources(object):
                     last_update=product_metadata['last_update'],
                     url=product_url)
             except HTTPError:
-                logger.exception('Error getting index file %s' % product_url)
+                logger.exception('Error getting product metadata file %s' % product_url)
 
         with open(self._cache_file, 'w') as f:
             json.dump(self._product_cache, f, indent=4)
 
-    def _read_product_index_cached(self, product_metadata):
+    def _read_full_product_metadata_cached(self, product_metadata):
         """ Try to read product index from cache if it is updated. """
         # FIXME: what was the intention of the following unused line:?
         # use_cache = False
@@ -136,7 +136,7 @@ class Resources(object):
                     try:
                         return cache_file, json.load(open(cache_file))
                     except (ValueError, IOError):
-                        logger.error('Error loading product index cache - %s' %
+                        logger.error('Error loading product metadata cache - %s' %
                                      product_metadata['product'])
         else:
             # Ensure cache directory exists for writing new cache files.
@@ -156,7 +156,7 @@ class Resources(object):
             (first successful URL parsed, full product metadata)
         """
         # Try to load index from cache.
-        url, data = self._read_product_index_cached(product_metadata)
+        url, data = self._read_full_product_metadata_cached(product_metadata)
         if url is not None:
             return url, data
 
@@ -196,11 +196,11 @@ class Resources(object):
                 raise EnstallerResourceIndexError(specific.path)
 
         except ValueError:
-            logger.exception('Error parsing index for %s' % product_url)
-            logger.error('Invalid index file: """%s"""' % data)
+            logger.exception('Error parsing product metadata for %s' % product_url)
+            logger.error('Invalid product metadata file: """%s"""' % data)
             return None, None
         except HTTPError:
-            logger.exception('Error reading index for %s' % product_url)
+            logger.exception('Error reading product metadata for %s' % product_url)
             return None, None
         finally:
             conn1.close()
@@ -222,7 +222,7 @@ class Resources(object):
 
         if ('platform' in product_metadata and 
             product_metadata['platform'] != self.plat):
-            raise Exception('index file for platform %s, but running %s' %
+            raise Exception('product metadata file for platform %s, but running %s' %
                             (product_metadata['platform'], self.plat))
 
         if 'eggs' in product_metadata:
