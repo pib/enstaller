@@ -24,6 +24,10 @@ from indexed_repo.requirement import add_Reqs_to_spec
 
 logger = logging.getLogger(__name__)
 
+class EnstallerResourceIndexError(EnvironmentError):
+    """ Raise when one or more Enstaller resource indices cannot be read.
+    """
+    pass
 
 class Resources(object):
     
@@ -189,7 +193,7 @@ class Resources(object):
                     f.write(data)
                 return specific, json.loads(data)
             else:
-                raise HTTPError(specific, res.status, res.reason, res.msg, None)
+                raise EnstallerResourceIndexError(specific.path)
 
         except ValueError:
             logger.exception('Error parsing index for %s' % product_url)
