@@ -4,7 +4,7 @@ from collections import defaultdict
 from httplib import HTTPConnection
 import logging
 from os import makedirs
-from os.path import isdir, join, split, exists
+from os.path import join, split, exists
 import re
 from urllib2 import HTTPError, urlopen, Request
 from urlparse import urlsplit
@@ -12,13 +12,11 @@ from datetime import datetime
 
 from traits.etsconfig.api import ETSConfig
 import config
-import egginst
 from enstaller import Enstaller
 from enstaller.history import History
 from enstaller.main import revert
 from plat import custom_plat
-from utils import open_with_auth, get_installed_info, comparable_version, \
-    cname_fn
+from utils import comparable_version
 from verlib import IrrationalVersionError
 from indexed_repo.chain import Chain, Req
 from indexed_repo import dist_naming
@@ -28,13 +26,15 @@ logger = logging.getLogger(__name__)
 
 
 class Resources(object):
+    
+    # FIXME: class and methods need docstrings.
 
     def __init__(self, index_root=None, urls=[], verbose=False, prefix=None,
                  platform=None):
         self.plat = platform or custom_plat
         self.prefix = prefix
         self.verbose = verbose
-        self.index = []
+        self.index = []   # list of dicts of product metadata
         self.history = History(prefix)
         self.enst = Enstaller(Chain(verbose=verbose), [prefix or sys.prefix])
         self.product_index_path = 'products'
@@ -54,6 +54,8 @@ class Resources(object):
         except (IOError, ValueError):
             self._product_cache = {}
 
+        # FIXME: apparently param urls is no longer used in practice. 
+        # Should it be removed or will it be used in enpkg?
         for url in urls:
             self.add_product(url)
 
@@ -85,25 +87,27 @@ class Resources(object):
             req.add_header('Authorization', auth)
         return json.load(urlopen(req))
 
-    def load_index(self, url):
-        url = url.rstrip('/')
-        index_url = '%s/%s' % (url, self.product_index_path)
+    def load_index(self, url_root):
+        """ Append to self.index, the metadata for all products found at url_root
+        """
+        url_root = url_root.rstrip('/')
+        index_url = '%s/%s' % (url_root, self.product_index_path)
         try:
-            index = self._read_json_from_url(index_url)
-        except HTTPError as e:
+            index_online = self._read_json_from_url(index_url)
+        except HTTPError:
             logger.exception('Error getting products file %s' % index_url)
             return
 
-        for product in index:
-            product_name = product['product']
-            product_url = '%s/products/%s' % (url, product_name)
+        for product_metadata in index_online:
+            product_name = product_metadata['product']
+            product_url = '%s/products/%s' % (url_root, product_name)
             try:
-                product['base_url'] = url
-                product['url'] = product_url.rstrip('/')
-                self.add_product(product)
+                product_metadata['base_url'] = url_root
+                product_metadata['url'] = product_url.rstrip('/')
+                self.add_product(product_metadata)
                 self._product_cache[product_name] = dict(
-                    product=product_name,
-                    last_update=product['last_update'],
+                    product_metadata=product_name,
+                    last_update=product_metadata['last_update'],
                     url=product_url)
             except HTTPError:
                 logger.exception('Error getting index file %s' % product_url)
@@ -111,14 +115,15 @@ class Resources(object):
         with open(self._cache_file, 'w') as f:
             json.dump(self._product_cache, f, indent=4)
 
-    def _read_product_index_cached(self, index):
+    def _read_product_index_cached(self, product_metadata):
         """ Try to read product index from cache if it is updated. """
-        use_cache = False
-        cached_prod = self._product_cache.get(index['product'])
-        cache_dir = join(self._cache_dir, index['product'])
+        # FIXME: what was the intention of the following unused line:?
+        # use_cache = False
+        cached_prod = self._product_cache.get(product_metadata['product'])
+        cache_dir = join(self._cache_dir, product_metadata['product'])
         if cached_prod:
             fmt = '%Y-%m-%d %H:%M:%S'
-            new_time = datetime.strptime(index['last_update'], fmt)
+            new_time = datetime.strptime(product_metadata['last_update'], fmt)
             old_time = datetime.strptime(cached_prod['last_update'], fmt)
             if new_time == old_time:
                 # Try loading the product index from the cached files.
@@ -126,29 +131,32 @@ class Resources(object):
                     cache_file = join(cache_dir, 'index%s.json' % suffix)
                     try:
                         return cache_file, json.load(open(cache_file))
-                    except (ValueError, IOError) as e:
+                    except (ValueError, IOError):
                         logger.error('Error loading product index cache - %s' %
-                                     index['product'])
+                                     product_metadata['product'])
         else:
             # Ensure cache directory exists for writing new cache files.
             if not exists(cache_dir):
                 makedirs(cache_dir)
         return None, None
 
-    def _read_product_index(self, index):
-        """ Get the product index.
+    def _read_full_product_metadata(self, product_metadata):
+        """ Given partial product metadata, return full product metatadata
+        which includes a list of the resources (e.g. eggs) which it includes.
 
         Try the platform-independent one first, then try the
         platform-specific one if that one doesn't exist. Does both
         HTTP requests simultaneously.
 
+        Returns a 2-tuple:
+            (first successful URL parsed, full product metadata)
         """
         # Try to load index from cache.
-        url, data = self._read_product_index_cached(index)
+        url, data = self._read_product_index_cached(product_metadata)
         if url is not None:
             return url, data
 
-        product_url = index['url']
+        product_url = product_metadata['url']
         independent = urlsplit('%s/index.json' % (product_url))
         specific = urlsplit('%s/index-%s.json' % (product_url, self.plat))
         logger.debug('Trying for JSON from URLs: %s, %s' %
@@ -167,14 +175,15 @@ class Resources(object):
             res = conn1.getresponse()
             if res.status == 200:
                 data = res.read()
-                cache_file = join(self._cache_dir, index['product'], 'index.json')
+                cache_file = join(self._cache_dir, product_metadata['product'], 
+                                  'index.json')
                 with open(cache_file, 'wb') as f:
                     f.write(data)
                 return independent, json.loads(data)
             res = conn2.getresponse()
             if res.status == 200:
                 data = res.read()
-                cache_file = join(self._cache_dir, index['product'],
+                cache_file = join(self._cache_dir, product_metadata['product'],
                                   'index-%s.json' % self.plat)
                 with open(cache_file, 'wb') as f:
                     f.write(data)
@@ -193,36 +202,40 @@ class Resources(object):
             conn1.close()
             conn2.close()
 
-    def add_product(self, index):
-
+    def add_product(self, product_metadata):
+        """ Append a dict of product metadata to self.index.
+        """
         if self.verbose:
-            print "Adding product:", index['url']
+            print "Adding product:", product_metadata['url']
 
-        index_url, product_index = self._read_product_index(index)
-        if product_index is None:
+        index_url, full_product_metadata = \
+            self._read_full_product_metadata(product_metadata)
+        if full_product_metadata is None:
             return
 
-        index['index_url'] = index_url
-        index.update(product_index)
+        product_metadata['index_url'] = index_url
+        product_metadata.update(full_product_metadata)
 
-        if 'platform' in index and index['platform'] != self.plat:
+        if ('platform' in product_metadata and 
+            product_metadata['platform'] != self.plat):
             raise Exception('index file for platform %s, but running %s' %
-                            (index['platform'], self.plat))
+                            (product_metadata['platform'], self.plat))
 
-        if 'eggs' in index:
-            self._add_egg_repos(index['url'], index)
+        if 'eggs' in product_metadata:
+            self._add_egg_repos(product_metadata['url'], product_metadata)
 
-        self.index.append(index)
-        return index
+        self.index.append(product_metadata)
+        return product_metadata
 
-    def _add_egg_repos(self, url, index):
-        if 'egg_repos' in index:
-            repos = [url + '/' + path + '/' for path in index['egg_repos']]
+    def _add_egg_repos(self, url, product_metadata):
+        if 'egg_repos' in product_metadata:
+            repos = [url + '/' + path + '/' 
+                     for path in product_metadata['egg_repos']]
         else:
             repos = [url]
         self.enst.chain.repos.extend(repos)
 
-        for cname, project in index['eggs'].iteritems():
+        for cname, project in product_metadata['eggs'].iteritems():
             for distname, data in project['files'].iteritems():
                 name, version, build = dist_naming.split_eggname(distname)
                 spec = dict(metadata_version='1.1',
@@ -303,8 +316,8 @@ class Resources(object):
         """
         regex = re.compile(re.escape(text), re.IGNORECASE)
         results = []
-        for product in self.index:
-            for cname, metadata in product.get('eggs', {}).iteritems():
+        for product_metadata in self.index:
+            for cname, metadata in product_metadata.get('eggs', {}).iteritems():
                 name = metadata.get('name', '')
                 description = metadata.get('description', '')
                 if regex.search(name) or regex.search(description):
@@ -353,6 +366,7 @@ class Resources(object):
         self.clear_cache()
 
 if __name__ == '__main__':
+    # FIXME: this section no longer matches the Resources class. Remove or revise.
     #url = 'file://' + expanduser('~/buildware/scripts')
     url = 'https://EPDUser:Epd789@www.enthought.com/repo/epd/'
     r = Resources([url], verbose=1)
