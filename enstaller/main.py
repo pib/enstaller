@@ -172,13 +172,17 @@ class Enstaller(object):
 
         The returned list will be sorted by install order.
         """
-        all_dists = set()
+        new_dists = set()
         for req in reqs:
-            all_dists |= set([d for d in self.get_install_sequence(req)])
+            new_dists |= set(self.get_install_sequence(req))
 
-        sorted_dists = self.chain.determine_install_order(list(all_dists))
+        unfiltered_dists = set()
+        for req in reqs:
+            unfiltered_dists |= set(self.chain.install_sequence(req))
+
+        sorted_dists = self.chain.determine_install_order(unfiltered_dists)
         return [Req(cname_fn(dist_naming.filename_dist(d)))
-                for d in sorted_dists]
+                for d in sorted_dists if d in new_dists]
 
     def get_dist_meta(self, req):
         dist = self.chain.get_dist(req)
