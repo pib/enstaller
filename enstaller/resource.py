@@ -3,8 +3,8 @@ import json
 from collections import defaultdict
 from httplib import HTTPConnection
 import logging
-from os import makedirs
-from os.path import join, split, exists
+from os import makedirs, stat
+from os.path import dirname, join, split, exists
 import re
 from urllib2 import HTTPError, urlopen, Request
 from urlparse import urlsplit
@@ -24,13 +24,108 @@ from indexed_repo.requirement import add_Reqs_to_spec
 
 logger = logging.getLogger(__name__)
 
+
 class EnstallerResourceIndexError(EnvironmentError):
     """ Raise when one or more Enstaller resource indices cannot be read.
     """
     pass
 
+
+class ResourceCache(object):
+    def __init__(self, cache_dir, root_url):
+        self._cache_dir = cache_dir
+        self._root_url = root_url
+        if not exists(cache_dir):
+            makedirs(cache_dir)
+
+    def url_for(self, path):
+        return '{}/{}'.format(self._root_url, path)
+
+    def get(self, path, last_update):
+        """ Return the resource at the specified path, either from the
+        cache file at cache_dir/path if it exists and is younger than
+        last_update, or from download from root_url/path.
+
+        If last_update is None, then always try to download and fall
+        back to the file if it exists.
+
+        Also, if the cache is recent enough, but the file can't be
+        parsed (as JSON), then the URL is requested.
+
+        - path (string) Path under the base url or cache directory to
+                        attempt to download
+
+        - last_update (datetime.datetime) Timestamp to check against
+                                          cached file mtime
+        """
+        cache_file_path = join(self._cache_dir, path)
+        if not cache_file_path.endswith('.json'):
+            cache_file_path += '.json'
+        full_url = self.url_for(path)
+        cached_data = None
+
+        try:
+            mtime = datetime.utcfromtimestamp(stat(cache_file_path).st_mtime)
+            cache_file_valid = mtime > (last_update or 0)
+        except:
+            cache_file_valid = False
+
+        # Read the file if it seems valid so far
+        if cache_file_valid:
+            try:
+                logger.debug('Trying to load {}'.format(cache_file_path))
+                cached_data = json.load(open(cache_file_path))
+            except:
+                logger.exception('Error reading cache file "{}"'
+                                 .format(cache_file_path))
+                cache_file_valid = False
+
+        # If this is a timestamped cache request and the file was
+        # valid, we're done.
+        if last_update and cache_file_valid:
+            return cached_data
+
+        # Otherwise, try to read from URL
+        try:
+            logger.debug('Trying to load {}'.format(full_url))
+            data = json.load(urlopen(full_url))
+        except:
+            logger.exception('Error reading from URL "{}"'.format(full_url))
+            data = None
+
+        # If we got valid data JSON data back, write the cache file and return
+        if data:
+            try:
+                logger.debug('Trying to write out {}'.format(cache_file_path))
+                cache_file_dir = dirname(cache_file_path)
+                if not exists(cache_file_dir):
+                    makedirs(cache_file_dir)
+                json.dump(data, open(cache_file_path, 'w'))
+            except:
+                # Log the exception on error, but we already have the
+                # data, so return that either way
+                logger.exception('Error writing cache file "{}"'
+                                 .format(cache_file_path))
+            return data
+
+        # As a last resort, return the contents of the cached file, if
+        # it exists
+        if cached_data:
+            return cached_data
+        try:
+            logger.debug('Trying to load {}'.format(cache_file_path))
+            return json.load(open(cache_file_path))
+        except:
+            logger.exception('Error reading cache file "{}"'
+                             .format(cache_file_path))
+
+        raise EnstallerResourceIndexError(
+            "Couldn't load index file from '{}' or '{}'"
+            .format(cache_file_path, full_url))
+
+
 class Resources(object):
-    
+
     # FIXME: class and methods need docstrings.
 
     def __init__(self, index_root=None, urls=[], verbose=False, prefix=None,
@@ -43,25 +138,6 @@ class Resources(object):
         self.enst = Enstaller(Chain(verbose=verbose), [prefix or sys.prefix])
         self.product_list_path = 'products'
         self.authenticate = True
-
-        # The prefix of the EPD installation to support multiple EPD installs.
-        pref = '' if prefix is None else split(sys.prefix)[1]
-        self._cache_dir = join(ETSConfig.application_data,'cache',pref)
-        if not exists(self._cache_dir):
-            makedirs(self._cache_dir)
-
-        # The index cache file.
-        self._cache_file = join(self._cache_dir, 'product_cache.json')
-        try:
-            with open(self._cache_file) as f:
-                self._product_cache = json.load(f)
-        except (IOError, ValueError):
-            self._product_cache = {}
-
-        # FIXME: apparently param urls is no longer used in practice. 
-        # Should it be removed or will it be used in enpkg?
-        for url in urls:
-            self.add_product(url)
 
         if index_root:
             self.load_index(index_root)
@@ -84,7 +160,7 @@ class Resources(object):
             return None
 
     def _read_json_from_url(self, url):
-        logger.debug('Reading JSON from URL: %s' % url)
+        logger.debug('Reading JSON from URL: {}'.format(url))
         req = Request(url)
         auth = self._http_auth()
         if auth:
@@ -92,148 +168,63 @@ class Resources(object):
         return json.load(urlopen(req))
 
     def load_index(self, url_root):
-        """ Append to self.index, the metadata for all products found at url_root
+        """ Append to self.index, the metadata for all products found
+        at url_root
         """
         url_root = url_root.rstrip('/')
-        index_url = '%s/%s' % (url_root, self.product_list_path)
-        try:
-            index_online = self._read_json_from_url(index_url)
-        except HTTPError:
-            logger.exception('Error getting products file %s' % index_url)
-            return
+        self._product_cache = ResourceCache(join(self.prefix, 'cache'),
+                                            url_root)
 
-        for product_metadata in index_online:
-            product_name = product_metadata['product']
-            product_url = '%s/products/%s' % (url_root, product_name)
-            try:
-                product_metadata['base_url'] = url_root
-                product_metadata['url'] = product_url.rstrip('/')
-                self.add_product(product_metadata)
-                self._product_cache[product_name] = dict(
-                    product_metadata=product_name,
-                    last_update=product_metadata['last_update'],
-                    url=product_url)
-            except HTTPError:
-                logger.exception('Error getting product metadata file %s' % product_url)
+        product_list = self._product_cache.get(self.product_list_path, None)
 
-        with open(self._cache_file, 'w') as f:
-            json.dump(self._product_cache, f, indent=4)
+        for product_metadata in product_list:
+            self._add_product(product_metadata)
 
-    def _read_full_product_metadata_cached(self, product_metadata):
-        """ Try to read product index from cache if it is updated. """
-        # FIXME: what was the intention of the following unused line:?
-        # use_cache = False
-        cached_prod = self._product_cache.get(product_metadata['product'])
-        cache_dir = join(self._cache_dir, product_metadata['product'])
-        if cached_prod:
-            fmt = '%Y-%m-%d %H:%M:%S'
-            new_time = datetime.strptime(product_metadata['last_update'], fmt)
-            old_time = datetime.strptime(cached_prod['last_update'], fmt)
-            if new_time == old_time:
-                # Try loading the product index from the cached files.
-                for suffix in ('', '-' + self.plat):
-                    cache_file = join(cache_dir, 'index%s.json' % suffix)
-                    try:
-                        return cache_file, json.load(open(cache_file))
-                    except (ValueError, IOError):
-                        logger.error('Error loading product metadata cache - %s' %
-                                     product_metadata['product'])
-        else:
-            # Ensure cache directory exists for writing new cache files.
-            if not exists(cache_dir):
-                makedirs(cache_dir)
-        return None, None
-
-    def _read_full_product_metadata(self, product_metadata):
-        """ Given partial product metadata, return full product metatadata
-        which includes a list of the resources (e.g. eggs) which it includes.
-
-        Try the platform-independent one first, then try the
-        platform-specific one if that one doesn't exist. Does both
-        HTTP requests simultaneously.
-
-        Returns a 2-tuple:
-            (first successful URL parsed, full product metadata)
-        """
-        # Try to load index from cache.
-        url, data = self._read_full_product_metadata_cached(product_metadata)
-        if url is not None:
-            return url, data
-
-        product_url = product_metadata['url']
-        independent = urlsplit('%s/index.json' % (product_url))
-        specific = urlsplit('%s/index-%s.json' % (product_url, self.plat))
-        logger.debug('Trying for JSON from URLs: %s, %s' %
-                     (independent.geturl(), specific.geturl()))
-        conn1 = HTTPConnection(independent.netloc)
-        conn2 = HTTPConnection(specific.netloc)
-        auth = self._http_auth()
-        if auth:
-            headers = {'Authorization': auth}
-        else:
-            headers = {}
-        conn1.request('GET', independent.path, headers=headers)
-        conn2.request('GET', specific.path, headers=headers)
-
-        try:
-            res = conn1.getresponse()
-            if res.status == 200:
-                data = res.read()
-                cache_file = join(self._cache_dir, product_metadata['product'], 
-                                  'index.json')
-                with open(cache_file, 'wb') as f:
-                    f.write(data)
-                return independent, json.loads(data)
-            res = conn2.getresponse()
-            if res.status == 200:
-                data = res.read()
-                cache_file = join(self._cache_dir, product_metadata['product'],
-                                  'index-%s.json' % self.plat)
-                with open(cache_file, 'wb') as f:
-                    f.write(data)
-                return specific, json.loads(data)
-            else:
-                raise EnstallerResourceIndexError(specific.path)
-
-        except ValueError:
-            logger.exception('Error parsing product metadata for %s' % product_url)
-            logger.error('Invalid product metadata file: """%s"""' % data)
-            return None, None
-        except HTTPError:
-            logger.exception('Error reading product metadata for %s' % product_url)
-            return None, None
-        finally:
-            conn1.close()
-            conn2.close()
-
-    def add_product(self, product_metadata):
-        """ Append a dict of product metadata to self.index.
+    def _add_product(self, product_metadata):
+        """ Append a dict of product metadata to self.index after
+        filling in the full product metadata
         """
         if self.verbose:
-            print "Adding product:", product_metadata['url']
+            print "Adding product:", product_metadata['product']
 
-        index_url, full_product_metadata = \
-            self._read_full_product_metadata(product_metadata)
-        if full_product_metadata is None:
-            return
+        self._read_full_product_metadata(product_metadata)
 
-        product_metadata['index_url'] = index_url
-        product_metadata.update(full_product_metadata)
-
-        if ('platform' in product_metadata and 
+        if ('platform' in product_metadata and
             product_metadata['platform'] != self.plat):
-            raise Exception('product metadata file for platform %s, but running %s' %
-                            (product_metadata['platform'], self.plat))
+            raise Exception('Product metadata file for {}, but running {}'
+                            .format(product_metadata['platform'], self.plat))
 
         if 'eggs' in product_metadata:
             self._add_egg_repos(product_metadata['url'], product_metadata)
+        else:
+            product_metadata['eggs'] = {}
 
         self.index.append(product_metadata)
-        return product_metadata
+
+    def _read_full_product_metadata(self, product_metadata):
+        """ Given partial product metadata, fill in full product metatadata
+        which includes a list of the resources (e.g. eggs) which it includes.
+
+        Fills in the product_metadata dict in place.
+        """
+        product_path = '{}/{}'.format(self.product_list_path,
+                                      product_metadata['product'])
+        product_metadata['url'] = self._product_cache.url_for(product_path)
+
+        if product_metadata.get('platform_independent', False):
+            index_filename = 'index.json'
+        else:
+            index_filename = 'index-{}.json'.format(self.plat)
+        product_index_path = '{}/{}'.format(product_path, index_filename)
+        last_update = datetime.strptime(product_metadata['last_update'],
+                                        '%Y-%m-%d %H:%M:%S')
+
+        product_info = self._product_cache.get(product_index_path, last_update)
+        product_metadata.update(product_info)
 
     def _add_egg_repos(self, url, product_metadata):
         if 'egg_repos' in product_metadata:
-            repos = [url + '/' + path + '/' 
+            repos = ['{}/{}/'.format(url, path)
                      for path in product_metadata['egg_repos']]
         else:
             repos = [url]
