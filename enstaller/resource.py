@@ -35,11 +35,27 @@ class ResourceCache(object):
     def __init__(self, cache_dir, root_url):
         self._cache_dir = cache_dir
         self._root_url = root_url
+        self.authenticate = True
         if not exists(cache_dir):
             makedirs(cache_dir)
 
     def url_for(self, path):
         return '{}/{}'.format(self._root_url, path)
+
+    def _http_auth(self):
+        username, password = config.get_auth()
+        if username and password and self.authenticate:
+            return 'Basic ' + (username + ':' + password).encode('base64').strip()
+        else:
+            return None
+
+    def _read_json_from_url(self, url):
+        logger.debug('Reading JSON from URL: {}'.format(url))
+        req = Request(url)
+        auth = self._http_auth()
+        if auth:
+            req.add_unredirected_header('Authorization', auth)
+        return json.load(urlopen(req))
 
     def get(self, path, last_update):
         """ Return the resource at the specified path, either from the
@@ -60,7 +76,7 @@ class ResourceCache(object):
         """
         cache_file_path = join(self._cache_dir, path)
         if not cache_file_path.endswith('.json'):
-            cache_file_path += '.json'
+            cache_file_path = cache_file_path.rstrip('/') + '.json'
         full_url = self.url_for(path)
         cached_data = None
 
@@ -88,7 +104,7 @@ class ResourceCache(object):
         # Otherwise, try to read from URL
         try:
             logger.debug('Trying to load {}'.format(full_url))
-            data = json.load(urlopen(full_url))
+            data = self._read_json_from_url(full_url)
         except:
             logger.exception('Error reading from URL "{}"'.format(full_url))
             data = None
@@ -137,7 +153,6 @@ class Resources(object):
         self.history = History(self.prefix)
         self.enst = Enstaller(Chain(verbose=verbose), [self.prefix])
         self.product_list_path = 'products'
-        self.authenticate = True
 
         if index_root:
             self.load_index(index_root)
@@ -152,21 +167,6 @@ class Resources(object):
         self._status = None
         self._installed = None
 
-    def _http_auth(self):
-        username, password = config.get_auth()
-        if username and password and self.authenticate:
-            return (username + ':' + password).encode('base64')
-        else:
-            return None
-
-    def _read_json_from_url(self, url):
-        logger.debug('Reading JSON from URL: {}'.format(url))
-        req = Request(url)
-        auth = self._http_auth()
-        if auth:
-            req.add_header('Authorization', auth)
-        return json.load(urlopen(req))
-
     def load_index(self, url_root):
         """ Append to self.index, the metadata for all products found
         at url_root
@@ -175,7 +175,8 @@ class Resources(object):
         self._product_cache = ResourceCache(join(self.prefix, 'cache'),
                                             url_root)
 
-        product_list = self._product_cache.get(self.product_list_path, None)
+        product_list = self._product_cache.get(self.product_list_path + '/',
+                                               None)
 
         for product_metadata in product_list:
             self._add_product(product_metadata)
