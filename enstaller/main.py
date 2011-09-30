@@ -167,6 +167,23 @@ class Enstaller(object):
                               for d in self.get_install_sequence(req)])
         return all_pkgs
 
+    def full_install_sequence(self, reqs):
+        """ Expand the provided set of reqs to include dependencies.
+
+        The returned list will be sorted by install order.
+        """
+        new_dists = set()
+        for req in reqs:
+            new_dists |= set(self.get_install_sequence(req))
+
+        unfiltered_dists = set()
+        for req in reqs:
+            unfiltered_dists |= set(self.chain.install_sequence(req))
+
+        sorted_dists = self.chain.determine_install_order(unfiltered_dists)
+        return [Req(cname_fn(dist_naming.filename_dist(d)))
+                for d in sorted_dists if d in new_dists]
+
     def get_dist_meta(self, req):
         dist = self.chain.get_dist(req)
         if dist:

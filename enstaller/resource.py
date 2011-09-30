@@ -341,13 +341,17 @@ class Resources(object):
                 reqs[i] = Req(req)
         return reqs
 
-    def install(self, reqs):
+    def install(self, reqs, overall_progress_cb=None):
         reqs = self._req_list(reqs)
 
+        full_reqs = self.enst.full_install_sequence(reqs)
+        total_count = len(full_reqs)
         with self.history:
             installed_count = 0
-            for req in reqs:
+            for req in full_reqs:
                 installed_count += self.enst.install(req)
+                if overall_progress_cb:
+                    overall_progress_cb(installed_count, total_count)
 
         # Clear the cache, since the status of several packages could now be
         # invalid
@@ -355,12 +359,17 @@ class Resources(object):
 
         return installed_count
 
-    def uninstall(self, reqs):
+    def uninstall(self, reqs, overall_progress_cb=None):
         reqs = self._req_list(reqs)
 
+        total_count = len(reqs)
         with self.history:
+            removed_count = 0
             for req in reqs:
                 self.enst.remove(req)
+                removed_count += 1
+                if overall_progress_cb:
+                    overall_progress_cb(removed_count, total_count)
 
         self.clear_cache()
         return 1
