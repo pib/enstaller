@@ -725,8 +725,16 @@ def main():
     dry_run = args.dry_run
     verbose = args.verbose
 
-    enst = Enstaller(chain=Chain(config.get('IndexedRepos'), args.verbose),
-                     prefixes=prefixes, dry_run=dry_run)
+    if config.get('use_resource_index'):
+        from resource import Resources
+        res = Resources('http://s3.amazonaws.com/test-eggs.enthought.com',
+                        verbose=verbose)
+        enst = res.enst
+        enst.dry_run = dry_run
+        enst.prefixes = prefixes
+    else:
+        enst = Enstaller(chain=Chain(config.get('IndexedRepos'), verbose),
+                         prefixes=prefixes, dry_run=dry_run)
     if args.verbose:
         enst.pre_install_callback = verbose_depend_warn
     else:

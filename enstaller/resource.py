@@ -131,11 +131,11 @@ class Resources(object):
     def __init__(self, index_root=None, urls=[], verbose=False, prefix=None,
                  platform=None):
         self.plat = platform or custom_plat
-        self.prefix = prefix
+        self.prefix = prefix or sys.prefix
         self.verbose = verbose
         self.index = []   # list of dicts of product metadata
-        self.history = History(prefix)
-        self.enst = Enstaller(Chain(verbose=verbose), [prefix or sys.prefix])
+        self.history = History(self.prefix)
+        self.enst = Enstaller(Chain(verbose=verbose), [self.prefix])
         self.product_list_path = 'products'
         self.authenticate = True
 

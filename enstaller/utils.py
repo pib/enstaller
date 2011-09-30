@@ -109,7 +109,6 @@ def open_with_auth(url):
     return urllib2.urlopen(request)
 
 
-
 def write_data_from_url(fo, url, md5=None, size=None, progress_callback=None):
     """
     Read data from the url and write to the file handle fo, which must
@@ -127,7 +126,7 @@ def write_data_from_url(fo, url, md5=None, size=None, progress_callback=None):
       so_far -- bytes so far
       total -- bytes total, if known, otherwise None
     """
-    if progress_callback is not None:
+    if progress_callback is not None and size:
         n = 0
         progress_callback(0, size)
 
@@ -164,7 +163,7 @@ Use "enpkg --userpass" to update authentication in configuration file.
         fo.write(chunk)
         if md5:
             h.update(chunk)
-        if progress_callback is not None:
+        if progress_callback is not None and size:
             n += len(chunk)
             progress_callback(n, size)
 
