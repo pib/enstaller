@@ -28,8 +28,12 @@ logger = logging.getLogger(__name__)
 class EnstallerResourceIndexError(EnvironmentError):
     """ Raise when one or more Enstaller resource indices cannot be read.
     """
-    pass
-
+    def __init__(self, msg, exc):
+        super(EnstallerResourceIndexError, self).__init__(msg)
+        try:
+            self.data = json.loads(exc.read())
+        except:
+            self.data = None
 
 class ResourceCache(object):
     def __init__(self, cache_dir, root_url):
@@ -79,6 +83,7 @@ class ResourceCache(object):
             cache_file_path = cache_file_path.rstrip('/') + '.json'
         full_url = self.url_for(path)
         cached_data = None
+        http_exc = None
 
         try:
             mtime = datetime.utcfromtimestamp(stat(cache_file_path).st_mtime)
@@ -105,8 +110,10 @@ class ResourceCache(object):
         try:
             logger.debug('Trying to load {}'.format(full_url))
             data = self._read_json_from_url(full_url)
-        except:
+        except Exception as e:
             logger.exception('Error reading from URL "{}"'.format(full_url))
+            if getattr(e, 'code', None) == 401:
+                http_exc = e
             data = None
 
         # If we got valid data JSON data back, write the cache file and return
@@ -137,7 +144,7 @@ class ResourceCache(object):
 
         raise EnstallerResourceIndexError(
             "Couldn't load index file from '{}' or '{}'"
-            .format(cache_file_path, full_url))
+            .format(cache_file_path, full_url), http_exc)
 
 
 class Resources(object):
@@ -175,8 +182,14 @@ class Resources(object):
         self._product_cache = ResourceCache(join(self.prefix, 'cache'),
                                             url_root)
 
-        product_list = self._product_cache.get(self.product_list_path + '/',
-                                               None)
+        try:
+            product_list = self._product_cache.get(self.product_list_path + '/',
+                                                   None)
+        except EnstallerResourceIndexError as e:
+            if e.data:
+                product_list = e.data
+            else:
+                raise
 
         for product_metadata in product_list:
             self._add_product(product_metadata)
