@@ -111,10 +111,19 @@ class ResourceCache(object):
             logger.debug('Trying to load {}'.format(full_url))
             data = self._read_json_from_url(full_url)
         except Exception as e:
-            logger.exception('Error reading from URL "{}"'.format(full_url))
             if getattr(e, 'code', None) == 401:
-                http_exc = e
-            data = None
+                if last_update is None:
+                    try:
+                        data = json.loads(e.read())
+                    except:
+                        logger.exception('Dang')
+                        data = None
+                else:
+                    http_exc = e
+                    data = None
+            else:
+                logger.exception('Error reading from URL "{}"'.format(full_url))
+                data = None
 
         # If we got valid data JSON data back, write the cache file and return
         if data:
