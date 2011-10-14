@@ -40,8 +40,6 @@ class ResourceCache(object):
         self._cache_dir = cache_dir
         self._root_url = root_url
         self.authenticate = True
-        if not exists(cache_dir):
-            makedirs(cache_dir)
 
     def url_for(self, path):
         return '{}/{}'.format(self._root_url, path)
