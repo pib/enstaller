@@ -187,7 +187,7 @@ def get_auth():
         else:
             change_auth(username, password)
     username = get('EPD_username')
-    if username:
+    if username and keyring:
         password = keyring.get_password(KEYRING_SERVICE_NAME, username)
     if username and password:
         return username, password
