@@ -87,7 +87,7 @@ def open_with_auth(url):
     auth, host = urllib2.splituser(netloc)
     if auth:
         auth = urllib2.unquote(auth).encode('base64').strip()
-    elif 'enthought.com/repo/' in url and 'repo/pypi/eggs/' not in url:
+    elif host.endswith('enthought.com') and 'repo/pypi/eggs/' not in url:
         username, password = config.get_auth()
         if username and password:
             auth = ('%s:%s' % (username, password)).encode('base64')
