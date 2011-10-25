@@ -1,16 +1,13 @@
 import sys
 import json
 from collections import defaultdict
-from httplib import HTTPConnection
 import logging
 from os import makedirs, stat
-from os.path import dirname, join, split, exists
+from os.path import dirname, join, exists
 import re
-from urllib2 import HTTPError, urlopen, Request
-from urlparse import urlsplit
+from urllib2 import urlopen, Request
 from datetime import datetime
 
-from traits.etsconfig.api import ETSConfig
 import config
 from enstaller import Enstaller
 from enstaller.history import History
