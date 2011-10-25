@@ -10,7 +10,6 @@ from cStringIO import StringIO
 from os.path import abspath, expanduser, getmtime, isfile, join
 
 from egginst import name_version_fn
-from egginst.utils import human_bytes
 from enstaller import __version__
 from enstaller.verlib import NormalizedVersion, IrrationalVersionError
 
@@ -87,7 +86,8 @@ def open_with_auth(url):
     auth, host = urllib2.splituser(netloc)
     if auth:
         auth = urllib2.unquote(auth).encode('base64').strip()
-    elif host.endswith('enthought.com') and 'repo/pypi/eggs/' not in url:
+    elif host.endswith('enthought.com') and not (
+             'repo/pypi/eggs/' in url or 'runner.enthought.com' in url):
         username, password = config.get_auth()
         if username and password:
             auth = ('%s:%s' % (username, password)).encode('base64')
