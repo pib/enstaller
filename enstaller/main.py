@@ -24,7 +24,8 @@ import config
 from history import History
 from proxy.api import setup_proxy
 from utils import (canonical, cname_fn, get_info, comparable_version,
-                   shorten_repo, get_installed_info, get_available)
+                   shorten_repo, get_installed_info, get_available,
+                   abs_expanduser)
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
 
@@ -615,8 +616,13 @@ def install_req(enst, req, opts):
 
 
 def main():
+    try:
+        user_base = site.USER_BASE
+    except AttributeError:
+        user_base = abs_expanduser('~/.local')
+
     p = ArgumentParser(description=__doc__)
-    p.add_argument('cnames', metavar='CNAME', nargs='*',
+    p.add_argument('cnames', metavar='NAME', nargs='*',
                    help='package(s) to work on')
     p.add_argument("--add-url", metavar='URL',
                    help="add a repository URL to the configuration file")
@@ -656,8 +662,7 @@ def main():
     p.add_argument("--sys-prefix", action="store_true",
                    help="use sys.prefix as the install prefix")
     p.add_argument("--user", action="store_true",
-                   help="install into user prefix, i.e. --prefix=%r" %
-                           site.USER_BASE)
+                   help="install into user prefix, i.e. --prefix=%r" % user_base)
     p.add_argument("--userpass", action="store_true",
                    help="change EPD authentication in configuration file")
     p.add_argument('-v', "--verbose", action="store_true")
@@ -673,7 +678,7 @@ def main():
         p.error("Option takes no arguments")
 
     if args.user:
-        args.prefix = site.USER_BASE
+        args.prefix = user_base
 
     if args.prefix and args.sys_prefix:
         p.error("Options --prefix and --sys-prefix exclude each ohter")
