@@ -15,9 +15,8 @@ from argparse import ArgumentParser
 from os.path import isdir, isfile, join
 
 import egginst
-from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action, \
-                   console_file_progress
-
+from egginst.utils import (bin_dir_name, rel_site_packages, pprint_fn_action,
+                           console_file_progress)
 from enstaller import __version__
 import config
 from history import History
