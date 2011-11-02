@@ -237,8 +237,9 @@ class Enstaller(object):
         ei.install()
         info = self.get_installed_info(cname_fn(eggname))[0][1]
         path = join(info['meta_dir'], '__enpkg__.txt')
-        with open(path, 'w') as f:
-            f.write('repo = %r\n' % repo)
+        fo = open(path, 'w')
+        fo.write('repo = %r\n' % repo)
+        fo.close()
 
     def remove_egg(self, eggname):
         if (sys.platform == 'win32' and
@@ -485,10 +486,10 @@ def remove_req(enst, req):
     """
     try:
         enst.remove(req)
-    except DistributionNotFound as e:
+    except DistributionNotFound, e:
         print e.message
         return
-    except DistributionVersionMismatch as e:
+    except DistributionVersionMismatch, e:
         print e.message
         return
 
@@ -593,7 +594,7 @@ def install_req(enst, req, opts):
     try:
         installed = enst.install(req, 'root' if opts.no_deps else 'recur',
                                  opts.force, opts.forceall)
-    except DistributionNotFound as e:
+    except DistributionNotFound, e:
         print e.message
         versions = enst.chain.list_versions(req.name)
         if versions:
