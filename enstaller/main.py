@@ -4,6 +4,8 @@ enstaller is a managing tool for egginst-based installs, and the CLI is
 called enpkg which calls out to egginst to do the actual install.
 enpkg can access distributions from local and HTTP repositories.
 """
+from __future__ import with_statement
+
 import os
 import re
 import sys

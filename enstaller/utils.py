@@ -136,7 +136,7 @@ def write_data_from_url(fo, url, md5=None, size=None, progress_callback=None):
     elif url.startswith(('http://', 'https://')):
         try:
             fi = open_with_auth(url)
-        except urllib2.HTTPError as e:
+        except urllib2.HTTPError, e:
             sys.stderr.write(str(e) + '\n')
             if '401' in str(e):
                 sys.stderr.write("""\
