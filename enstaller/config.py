@@ -179,6 +179,7 @@ def write(username=None, password=None, proxy=None):
 
 
 def get_auth():
+    password = None
     old_auth = get('EPD_auth')
     if old_auth:
         username, password = old_auth.decode('base64').split(':')
