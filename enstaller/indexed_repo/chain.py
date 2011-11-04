@@ -318,7 +318,10 @@ class Chain(object):
             if req.matches(spec):
                 versions.add(spec['version'])
 
-        return sorted(versions, key=comparable_version)
+        try:
+            return sorted(versions, key=comparable_version)
+        except TypeError:
+            return list(versions)
 
 
     def fetch_dist(self, dist, fetch_dir, force=False, check_md5=False,
