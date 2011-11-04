@@ -734,7 +734,7 @@ def main():
 
     if config.get('use_resource_index'):
         from resource import Resources
-        res = Resources('http://s3.amazonaws.com/test-eggs.enthought.com',
+        res = Resources('http://beta.enthought.com/webservice/',
                         verbose=verbose)
         enst = res.enst
         enst.dry_run = dry_run
