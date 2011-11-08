@@ -212,7 +212,7 @@ class Resources(object):
             raise Exception('Product metadata file for {}, but running {}'
                             .format(product_metadata['platform'], self.plat))
 
-        if 'eggs' in product_metadata:
+        if 'eggs' in product_metadata and product_metadata['subscribed']:
             self._add_egg_repos(product_metadata['url'], product_metadata)
         else:
             product_metadata['eggs'] = {}
