@@ -100,7 +100,7 @@ def open_with_auth(url):
         new_url = urlparse.urlunparse((scheme, host, path,
                                        params, query, frag))
         request = urllib2.Request(new_url)
-        request.add_header("Authorization", "Basic " + auth)
+        request.add_unredirected_header("Authorization", "Basic " + auth)
         logger.debug('Requesting %s with auth' % new_url)
     else:
         request = urllib2.Request(url)
