@@ -21,6 +21,7 @@ class Chain(object):
         self.file_action_callback = file_action_callback or pprint_fn_action
         self.download_progress_callback = (download_progress_callback or
                                            console_file_progress)
+        self.unsubscribed_repos = {}
 
         # maps distributions to specs
         self.index = {}
@@ -116,13 +117,15 @@ class Chain(object):
                 yield dist
 
 
-    def get_repo(self, req):
+    def get_repo(self, req, allow_unsubscribed=False):
         """
         return the first repository in which the requirement matches at least
         one distribution
         """
         for dist in self.iter_dists(req):
-            return dist_naming.repo_dist(dist)
+            repo = dist_naming.repo_dist(dist)
+            if repo not in self.unsubscribed_repos or allow_unsubscribed:
+                return repo
         return None
 
 

@@ -497,7 +497,33 @@ def remove_req(enst, req):
         return
 
 
-def check_available(cname):
+def check_available(enst, cname):
+    repo = enst.chain.get_repo(Req(cname), allow_unsubscribed=True)
+    if not repo:
+        return False
+
+    repo_meta = enst.chain.unsubscribed_repos[repo]
+    print """
+But wait, %r is available in the %s subscriber repository!
+Would you like to go to %r
+to subscribe?
+""" % (cname, repo_meta['product_name'], repo_meta['buy_url'])
+    answer = raw_input('[yes|no]> ').strip().lower()
+    if answer not in ('y', 'yes'):
+        return False
+    print """
+Once you have obtained a subscription, you can proceed here.
+"""
+    import webbrowser
+    webbrowser.open(repo_meta['buy_url'])
+    if not config.get_auth()[0]:
+        username, password = config.input_auth()
+        if username and password:
+            config.change_auth(username, password)
+    return True
+
+
+def old_check_available(cname):
     avail = get_available()
     if cname not in avail:
         return False
@@ -606,8 +632,10 @@ def install_req(enst, req, opts):
         info = enst.get_installed_info(req.name)[0][1]
         if info:
             print "%(egg_name)s was installed on: %(mtime)s" % info
+        if config.get('use_resource_index'):
+            check_available(enst, req.name)
         elif 'EPD_free' in sys.version:
-            check_available(req.name)
+            old_check_available(req.name)
         sys.exit(1)
 
     if not installed:

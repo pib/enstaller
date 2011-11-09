@@ -6,6 +6,7 @@ from os import makedirs, stat
 from os.path import dirname, join, exists
 import re
 from urllib2 import urlopen, Request
+from urlparse import urlsplit, urlunsplit
 from datetime import datetime
 
 import config
@@ -212,7 +213,7 @@ class Resources(object):
             raise Exception('Product metadata file for {}, but running {}'
                             .format(product_metadata['platform'], self.plat))
 
-        if 'eggs' in product_metadata and product_metadata['subscribed']:
+        if 'eggs' in product_metadata:
             self._add_egg_repos(product_metadata['url'], product_metadata)
         else:
             product_metadata['eggs'] = {}
@@ -228,6 +229,13 @@ class Resources(object):
         product_path = '{}/{}'.format(self.product_list_path,
                                       product_metadata['product'])
         product_metadata['url'] = self._product_cache.url_for(product_path)
+        parts = urlsplit(product_metadata['url'])
+        if product_metadata['product'] == 'EPDFree':
+            path = 'account/register/'
+        else:
+            path = 'products/{0}/'.format(product_metadata['product'])
+        product_metadata['buy_url'] = urlunsplit((parts.scheme, parts.netloc,
+                                                  path, '', ''))
 
         if product_metadata.get('platform_independent', False):
             index_filename = 'index.json'
@@ -247,6 +255,10 @@ class Resources(object):
         else:
             repos = [url]
         self.enst.chain.repos.extend(repos)
+
+        if not product_metadata['subscribed']:
+            for repo in repos:
+                self.enst.chain.unsubscribed_repos[repo] = product_metadata
 
         for cname, project in product_metadata['eggs'].iteritems():
             for distname, data in project['files'].iteritems():
@@ -279,18 +291,18 @@ class Resources(object):
                 d.update(info)
                 res[cname] = d
 
-                for cname in self.enst.chain.groups.iterkeys():
-                    dist = self.enst.chain.get_dist(Req(cname))
-                    if dist is None:
-                        continue
-                    repo, fn = dist_naming.split_dist(dist)
-                    n, v, b = dist_naming.split_eggname(fn)
-                    if cname not in res:
-                        d = defaultdict(str)
-                        d['name'] = d.get('name', cname)
-                        res[cname] = d
-                    res[cname]['a-egg'] = fn
-                    res[cname]['a-ver'] = '%s-%d' % (v, b)
+            for cname in self.enst.chain.groups.iterkeys():
+                dist = self.enst.chain.get_dist(Req(cname))
+                if dist is None:
+                    continue
+                repo, fn = dist_naming.split_dist(dist)
+                n, v, b = dist_naming.split_eggname(fn)
+                if cname not in res:
+                    d = defaultdict(str)
+                    d['name'] = d.get('name', cname)
+                    res[cname] = d
+                res[cname]['a-egg'] = fn
+                res[cname]['a-ver'] = '%s-%d' % (v, b)
 
             def vb_egg(fn):
                 try:
