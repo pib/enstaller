@@ -254,7 +254,8 @@ class Resources(object):
                 spec = dict(metadata_version='1.1',
                             name=name, version=version, build=build,
                             python=data.get('python', '2.7'),
-                            packages=data.get('depends', []))
+                            packages=data.get('depends', []),
+                            size=data.get('size'))
                 add_Reqs_to_spec(spec)
                 assert spec['cname'] == cname, distname
                 dist = repos[data.get('repo', 0)] + distname
