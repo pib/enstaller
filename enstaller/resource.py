@@ -196,7 +196,16 @@ class Resources(object):
             else:
                 raise
 
-        for product_metadata in product_list:
+        filtered_product_list = {}
+        for product in product_list:
+            slug = product['repo_slug']
+            if slug not in filtered_product_list or (
+                    (not filtered_product_list[slug]['subscribed'])
+                    and product['subscribed']):
+                filtered_product_list[slug] = product
+
+        for product_metadata in [pm for pm in product_list if
+                                 filtered_product_list[pm['repo_slug']] == pm]:
             self._add_product(product_metadata)
 
     def _add_product(self, product_metadata):
@@ -292,7 +301,8 @@ class Resources(object):
                 res[cname] = d
 
             for cname in self.enst.chain.groups.iterkeys():
-                dist = self.enst.chain.get_dist(Req(cname))
+                dist = self.enst.chain.get_dist(Req(cname),
+                                                allow_unsubscribed=True)
                 if dist is None:
                     continue
                 repo, fn = dist_naming.split_dist(dist)

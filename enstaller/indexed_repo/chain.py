@@ -129,12 +129,12 @@ class Chain(object):
         return None
 
 
-    def get_dist(self, req):
+    def get_dist(self, req, allow_unsubscribed=False):
         """
         return the distributions with the largest version and build number
         from the first repository which contains any matches
         """
-        repo = self.get_repo(req)
+        repo = self.get_repo(req, allow_unsubscribed)
         if repo is None:
             return None
 
