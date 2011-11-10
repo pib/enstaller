@@ -242,7 +242,7 @@ class Resources(object):
         if product_metadata['product'] == 'EPDFree':
             path = 'account/register/'
         else:
-            path = 'products/{0}/'.format(product_metadata['product'])
+            path = 'products/getepd/'
         product_metadata['buy_url'] = urlunsplit((parts.scheme, parts.netloc,
                                                   path, '', ''))
 
