@@ -358,7 +358,7 @@ class Chain(object):
                 print "Not forcing refetch, %r already exists" % dst
             return
 
-        if 1:
+        if not check_md5:
             import patch
             if patch.patch(dist, fetch_dir):
                 return
