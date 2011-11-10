@@ -3,7 +3,8 @@ from cStringIO import StringIO
 from collections import defaultdict
 from os.path import isfile, join
 
-from enstaller.utils import md5_file, write_data_from_url
+from egginst.utils import pprint_fn_action, console_file_progress
+from enstaller.utils import write_data_from_url
 import enstaller.zdiff as zdiff
 
 import dist_naming
@@ -22,14 +23,19 @@ def read_index(repo):
     if repo in index:
         return
 
-    faux = StringIO()
-    write_data_from_url(faux, repo + 'patches/index.txt')
-    index_data = faux.getvalue()
-    faux.close()
+    try:
+        faux = StringIO()
+        write_data_from_url(faux, repo + 'patches/index.txt')
+        index_data = faux.getvalue()
+        faux.close()
+    except:
+        index[repo] = False
+        return
 
     index[repo] = defaultdict(list)
     for line in index_data.splitlines():
         md5, size, patch_fn = line.split()
+        size = int(size)
         src_fn, dst_fn = split(patch_fn)
         index[repo][dst_fn].append((size, patch_fn, md5))
 
@@ -37,24 +43,27 @@ def read_index(repo):
 def patch(dist, fetch_dir):
     repo, fn = dist_naming.split_dist(dist)
     read_index(repo)
+    if index[repo] is False:
+        print "No patches for %r exist" % repo
+        return False
 
     for size, patch_fn, md5 in sorted(index[repo][fn]):
         src_fn, dst_fn = split(patch_fn)
         assert dst_fn == fn
         src_path = join(fetch_dir, src_fn)
-        #print size, patch_fn, src_fn, isfile(src_path)
+        print '%8d %s %s %s' % (size, patch_fn, src_fn, isfile(src_path))
         if isfile(src_path):
             break
     else:
         return False
 
+    pprint_fn_action(patch_fn, 'downloading')
     patch_path = join(fetch_dir, patch_fn)
     fo = open(patch_path, 'wb')
-    write_data_from_url(fo, repo + 'patches/' + patch_fn, md5=md5, size=size)
+    write_data_from_url(fo, repo + 'patches/' + patch_fn, md5=md5, size=size,
+                        progress_callback=console_file_progress)
     fo.close()
 
-    zdiff.patch(src_path,
-                join(fetch_dir, fn),
-                patch_path)
+    zdiff.patch(src_path, join(fetch_dir, fn), patch_path)
 
     return True
