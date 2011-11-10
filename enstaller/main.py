@@ -307,7 +307,7 @@ class Enstaller(object):
                     (pkg, req))
         if self.pre_install_callback:
             dist = self.chain.get_dist(req)
-            self.pre_install_callback(self, [dist], 'remove')
+            #self.pre_install_callback(self, [dist], 'remove')
         self.remove_egg(d['egg_name'])
 
 

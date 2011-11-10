@@ -357,6 +357,12 @@ class Chain(object):
             if self.verbose:
                 print "Not forcing refetch, %r already exists" % dst
             return
+
+        if 1:
+            import patch
+            if patch.patch(dist, fetch_dir):
+                return
+
         self.file_action_callback(fn, ('copying', 'downloading')
                                   [dist.startswith(('http://', 'https://'))])
         if dry_run:
