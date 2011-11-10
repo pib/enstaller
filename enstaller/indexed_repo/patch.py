@@ -17,38 +17,43 @@ def split(fn):
     return m.expand(r'\1-\2-\3.egg'), m.expand(r'\1-\4-\5.egg')
 
 
-def patch(dist, fetch_dir):
-    repo, fn = dist_naming.split_dist(dist)
-    patches_url = repo + 'patches/'
+index = {}
+def read_index(repo):
+    if repo in index:
+        return
 
     faux = StringIO()
-    write_data_from_url(faux, patches_url + 'index.txt')
+    write_data_from_url(faux, repo + 'patches/index.txt')
     index_data = faux.getvalue()
     faux.close()
 
-    patches = defaultdict(list)
+    index[repo] = defaultdict(list)
     for line in index_data.splitlines():
         md5, size, patch_fn = line.split()
         src_fn, dst_fn = split(patch_fn)
-        patches[dst_fn].append((size, patch_fn, src_fn, md5))
+        index[repo][dst_fn].append((size, patch_fn, md5))
 
-    # -----------
 
-    for size, patch_fn, src_fn, md5 in sorted(patches[fn]):
-        path = join(fetch_dir, src_fn)
-        print size, patch_fn, src_fn, isfile(path)
-        if isfile(path):
+def patch(dist, fetch_dir):
+    repo, fn = dist_naming.split_dist(dist)
+    read_index(repo)
+
+    for size, patch_fn, md5 in sorted(index[repo][fn]):
+        src_fn, dst_fn = split(patch_fn)
+        assert dst_fn == fn
+        src_path = join(fetch_dir, src_fn)
+        #print size, patch_fn, src_fn, isfile(src_path)
+        if isfile(src_path):
             break
     else:
         return False
 
     patch_path = join(fetch_dir, patch_fn)
     fo = open(patch_path, 'wb')
-    write_data_from_url(fo, patches_url + patch_fn, size=size)
+    write_data_from_url(fo, repo + 'patches/' + patch_fn, md5=md5, size=size)
     fo.close()
-    assert md5_file(patch_path) == md5
 
-    zdiff.patch(join(fetch_dir, src_fn),
+    zdiff.patch(src_path,
                 join(fetch_dir, fn),
                 patch_path)
 
