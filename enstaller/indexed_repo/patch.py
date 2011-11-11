@@ -65,6 +65,8 @@ def patch(dist, fetch_dir):
                         progress_callback=console_file_progress)
     fo.close()
 
-    zdiff.patch(src_path, join(fetch_dir, fn), patch_path)
+    pprint_fn_action(patch_fn, 'patching')
+    zdiff.patch(src_path, join(fetch_dir, fn), patch_path,
+                progress_callback=console_file_progress)
 
     return True

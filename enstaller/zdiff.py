@@ -56,15 +56,25 @@ def diff(src_path, dst_path, patch_path):
     return count
 
 
-def patch(src_path, dst_path, patch_path):
+def patch(src_path, dst_path, patch_path, progress_callback=None):
     x = zipfile.ZipFile(src_path)
     y = zipfile.ZipFile(dst_path, 'w', zipfile.ZIP_DEFLATED)
     z = zipfile.ZipFile(patch_path)
 
+    xnames = x.namelist()
     znames = set(z.namelist())
-    for name in x.namelist():
+
+    if progress_callback:
+        n = 0
+        tot = len(xnames) + len(znames)
+        progress_callback(0, tot)
+
+    for name in xnames:
         if name not in znames:
              y.writestr(x.getinfo(name), x.read(name))
+        if progress_callback:
+            n += 1
+            progress_callback(n, tot)
 
     for name in z.namelist():
         zdata = z.read(name)
@@ -78,6 +88,12 @@ def patch(src_path, dst_path, patch_path):
             raise Exception("Hmm, didn't expect to get here: %r" % zdata)
 
         y.writestr(name, ydata)
+        if progress_callback:
+            n += 1
+            progress_callback(n, tot)
+
+    if progress_callback and n < tot:
+        progress_callback(tot, tot)
 
     z.close()
     y.close()
