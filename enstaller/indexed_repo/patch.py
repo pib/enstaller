@@ -1,6 +1,7 @@
 import re
 from cStringIO import StringIO
 from collections import defaultdict
+from urllib2 import HTTPError
 from os.path import isfile, join
 
 from egginst.utils import pprint_fn_action, console_file_progress
@@ -28,7 +29,7 @@ def read_index(repo):
         write_data_from_url(faux, repo + 'patches/index.txt')
         index_data = faux.getvalue()
         faux.close()
-    except:
+    except HTTPError:
         index[repo] = False
         return
 
@@ -44,7 +45,7 @@ def patch(dist, fetch_dir):
     repo, fn = dist_naming.split_dist(dist)
     read_index(repo)
     if index[repo] is False:
-        print "No patches for %r exist" % repo
+        print "Warning: no patches for %r exist" % repo
         return False
 
     for size, patch_fn, md5 in sorted(index[repo][fn]):
