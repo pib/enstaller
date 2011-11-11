@@ -67,7 +67,7 @@ def patch(src_path, dst_path, patch_path, progress_callback=None):
     if progress_callback:
         n = 0
         tot = len(xnames) + len(znames)
-        progress_callback(0, tot)
+        progress_callback(0, tot, usebytes=False)
 
     for name in xnames:
         if name not in znames:

@@ -14,14 +14,15 @@ else:
     rel_site_packages = 'lib/python%i.%i/site-packages' % sys.version_info[:2]
 
 
-def console_file_progress(so_far, total, state={}):
+def console_file_progress(so_far, total, usebytes=True, state={}):
     """
     A progress callback to be used with write_data_from_url.
 
     Displays a progress bar as the download progresses.
     """
     if so_far == 0:
-        sys.stdout.write('%9s [' % human_bytes(total))
+        sys.stdout.write('%9s [' %
+                         (human_bytes(total) if usebytes else total))
         sys.stdout.flush()
         state['cur'] = 0
 
