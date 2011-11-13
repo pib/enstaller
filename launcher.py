@@ -134,7 +134,13 @@ def launch(pkgs, entry_pt, args=None):
 
 
 def bootstrap_enstaller():
-    pass
+    local_repo = join(sys.prefix, 'LOCAL-REPO')
+    enstaller_egg = join(local_repo, 'enstaller-4.5.0-1.egg')
+    code = ("import sys; "
+            "sys.path.insert(0, %r); "
+            "from egginst.bootstrap import main; "
+            "main(hook=True)" % enstaller_egg)
+    subprocess.call(['python', '-c', code])
 
 
 def install_pkg(pkg):
@@ -142,8 +148,7 @@ def install_pkg(pkg):
     if not isdir(join(pkgs_dir, enstaller)):
         bootstrap_enstaller()
     local_repo = join(sys.prefix, 'LOCAL-REPO')
-    launch([#enstaller
-            ], 'egginst.main:main',
+    launch([enstaller], 'egginst.main:main',
            ['--hook', join(local_repo, pkg + '.egg')])
 
 

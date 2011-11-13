@@ -2,7 +2,7 @@ import sys
 from os.path import isfile, join
 
 
-def main(prefix=sys.prefix, verbose=False):
+def main(prefix=sys.prefix, hook=False, verbose=False):
     """
     To bootstrap enstaller into a Python environment, used the following
     code:
@@ -19,7 +19,7 @@ def main(prefix=sys.prefix, verbose=False):
     egg_path = sys.path[0]
 
     print "Bootstrapping:", egg_path
-    ei = egginst.EggInst(egg_path, prefix, verbose)
+    ei = egginst.EggInst(egg_path, prefix, hook=hook, verbose=verbose)
     ei.install()
 
 
@@ -65,13 +65,13 @@ def cli():
                      description="bootstraps enstaller %(__version__)s into "
                                  "the current Python environment" % locals())
 
+    p.add_option("--hook",
+                 action="store_true")
     p.add_option("--prefix",
                  action="store",
                  default=sys.prefix,
                  help="install prefix, defaults to %default")
-
     p.add_option('-v', "--verbose", action="store_true")
-
     p.add_option('--version', action="store_true")
 
     opts, args = p.parse_args()
@@ -80,6 +80,6 @@ def cli():
         print "enstaller version:", __version__
         return
 
-    main(opts.prefix, opts.verbose)
+    main(opts.prefix, opts.hook, opts.verbose)
 
     remove_and_fix()
