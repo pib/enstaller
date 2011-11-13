@@ -11,6 +11,7 @@ from optparse import OptionParser
 
 verbose = False
 pkgs_dir = None
+python_exe = None
 
 
 def yield_lines(path):
@@ -127,7 +128,7 @@ def launch(pkgs, entry_pt, args=None):
     try:
         path = join(tmp_dir, 'entry.py')
         create_entry(path, pkgs, entry_pt)
-        exit_code = subprocess.call(['python', path] + args)
+        exit_code = subprocess.call([python_exe, path] + args)
     finally:
         shutil.rmtree(tmp_dir)
     return exit_code
@@ -139,7 +140,7 @@ def bootstrap_enstaller(egg_path):
             "sys.path.insert(0, %r); "
             "from egginst.bootstrap import main; "
             "main(hook=True)" % egg_path)
-    subprocess.call(['python', '-c', code])
+    subprocess.call([python_exe, '-c', code])
 
 
 def install_pkg(pkg):
@@ -177,9 +178,10 @@ def main():
     if len(args) != 1:
         p.error('exactly one argument expected, try -h')
 
-    global verbose, pkgs_dir
+    global verbose, pkgs_dir, python_exe
     verbose = opts.verbose
     pkgs_dir = '/Library/Frameworks/Python.framework/Versions/7.1/pkgs'
+    python_exe = 'python'
 
     if opts.env:
         pkgs = parse_env_file(opts.env)
