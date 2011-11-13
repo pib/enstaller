@@ -17,10 +17,9 @@ def create_entry(dst_path, pkgs_dir, pkgs, entry_pt):
     """
     fo = open(dst_path, 'w')
     fo.write("""\
-import os
 import sys
 import imp
-from os.path import isfile, join, splitext
+from os.path import splitext
 
 EXT_INFO_MAP = {
     '.py': ('.py', 'U', imp.PY_SOURCE),
@@ -82,7 +81,7 @@ class PackageRegistry(object):
 if __name__ == '__main__':
     for p in %(pth)r:
         if p not in sys.path:
-            sys.path.insert(0, v)
+            sys.path.insert(0, p)
     sys.meta_path.insert(0, PackageRegistry(%(registry)r))
 
     from %(module)s import %(func)s
