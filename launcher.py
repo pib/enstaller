@@ -9,6 +9,22 @@ from optparse import OptionParser
 verbose = False
 
 
+def read_registry_files(pkgs_dir, pkgs):
+    pth = []
+    registry = {}
+    for pkg in pkgs:
+        for line in open(join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')):
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            k, v = line.split(None, 1)
+            if k == '-pth-':
+                pth.append(v)
+            else:
+                registry[k] = v
+    return  pth, registry
+
+
 def create_entry(dst_path, pkgs_dir, pkgs, entry_pt):
     """
     create entry point Python script at 'dst_path', which sets up registry
@@ -60,19 +76,8 @@ class PackageRegistry(object):
                 f.close()
         return mod
 """)
-    pth = []
-    registry = {}
-    for pkg in pkgs:
-        for line in open(join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')):
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            k, v = line.split(None, 1)
-            if k == '-pth-':
-                pth.append(v)
-            else:
-                registry[k] = v
 
+    pth, registry = read_registry_files(pkgs_dir, pkgs)
     module, func = entry_pt.strip().split(':')
     fo.write("""\
 if __name__ == '__main__':
