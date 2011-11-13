@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import shutil
 import tempfile
@@ -81,7 +82,6 @@ class PackageRegistry(object):
 """)
 
     pth, registry = read_registry_files(pkgs_dir, pkgs)
-    module, func = entry_pt.strip().split(':')
     fo.write("""\
 if __name__ == '__main__':
     for p in %r:
@@ -91,13 +91,13 @@ if __name__ == '__main__':
 """ % pth)
     for k in sorted(registry.keys()):
         fo.write('%r: %r,\n' % (k, registry[k]))
+    fo.write("    }))\n")
 
     if entry_pt.count(':') == 0:
         entry_pt += ':main'
     assert entry_pt.count(':') == 1
-    fo.write("""\
-    }))
-
+    module, func = entry_pt.strip().split(':')
+    fo.write("""
     from %(module)s import %(func)s
     sys.exit(%(func)s())
 """ % locals())
@@ -108,7 +108,6 @@ def launch(pkgs_dir, pkgs, entry_pt, args=None):
     if args is None:
         args = []
     tmp_dir = tempfile.mkdtemp()
-    print "TMP DIR: %r" % tmp_dir
     try:
         path = join(tmp_dir, 'entry.py')
         create_entry(path, pkgs_dir, pkgs, entry_pt)
@@ -119,27 +118,39 @@ def launch(pkgs_dir, pkgs, entry_pt, args=None):
 
 
 def main():
-    p = OptionParser(usage="usage: %prog [options] PYTHON_SCRIPT",
+    p = OptionParser(usage="usage: %prog [options] ENTRY",
                      description=__doc__)
 
+    p.add_option("--args",
+                 action="store",
+                 help="additional arguments passed to the launched command")
     p.add_option("--env",
                  action="store",
                  help="Python environment file(s), separated by ';'",
                  metavar='PATH')
-
     p.add_option('-v', "--verbose", action="store_true")
-    p.add_option('--version', action="store_true")
+    #p.add_option('--version', action="store_true")
 
     opts, args = p.parse_args()
 
     global verbose
     verbose = opts.verbose
 
+    if len(args) != 1:
+        p.error('exactly one argument expected, try -h')
+
+    entry_pt = args[0]
+    e_args = opts.args.split() if opts.args else []
+
+    return launch('/Library/Frameworks/Python.framework/Versions/7.1/pkgs',
+                  ['nose-1.1.2-1', 'numpy-1.5.1-2'],
+                  entry_pt, e_args)
+
 
 if __name__ == '__main__':
-    #main()
-#    create_entry('foo.py',
-    launch('/Library/Frameworks/Python.framework/Versions/7.1/pkgs',
-           ['nose-1.1.2-1', 'numpy-1.5.1-2'],
-           'nose:run_exit',
-           ['--version'])
+    sys.exit(main())
+    #create_entry('foo.py',
+    #launch('/Library/Frameworks/Python.framework/Versions/7.1/pkgs',
+    #       ['nose-1.1.2-1', 'numpy-1.5.1-2'],
+    #       'nose:run_exit',
+    #       ['--version'])
