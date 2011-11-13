@@ -73,20 +73,26 @@ class PackageRegistry(object):
             else:
                 registry[k] = v
 
+    module, func = entry_pt.strip().split(':')
+    fo.write("""\
+if __name__ == '__main__':
+    for p in %r:
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    sys.meta_path.insert(0, PackageRegistry({
+""" % pth)
+    for k in sorted(registry.keys()):
+        fo.write('%r: %r,\n' % (k, registry[k]))
+
     if entry_pt.count(':') == 0:
         entry_pt += ':main'
     assert entry_pt.count(':') == 1
-    module, func = entry_pt.strip().split(':')
-    fo.write('''
-if __name__ == '__main__':
-    for p in %(pth)r:
-        if p not in sys.path:
-            sys.path.insert(0, p)
-    sys.meta_path.insert(0, PackageRegistry(%(registry)r))
+    fo.write("""\
+    }))
 
     from %(module)s import %(func)s
     sys.exit(%(func)s())
-''' % locals())
+""" % locals())
     fo.close()
 
 
