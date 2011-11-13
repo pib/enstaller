@@ -104,13 +104,15 @@ if __name__ == '__main__':
     fo.close()
 
 
-def launch(pkgs_dir, pkgs, entry_pt):
+def launch(pkgs_dir, pkgs, entry_pt, args=None):
+    if args is None:
+        args = []
     tmp_dir = tempfile.mkdtemp()
     print "TMP DIR: %r" % tmp_dir
     try:
         path = join(tmp_dir, 'entry.py')
         create_entry(path, pkgs_dir, pkgs, entry_pt)
-        exit_code = subprocess.call(['python', path])
+        exit_code = subprocess.call(['python', path] + args)
     finally:
         shutil.rmtree(tmp_dir)
     return exit_code
@@ -139,4 +141,5 @@ if __name__ == '__main__':
 #    create_entry('foo.py',
     launch('/Library/Frameworks/Python.framework/Versions/7.1/pkgs',
            ['nose-1.1.2-1', 'numpy-1.5.1-2'],
-           'nose:run_exit')
+           'nose:run_exit',
+           ['--version'])
