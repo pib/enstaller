@@ -1,5 +1,7 @@
 import os
 import subprocess
+import shutil
+import tempfile
 import urllib2
 import zipfile
 from os.path import join
@@ -19,10 +21,11 @@ def read_registry_files(pkgs_dir, pkgs):
                 continue
             k, v = line.split(None, 1)
             if k == '-pth-':
-                pth.append(v)
+                if v not in pth:
+                    pth.append(v)
             else:
                 registry[k] = v
-    return  pth, registry
+    return pth, registry
 
 
 def create_entry(dst_path, pkgs_dir, pkgs, entry_pt):
@@ -101,6 +104,18 @@ if __name__ == '__main__':
     fo.close()
 
 
+def launch(pkgs_dir, pkgs, entry_pt):
+    tmp_dir = tempfile.mkdtemp()
+    print "TMP DIR: %r" % tmp_dir
+    try:
+        path = join(tmp_dir, 'entry.py')
+        create_entry(path, pkgs_dir, pkgs, entry_pt)
+        exit_code = subprocess.call(['python', path])
+    finally:
+        shutil.rmtree(tmp_dir)
+    return exit_code
+
+
 def main():
     p = OptionParser(usage="usage: %prog [options] PYTHON_SCRIPT",
                      description=__doc__)
@@ -121,7 +136,7 @@ def main():
 
 if __name__ == '__main__':
     #main()
-    create_entry('foo.py',
-                 '/Library/Frameworks/Python.framework/Versions/7.1/pkgs',
-                 ['nose-1.1.2-1', 'numpy-1.5.1-2'],
-                 'nose:run_exit')
+#    create_entry('foo.py',
+    launch('/Library/Frameworks/Python.framework/Versions/7.1/pkgs',
+           ['nose-1.1.2-1', 'numpy-1.5.1-2'],
+           'nose:run_exit')
