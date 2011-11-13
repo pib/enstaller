@@ -143,10 +143,18 @@ def bootstrap_enstaller(egg_path):
     subprocess.call([python_exe, '-c', code])
 
 
+def exists_pkg(pkg):
+    """
+    see if 'pkg' is installed, we check for EGG-INFO/registry.txt because
+    it is the last file that egginst installs
+    """
+    return isfile(join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt'))
+
+
 def install_pkg(pkg):
     enstaller = 'enstaller-4.5.0-1'
     local_repo = join(sys.prefix, 'LOCAL-REPO')
-    if not isfile(join(pkgs_dir, enstaller, 'EGG-INFO', 'registry.txt')):
+    if not exists_pkg(enstaller):
         bootstrap_enstaller(join(local_repo, enstaller + '.egg'))
     launch([enstaller], 'egginst.main:main',
            ['--hook', join(local_repo, pkg + '.egg')])
@@ -154,9 +162,8 @@ def install_pkg(pkg):
 
 def update_pkgs(pkgs):
     for pkg in pkgs:
-        if isfile(join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')):
-            continue
-        install_pkg(pkg)
+        if not exists_pkg(pkg):
+            install_pkg(pkg)
 
 
 def main():
@@ -165,6 +172,7 @@ def main():
 
     p.add_option("--args",
                  action="store",
+                 default='',
                  help="additional arguments passed to the launched command")
     p.add_option("--env",
                  action="store",
@@ -191,13 +199,8 @@ def main():
     update_pkgs(pkgs)
     return launch(pkgs,
                   entry_pt=args[0],
-                  args=opts.args.split() if opts.args else [])
+                  args=opts.args.split())
 
 
 if __name__ == '__main__':
     sys.exit(main())
-    #create_entry('foo.py',
-    #             '/Library/Frameworks/Python.framework/Versions/7.1/pkgs',
-    #             ['nose-1.1.2-1', 'numpy-1.5.1-2'],
-    #             'nose:run_exit')
-    #       ['--version'])
