@@ -103,7 +103,6 @@ class EggInst(object):
 
         if self.hook:
             import registry
-
             registry.create_file(self)
 
 

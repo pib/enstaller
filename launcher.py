@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import urllib2
 import zipfile
-from os.path import basename, isdir, join
+from os.path import basename, isfile, join
 from optparse import OptionParser
 
 
@@ -146,15 +146,15 @@ def bootstrap_enstaller(egg_path):
 def install_pkg(pkg):
     enstaller = 'enstaller-4.5.0-1'
     local_repo = join(sys.prefix, 'LOCAL-REPO')
-    if not isdir(join(pkgs_dir, enstaller)):
-        bootstrap_enstaller(join(local_repo, 'enstaller-4.5.0-1.egg'))
+    if not isfile(join(pkgs_dir, enstaller, 'EGG-INFO', 'registry.txt')):
+        bootstrap_enstaller(join(local_repo, enstaller + '.egg'))
     launch([enstaller], 'egginst.main:main',
            ['--hook', join(local_repo, pkg + '.egg')])
 
 
 def update_pkgs(pkgs):
     for pkg in pkgs:
-        if isdir(join(pkgs_dir, pkg)):
+        if isfile(join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')):
             continue
         install_pkg(pkg)
 
