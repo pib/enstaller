@@ -5,21 +5,37 @@ import shutil
 import tempfile
 import urllib2
 import zipfile
-from os.path import join
+from os.path import isdir, join
 from optparse import OptionParser
 
 
 verbose = False
+pkgs_dir = None
 
 
-def read_registry_files(pkgs_dir, pkgs):
+def yield_lines(path):
+    for line in open(path):
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        yield line
+
+
+def parse_env_file(path):
+    pkgs = []
+    for line in yield_lines(path):
+        if line.endswith('.egg'):
+            line = line[:-4]
+        pkgs.append(line)
+    return pkgs
+        
+
+def parse_registry_files(pkgs):
     pth = []
     registry = {}
     for pkg in pkgs:
-        for line in open(join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')):
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
+        reg_path = join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')
+        for line in yield_lines(reg_path):
             k, v = line.split(None, 1)
             if k == '-pth-':
                 if v not in pth:
@@ -29,7 +45,7 @@ def read_registry_files(pkgs_dir, pkgs):
     return pth, registry
 
 
-def create_entry(dst_path, pkgs_dir, pkgs, entry_pt):
+def create_entry(dst_path, pkgs, entry_pt):
     """
     create entry point Python script at 'dst_path', which sets up registry
     for the packages 'pkgs' (list) and entry point 'entry_pt' (something
@@ -81,8 +97,8 @@ class PackageRegistry(object):
         return mod
 """)
 
-    pth, registry = read_registry_files(pkgs_dir, pkgs)
-    fo.write("""\
+    pth, registry = parse_registry_files(pkgs)
+    fo.write("""
 if __name__ == '__main__':
     for p in %r:
         if p not in sys.path:
@@ -104,17 +120,38 @@ if __name__ == '__main__':
     fo.close()
 
 
-def launch(pkgs_dir, pkgs, entry_pt, args=None):
+def launch(pkgs, entry_pt, args=None):
     if args is None:
         args = []
     tmp_dir = tempfile.mkdtemp()
     try:
         path = join(tmp_dir, 'entry.py')
-        create_entry(path, pkgs_dir, pkgs, entry_pt)
+        create_entry(path, pkgs, entry_pt)
         exit_code = subprocess.call(['python', path] + args)
     finally:
         shutil.rmtree(tmp_dir)
     return exit_code
+
+
+def bootstrap_enstaller():
+    pass
+
+
+def install_pkg(pkg):
+    enstaller = 'enstaller-4.5.0-1'
+    if not isdir(join(pkgs_dir, enstaller)):
+        bootstrap_enstaller()
+    local_repo = join(sys.prefix, 'LOCAL-REPO')
+    launch([#enstaller
+            ], 'egginst.main:main',
+           ['--hook', join(local_repo, pkg + '.egg')])
+
+
+def update_pkgs(pkgs):
+    for pkg in pkgs:
+        if isdir(join(pkgs_dir, pkg)):
+            continue
+        install_pkg(pkg)
 
 
 def main():
@@ -133,24 +170,28 @@ def main():
 
     opts, args = p.parse_args()
 
-    global verbose
-    verbose = opts.verbose
-
     if len(args) != 1:
         p.error('exactly one argument expected, try -h')
 
-    entry_pt = args[0]
-    e_args = opts.args.split() if opts.args else []
+    global verbose, pkgs_dir
+    verbose = opts.verbose
+    pkgs_dir = '/Library/Frameworks/Python.framework/Versions/7.1/pkgs'
 
-    return launch('/Library/Frameworks/Python.framework/Versions/7.1/pkgs',
-                  ['nose-1.1.2-1', 'numpy-1.5.1-2'],
-                  entry_pt, e_args)
+    if opts.env:
+        pkgs = parse_env_file(opts.env)
+    else:
+        pkgs = []
+
+    update_pkgs(pkgs)
+    return launch(pkgs,
+                  entry_pt=args[0],
+                  args=opts.args.split() if opts.args else [])
 
 
 if __name__ == '__main__':
     sys.exit(main())
     #create_entry('foo.py',
-    #launch('/Library/Frameworks/Python.framework/Versions/7.1/pkgs',
-    #       ['nose-1.1.2-1', 'numpy-1.5.1-2'],
-    #       'nose:run_exit',
+    #             '/Library/Frameworks/Python.framework/Versions/7.1/pkgs',
+    #             ['nose-1.1.2-1', 'numpy-1.5.1-2'],
+    #             'nose:run_exit')
     #       ['--version'])
