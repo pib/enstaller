@@ -232,10 +232,16 @@ def main():
 
     global verbose, pkgs_dir, python_exe, local_repo, repo_url
     verbose = opts.verbose
-    pkgs_dir = '/Library/Frameworks/Python.framework/Versions/7.1/pkgs'
-    python_exe = 'python'
-    local_repo = join(sys.prefix, 'LOCAL-REPO')
-    repo_url = 'http://.../'
+    if sys.platform == 'win32':
+        pkgs_dir =   r'C:\jpm\pkgs'
+        local_repo = r'C:\jpm\repo'
+        python_exe = r'C:\Python26\pythonw.exe'
+        repo_url = 'http://www.enthought.com/repo/.jpm/Windows/x86/'
+    elif sys.platform == 'darwin':
+        pkgs_dir = '/Library/Frameworks/Python.framework/Versions/7.1/pkgs'
+        local_repo = join(sys.prefix, 'LOCAL-REPO')
+        python_exe = 'python'
+        repo_url = 'http://.../'
 
     if opts.env:
         pkgs = parse_env_file(opts.env)

@@ -7,7 +7,7 @@
 #   * setuptools needs to be installed to run this script
 
 VER=4.5.0
-PY=2.7
+PY=$1
 
 SPEC=enstaller.egg-info/spec
 mkdir -p $SPEC
