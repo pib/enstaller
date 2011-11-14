@@ -206,8 +206,9 @@ def update_pkgs(pkgs):
             eggs_to_fetch.append(egg_name)
 
     if eggs_to_fetch:
-        launch([enstaller], 'enstaller.indexed_repo.chain:main',
-               ['--dst', local_repo, repo_url] + eggs_to_fetch)
+        args = ['--dst', local_repo, repo_url] + eggs_to_fetch
+        if launch([enstaller], 'enstaller.indexed_repo.chain:main', args):
+            sys.exit('Error: could not fetch %r' % args)            
 
     for pkg in pkgs:
         if isfile(registry_pkg(pkg)):
