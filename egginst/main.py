@@ -15,7 +15,7 @@ import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from utils import (on_win, bin_dir_name, rel_site_packages,
-                   pprint_fn_action, rm_empty_dir, rm_rf, human_bytes,
+                   pprint_fn_action, rm_empty_dir, rm_rf,
                    console_file_progress)
 import scripts
 
@@ -41,7 +41,7 @@ def name_version_fn(fn):
 class EggInst(object):
 
     def __init__(self, fpath, prefix=sys.prefix,
-                 hook=False, verbose=False, noapp=False):
+                 hook=False, pkgs_dir=None, verbose=False, noapp=False):
         self.fpath = fpath
         self.cname = name_version_fn(basename(fpath))[0].lower()
         self.prefix = abspath(prefix)
@@ -52,7 +52,10 @@ class EggInst(object):
         self.bin_dir = join(self.prefix, bin_dir_name)
 
         if self.hook:
-            self.pkgs_dir = join(self.prefix, 'pkgs')
+            if pkgs_dir:
+                self.pkgs_dir = abspath(pkgs_dir)
+            else:
+                self.pkgs_dir = join(self.prefix, 'pkgs')
             self.pkg_dir = join(self.pkgs_dir, basename(fpath)[:-4])
             self.pyloc = self.pkg_dir
             self.meta_dir = join(self.pkg_dir, 'EGG-INFO')

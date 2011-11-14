@@ -2,7 +2,7 @@ import sys
 from os.path import isfile, join
 
 
-def main(prefix=sys.prefix, hook=False, verbose=False):
+def main(prefix=sys.prefix, hook=False, pkgs_dir=None, verbose=False):
     """
     To bootstrap enstaller into a Python environment, used the following
     code:
@@ -19,7 +19,8 @@ def main(prefix=sys.prefix, hook=False, verbose=False):
     egg_path = sys.path[0]
 
     print "Bootstrapping:", egg_path
-    ei = egginst.EggInst(egg_path, prefix, hook=hook, verbose=verbose)
+    ei = egginst.EggInst(egg_path, prefix,
+                         hook=hook, pkgs_dir=pkgs_dir, verbose=verbose)
     ei.install()
 
 
@@ -43,7 +44,7 @@ def fix_easy_pth(pth):
 
 def remove_and_fix():
     # Remove and fix some files in site-packages
-    from egginst.utils import rm_rf, rel_site_packages
+    from egginst.utils import rel_site_packages
 
     site_dir = join(sys.prefix, rel_site_packages)
 

@@ -187,7 +187,8 @@ def bootstrap_enstaller(pkg):
     code = ("import sys;"
             "sys.path.insert(0, %r);"
             "from egginst.bootstrap import main;"
-            "main(hook=True)" % fetch_file(pkg + '.egg'))
+            "main(hook=True, pkgs_dir=%r)" % (
+                     fetch_file(pkg + '.egg'), pkgs_dir))
     subprocess.check_call([python_exe, '-c', code])
 
 
