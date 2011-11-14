@@ -424,23 +424,26 @@ class Chain(object):
 def main():
     from optparse import OptionParser
 
-    p = OptionParser(usage="usage: %prog REPO_URL EGG_PATH",
+    p = OptionParser(usage="usage: %prog [options] REPO [EGG ...]",
                      description="simple interface to fetch eggs")
+    p.add_option("--dst",
+                 action="store",
+                 help="destination directory",
+                 default=os.getcwd(),
+                 metavar='PATH')
     p.add_option('-v', "--verbose", action="store_true")
 
     opts, args = p.parse_args()
 
-    if len(args) != 2:
-        p.error('exactly two arguments expected, try -h')
+    if len(args) < 1:
+        p.error('at least one argument expected, try -h')
 
-    repo, egg_path = args
-    repo = dist_naming.cleanup_reponame(repo)
-    egg_dir, egg_name = os.path.split(egg_path)
-    if not dist_naming.is_valid_eggname(egg_name):
-        sys.exit('Error: invalid egg name: %r' % egg_name)
-
+    repo = args[0]
     c = Chain([repo], opts.verbose)
-    c.fetch_dist(repo + egg_name, egg_dir)
+    for fn in args[1:]:
+        if not dist_naming.is_valid_eggname(fn):
+            sys.exit('Error: invalid egg name: %r' % fn)
+        c.fetch_dist(repo + fn, opts.dst)
 
 
 if __name__ == '__main__':

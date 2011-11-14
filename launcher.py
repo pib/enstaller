@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import urllib2
 import zipfile
-from os.path import dirname, isdir, isfile, join
+from os.path import basename, dirname, isdir, isfile, join
 from optparse import OptionParser
 
 
@@ -186,24 +186,28 @@ def bootstrap_enstaller(pkg):
     subprocess.call([python_exe, '-c', code])
 
 
-def install_pkg(pkg):
+def update_pkgs(pkgs):
     enstaller = 'enstaller-4.5.0-1'
     if not isfile(registry_pkg(enstaller)):
         bootstrap_enstaller(enstaller)
 
-    egg_path = join(local_repo, pkg + '.egg')
-    if not isfile(egg_path):
-        launch([enstaller], 'enstaller.indexed_repo.chain:main',
-               [repo_url, egg_path])
-
-    launch([enstaller], 'egginst.main:main',
-           ['--hook', egg_path])
-
-
-def update_pkgs(pkgs):
+    eggs_to_fetch = []
     for pkg in pkgs:
-        if not isfile(registry_pkg(pkg)):
-            install_pkg(pkg)
+        if isfile(registry_pkg(pkg)):
+            continue
+        egg_name = pkg + '.egg'
+        if not isfile(join(local_repo, egg_name)):
+            eggs_to_fetch.append(egg_name)
+
+    if eggs_to_fetch:
+        launch([enstaller], 'enstaller.indexed_repo.chain:main',
+               ['--dst', local_repo, repo_url] + eggs_to_fetch)
+
+    for pkg in pkgs:
+        if isfile(registry_pkg(pkg)):
+            continue
+        launch([enstaller], 'egginst.main:main',
+               ['--hook', join(local_repo, pkg + '.egg')])
 
 
 def main():
