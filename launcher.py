@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import urllib2
 import zipfile
-from os.path import basename, dirname, isdir, isfile, join
+from os.path import dirname, isdir, isfile, join
 from optparse import OptionParser
 
 
