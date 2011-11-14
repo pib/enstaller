@@ -137,8 +137,7 @@ class EggInst(object):
         fo.write('prefix = %r\n' % self.prefix)
         fo.write('installed_size = %i\n' % self.installed_size)
         fo.write('rel_files = [\n')
-        fo.write('  %r,\n' % self.rel_prefix(self.meta_txt))
-        for p in self.files:
+        for p in self.files + [self.meta_txt]:
             if abspath(p).startswith(self.prefix):
                 fo.write('  %r,\n' % self.rel_prefix(p))
             else:
