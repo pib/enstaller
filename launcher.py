@@ -41,6 +41,8 @@ def download(url, path):
     print 'Downloading: %r' % url
     print '         to: %r' % path
     fi = urllib2.urlopen(url)
+    if not isdir(dirname(path)):
+        os.makedirs(dirname(path))
     fo = open(path, 'wb')
     fo.write(fi.read())
     fo.close()
@@ -173,7 +175,10 @@ def launch(pkgs, entry_pt, args=None):
         create_entry(path, pkgs, entry_pt)
         exit_code = subprocess.call([python_exe, path] + args)
     finally:
-        shutil.rmtree(tmp_dir)
+        try:
+            shutil.rmtree(tmp_dir)
+        except:
+            pass
     return exit_code
 
 
@@ -183,7 +188,7 @@ def bootstrap_enstaller(pkg):
             "sys.path.insert(0, %r);"
             "from egginst.bootstrap import main;"
             "main(hook=True)" % fetch_file(pkg + '.egg'))
-    subprocess.call([python_exe, '-c', code])
+    subprocess.check_call([python_exe, '-c', code])
 
 
 def update_pkgs(pkgs):
@@ -235,7 +240,7 @@ def main():
     if sys.platform == 'win32':
         pkgs_dir =   r'C:\jpm\pkgs'
         local_repo = r'C:\jpm\repo'
-        python_exe = r'C:\Python26\pythonw.exe'
+        python_exe = r'C:\Python26\python.exe'
         repo_url = 'http://www.enthought.com/repo/.jpm/Windows/x86/'
     elif sys.platform == 'darwin':
         pkgs_dir = '/Library/Frameworks/Python.framework/Versions/7.1/pkgs'
