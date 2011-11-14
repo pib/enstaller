@@ -6,7 +6,6 @@ from os.path import isfile, join
 
 from egginst.utils import pprint_fn_action, console_file_progress
 from enstaller.utils import write_data_from_url
-import enstaller.zdiff as zdiff
 
 import dist_naming
 
@@ -42,6 +41,12 @@ def read_index(repo):
 
 
 def patch(dist, fetch_dir):
+    try:
+        import enstaller.zdiff as zdiff
+    except ImportError:
+        print "Warning: cannot import zdiff"
+        return False
+
     repo, fn = dist_naming.split_dist(dist)
     read_index(repo)
     if index[repo] is False:

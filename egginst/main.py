@@ -359,7 +359,13 @@ def main():
 
     p.add_option("--hook",
                  action="store_true",
-                 help="don't install into site-packages (experimental)")
+                 help="don't install into site-packages (experimental)",
+                 metavar='PATH')
+
+    p.add_option("--pkgs-dir",
+                 action="store",
+                 help="packages directories (works only with --hook)",
+                 metavar='PATH')
 
     p.add_option('-r', "--remove",
                  action="store_true",
@@ -385,7 +391,8 @@ def main():
         return
 
     for path in args:
-        ei = EggInst(path, prefix, opts.hook, opts.verbose, opts.noapp)
+        ei = EggInst(path, prefix, opts.hook, opts.pkgs_dir,
+                     verbose=opts.verbose, noapp=opts.noapp)
         fn = basename(path)
         if opts.remove:
             pprint_fn_action(fn, 'removing')

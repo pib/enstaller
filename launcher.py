@@ -213,7 +213,8 @@ def update_pkgs(pkgs):
         if isfile(registry_pkg(pkg)):
             continue
         launch([enstaller], 'egginst.main:main',
-               ['--hook', join(local_repo, pkg + '.egg')])
+               ['--hook', join(local_repo, pkg + '.egg'),
+                '--pkgs-dir', pkgs_dir])
 
 
 def main():
