@@ -191,6 +191,13 @@ def install_pkg(pkg):
     enstaller = 'enstaller-4.5.0-1'
     if not isfile(registry_pkg(enstaller)):
         bootstrap_enstaller(enstaller)
+
+    egg_name = pkg + '.egg'
+    egg_path = join(local_repo, egg_name)
+    if not isfile(egg_path):
+        launch([enstaller], 'enstaller.indexed_repo.chain:main',
+               ['--dst', local_repo, eggrepo_url, egg_name])
+
     launch([enstaller], 'egginst.main:main',
            ['--hook', fetch_pkg(pkg)])
 

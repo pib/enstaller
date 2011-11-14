@@ -419,3 +419,33 @@ class Chain(object):
                 print "WARNING: ignoring invalid egg name:", join(dir_path, fn)
                 continue
             self.index_file(fn, repo)
+
+
+def main():
+    from optparse import OptionParser
+
+    p = OptionParser(usage="usage: %prog [options] REPO_URL EGG",
+                     description="simple interface to fetch eggs")
+    p.add_option("--dst",
+                 action="store",
+                 help="destination directory",
+                 default=os.getcwd(),
+                 metavar='PATH')
+    p.add_option('-v', "--verbose", action="store_true")
+
+    opts, args = p.parse_args()
+
+    if len(args) != 2:
+        p.error('exactly two arguments expected, try -h')
+
+    repo, fn = args
+    repo = dist_naming.cleanup_reponame(repo)
+    if not dist_naming.is_valid_eggname(fn):
+        sys.exit('Error: invalid egg name: %r' % fn)
+
+    c = Chain([repo], opts.verbose)
+    c.fetch_dist(repo + fn, opts.dst)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
