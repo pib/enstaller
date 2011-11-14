@@ -14,6 +14,10 @@ pkgs_dir = None
 python_exe = None
 
 
+def registry_pkg(pkg):
+    return join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')
+
+
 def yield_lines(path):
     for line in open(path):
         line = line.strip()
@@ -35,8 +39,7 @@ def parse_registry_files(pkgs):
     pth = []
     registry = {}
     for pkg in pkgs:
-        reg_path = join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')
-        for line in yield_lines(reg_path):
+        for line in yield_lines(registry_pkg(pkg)):
             k, v = line.split(None, 1)
             if k == '-pth-':
                 if v not in pth:
@@ -136,25 +139,17 @@ def launch(pkgs, entry_pt, args=None):
 
 def bootstrap_enstaller(egg_path):
     assert basename(egg_path).startswith('enstaller-')
-    code = ("import sys; "
-            "sys.path.insert(0, %r); "
-            "from egginst.bootstrap import main; "
+    code = ("import sys;"
+            "sys.path.insert(0, %r);"
+            "from egginst.bootstrap import main;"
             "main(hook=True)" % egg_path)
     subprocess.call([python_exe, '-c', code])
-
-
-def exists_pkg(pkg):
-    """
-    see if 'pkg' is installed, we check for EGG-INFO/registry.txt because
-    it is the last file that egginst installs
-    """
-    return isfile(join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt'))
 
 
 def install_pkg(pkg):
     enstaller = 'enstaller-4.5.0-1'
     local_repo = join(sys.prefix, 'LOCAL-REPO')
-    if not exists_pkg(enstaller):
+    if not isfile(registry_pkg(enstaller)):
         bootstrap_enstaller(join(local_repo, enstaller + '.egg'))
     launch([enstaller], 'egginst.main:main',
            ['--hook', join(local_repo, pkg + '.egg')])
@@ -162,7 +157,7 @@ def install_pkg(pkg):
 
 def update_pkgs(pkgs):
     for pkg in pkgs:
-        if not exists_pkg(pkg):
+        if not isfile(registry_pkg(pkg)):
             install_pkg(pkg)
 
 
