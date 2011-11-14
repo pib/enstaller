@@ -5,13 +5,44 @@ import shutil
 import tempfile
 import urllib2
 import zipfile
-from os.path import basename, isfile, join
+from os.path import basename, dirname, isdir, isfile, join
 from optparse import OptionParser
 
 
 verbose = False
 pkgs_dir = None
 python_exe = None
+
+
+def unpack(zip_path, dir_path):
+    """
+    unpack the zip file into dir_path, creating directories as required
+    """
+    z = zipfile.ZipFile(zip_path)
+    for name in z.namelist():
+        if name.endswith('/') or name.startswith('.unused'):
+            continue
+        path = join(dir_path, *name.split('/'))
+        dir_path = dirname(path)
+        if not isdir(dir_path):
+            os.makedirs(dir_path)
+        fo = open(path, 'wb')
+        fo.write(z.read(name))
+        fo.close()
+    z.close()
+
+
+def download(url, path):
+    """
+    download a file from the url to path
+    """
+    print 'Downloading: %r' % url
+    print '         to: %r' % path
+    fi = urllib2.urlopen(url)
+    fo = open(path, 'wb')
+    fo.write(fi.read())
+    fo.close()
+    fi.close()
 
 
 def registry_pkg(pkg):
@@ -192,9 +223,7 @@ def main():
         pkgs = []
 
     update_pkgs(pkgs)
-    return launch(pkgs,
-                  entry_pt=args[0],
-                  args=opts.args.split())
+    return launch(pkgs, entry_pt=args[0], args=opts.args.split())
 
 
 if __name__ == '__main__':
