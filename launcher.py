@@ -12,7 +12,7 @@ from optparse import OptionParser
 verbose = False
 pkgs_dir = None
 python_exe = None
-eggrepo_url = None
+repo_url = None
 local_repo = None
 
 
@@ -47,12 +47,11 @@ def download(url, path):
     fi.close()
 
 
-def fetch_pkg(pkg, force=False):
-    egg_name = pkg + '.egg'
-    egg_path = join(local_repo, egg_name)
-    if not isfile(egg_path) or force:
-        download(eggrepo_url + egg_name, egg_path)
-    return egg_path
+def fetch_file(fn, force=False):
+    path = join(local_repo, fn)
+    if not isfile(path) or force:
+        download(repo_url + fn, path)
+    return path
 
 
 def registry_pkg(pkg):
@@ -183,7 +182,7 @@ def bootstrap_enstaller(pkg):
     code = ("import sys;"
             "sys.path.insert(0, %r);"
             "from egginst.bootstrap import main;"
-            "main(hook=True)" % fetch_pkg(pkg))
+            "main(hook=True)" % fetch_file(pkg + '.egg'))
     subprocess.call([python_exe, '-c', code])
 
 
@@ -192,14 +191,13 @@ def install_pkg(pkg):
     if not isfile(registry_pkg(enstaller)):
         bootstrap_enstaller(enstaller)
 
-    egg_name = pkg + '.egg'
-    egg_path = join(local_repo, egg_name)
+    egg_path = join(local_repo, pkg + '.egg')
     if not isfile(egg_path):
         launch([enstaller], 'enstaller.indexed_repo.chain:main',
-               ['--dst', local_repo, eggrepo_url, egg_name])
+               [repo_url, egg_path])
 
     launch([enstaller], 'egginst.main:main',
-           ['--hook', fetch_pkg(pkg)])
+           ['--hook', egg_path])
 
 
 def update_pkgs(pkgs):
@@ -228,12 +226,12 @@ def main():
     if len(args) != 1:
         p.error('exactly one argument expected, try -h')
 
-    global verbose, pkgs_dir, python_exe, local_repo, eggrepo_url
+    global verbose, pkgs_dir, python_exe, local_repo, repo_url
     verbose = opts.verbose
     pkgs_dir = '/Library/Frameworks/Python.framework/Versions/7.1/pkgs'
     python_exe = 'python'
     local_repo = join(sys.prefix, 'LOCAL-REPO')
-    eggrepo_url = 'http://.../'
+    repo_url = 'http://.../'
 
     if opts.env:
         pkgs = parse_env_file(opts.env)
