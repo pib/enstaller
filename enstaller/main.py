@@ -274,7 +274,7 @@ class Enstaller(object):
             os.makedirs(self.egg_dir)
         for dist, eggname in dists:
             self.chain.fetch_dist(dist, self.egg_dir,
-                                  check_md5=force or force_all,
+                                  force=force or force_all,
                                   dry_run=self.dry_run)
 
         # remove packages (in reverse install order)

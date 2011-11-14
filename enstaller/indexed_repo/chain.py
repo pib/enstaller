@@ -4,7 +4,7 @@ import bz2
 import zipfile
 from cStringIO import StringIO
 from collections import defaultdict
-from os.path import basename, getsize, isfile, isdir, join
+from os.path import basename, isfile, isdir, join
 
 from egginst.utils import pprint_fn_action, rm_rf, console_file_progress
 from enstaller.utils import comparable_version, md5_file, write_data_from_url
@@ -324,41 +324,27 @@ class Chain(object):
             return list(versions)
 
 
-    def fetch_dist(self, dist, fetch_dir, force=False, check_md5=False,
-                   dry_run=False):
+    def fetch_dist(self, dist, fetch_dir, force=False, dry_run=False):
         """
         Get a distribution, i.e. copy or download the distribution into
         fetch_dir.
 
         force:
-            force download or copy
-
-        check_md5:
-            when determining if a file needs to be downloaded or copied,
-            check it's MD5.  This is, of course, slower but more reliable
-            then just checking the file-size (which is always done first).
-            Note:
-              * This option has nothing to do with checking the MD5 of the
-                download.  The md5 is always checked when files are
-                downloaded (regardless of this option).
-              * If force=True, this option is has no effect, because the file
-                is forcefully downloaded, ignoring any existing file (as well
-                as the MD5).
+            force download or copy if MD5 mismatches
         """
         md5 = self.index[dist].get('md5')
         size = self.index[dist].get('size')
 
         fn = dist_naming.filename_dist(dist)
         dst = join(fetch_dir, fn)
-        # if force is not used, see if (i) the file exists (ii) its size is
-        # the expected (iii) optionally, make sure the md5 is the expected.
-        if (not force and isfile(dst) and getsize(dst) == size and
-                   (not check_md5 or md5_file(dst) == md5)):
+        # if force is used, make sure the md5 is the expected, otherwise
+        # only see if the file exists
+        if isfile(dst) and (not force or md5_file(dst) == md5):
             if self.verbose:
-                print "Not forcing refetch, %r already exists" % dst
+                print "Not forcing refetch, %r already matches MD5" % dst
             return
 
-        if not check_md5:
+        if not force:
             import patch
             if patch.patch(dist, fetch_dir):
                 return
