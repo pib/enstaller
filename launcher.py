@@ -5,13 +5,15 @@ import shutil
 import tempfile
 import urllib2
 import zipfile
-from os.path import basename, dirname, isdir, isfile, join
+from os.path import dirname, isdir, isfile, join
 from optparse import OptionParser
 
 
 verbose = False
 pkgs_dir = None
 python_exe = None
+eggrepo_url = None
+local_repo = None
 
 
 def unpack(zip_path, dir_path):
@@ -43,6 +45,14 @@ def download(url, path):
     fo.write(fi.read())
     fo.close()
     fi.close()
+
+
+def fetch_pkg(pkg, force=False):
+    egg_name = pkg + '.egg'
+    egg_path = join(local_repo, egg_name)
+    if not isfile(egg_path) or force:
+        download(eggrepo_url + egg_name, egg_path)
+    return egg_path
 
 
 def registry_pkg(pkg):
@@ -168,22 +178,21 @@ def launch(pkgs, entry_pt, args=None):
     return exit_code
 
 
-def bootstrap_enstaller(egg_path):
-    assert basename(egg_path).startswith('enstaller-')
+def bootstrap_enstaller(pkg):
+    assert pkg.startswith('enstaller-')
     code = ("import sys;"
             "sys.path.insert(0, %r);"
             "from egginst.bootstrap import main;"
-            "main(hook=True)" % egg_path)
+            "main(hook=True)" % fetch_pkg(pkg))
     subprocess.call([python_exe, '-c', code])
 
 
 def install_pkg(pkg):
     enstaller = 'enstaller-4.5.0-1'
-    local_repo = join(sys.prefix, 'LOCAL-REPO')
     if not isfile(registry_pkg(enstaller)):
-        bootstrap_enstaller(join(local_repo, enstaller + '.egg'))
+        bootstrap_enstaller(enstaller)
     launch([enstaller], 'egginst.main:main',
-           ['--hook', join(local_repo, pkg + '.egg')])
+           ['--hook', fetch_pkg(pkg)])
 
 
 def update_pkgs(pkgs):
@@ -212,10 +221,12 @@ def main():
     if len(args) != 1:
         p.error('exactly one argument expected, try -h')
 
-    global verbose, pkgs_dir, python_exe
+    global verbose, pkgs_dir, python_exe, local_repo, eggrepo_url
     verbose = opts.verbose
     pkgs_dir = '/Library/Frameworks/Python.framework/Versions/7.1/pkgs'
     python_exe = 'python'
+    local_repo = join(sys.prefix, 'LOCAL-REPO')
+    eggrepo_url = 'http://.../'
 
     if opts.env:
         pkgs = parse_env_file(opts.env)
