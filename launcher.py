@@ -11,12 +11,13 @@ from optparse import OptionParser
 
 verbose = False
 pkgs_dir = None
+prefix = None
 python_exe = None
 repo_url = None
 local_repo = None
 
 
-def unpack(zip_path, dir_path):
+def unzip(zip_path, dir_path):
     """
     unpack the zip file into dir_path, creating directories as required
     """
@@ -73,6 +74,7 @@ def parse_env_file(path):
     for line in yield_lines(path):
         if line.endswith('.egg'):
             line = line[:-4]
+        assert line.count('-') == 2
         pkgs.append(line)
     return pkgs
 
@@ -193,7 +195,10 @@ def bootstrap_enstaller(pkg):
 
 
 def update_pkgs(pkgs):
-    enstaller = 'enstaller-4.5.0-1'
+    if not isfile(python_exe):
+        unzip(fetch_file(pkgs[0] + '.egg'), prefix)
+
+    enstaller = pkgs[1]
     if not isfile(registry_pkg(enstaller)):
         bootstrap_enstaller(enstaller)
 
@@ -208,7 +213,7 @@ def update_pkgs(pkgs):
     if eggs_to_fetch:
         args = ['--dst', local_repo, repo_url] + eggs_to_fetch
         if launch([enstaller], 'enstaller.indexed_repo.chain:main', args):
-            sys.exit('Error: could not fetch %r' % args)            
+            sys.exit('Error: could not fetch %r' % args)
 
     for pkg in pkgs:
         if isfile(registry_pkg(pkg)):
@@ -238,23 +243,23 @@ def main():
     if len(args) != 1:
         p.error('exactly one argument expected, try -h')
 
-    global verbose, pkgs_dir, python_exe, local_repo, repo_url
+    global verbose, prefix, pkgs_dir, python_exe, local_repo, repo_url
     verbose = opts.verbose
-    if sys.platform == 'win32':
-        pkgs_dir =   r'C:\jpm\pkgs'
-        local_repo = r'C:\jpm\repo'
-        python_exe = r'C:\Python26\python.exe'
-        repo_url = 'http://www.enthought.com/repo/.jpm/Windows/x86/'
-    elif sys.platform == 'darwin':
-        pkgs_dir = '/Library/Frameworks/Python.framework/Versions/7.1/pkgs'
-        local_repo = join(sys.prefix, 'LOCAL-REPO')
-        python_exe = 'python'
-        repo_url = 'http://.../'
 
     if opts.env:
         pkgs = parse_env_file(opts.env)
     else:
-        pkgs = []
+        pkgs = ['Python-2.6.6-1', 'enstaller-4.5.0-1']
+
+    assert pkgs[0].startswith('Python-')
+    assert pkgs[1].startswith('enstaller-')
+
+    root = r'C:\jpm'
+    local_repo = join(root, 'repo')
+    prefix = join(root, pkgs[0])
+    pkgs_dir = join(prefix, 'pkgs')
+    python_exe = join(prefix, 'python.exe')
+    repo_url = 'http://www.enthought.com/repo/.jpm/Windows/x86/'
 
     update_pkgs(pkgs)
     return launch(pkgs, entry_pt=args[0], args=opts.args.split())
