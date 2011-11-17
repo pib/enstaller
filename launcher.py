@@ -21,14 +21,16 @@ def unzip(zip_path, dir_path):
     """
     unpack the zip file into dir_path, creating directories as required
     """
+    print "Unzipping: %r", zip_path
+    print "     into: %r", dir_path
     z = zipfile.ZipFile(zip_path)
     for name in z.namelist():
         if name.endswith('/') or name.startswith('.unused'):
             continue
         path = join(dir_path, *name.split('/'))
-        dir_path = dirname(path)
-        if not isdir(dir_path):
-            os.makedirs(dir_path)
+        dpath = dirname(path)
+        if not isdir(dpath):
+            os.makedirs(dpath)
         fo = open(path, 'wb')
         fo.write(z.read(name))
         fo.close()
@@ -203,7 +205,7 @@ def update_pkgs(pkgs):
         bootstrap_enstaller(enstaller)
 
     eggs_to_fetch = []
-    for pkg in pkgs:
+    for pkg in pkgs[2:]:
         if isfile(registry_pkg(pkg)):
             continue
         egg_name = pkg + '.egg'
@@ -215,7 +217,7 @@ def update_pkgs(pkgs):
         if launch([enstaller], 'enstaller.indexed_repo.chain:main', args):
             sys.exit('Error: could not fetch %r' % args)
 
-    for pkg in pkgs:
+    for pkg in pkgs[2:]:
         if isfile(registry_pkg(pkg)):
             continue
         launch([enstaller], 'egginst.main:main',
@@ -262,7 +264,7 @@ def main():
     repo_url = 'http://www.enthought.com/repo/.jpm/Windows/x86/'
 
     update_pkgs(pkgs)
-    return launch(pkgs, entry_pt=args[0], args=opts.args.split())
+    return launch(pkgs[1:], entry_pt=args[0], args=opts.args.split())
 
 
 if __name__ == '__main__':
