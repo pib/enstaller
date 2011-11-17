@@ -21,8 +21,8 @@ def unzip(zip_path, dir_path):
     """
     unpack the zip file into dir_path, creating directories as required
     """
-    print "Unzipping: %r", zip_path
-    print "     into: %r", dir_path
+    print "Unzipping: %r" % zip_path
+    print "     into: %r" % dir_path
     z = zipfile.ZipFile(zip_path)
     for name in z.namelist():
         if name.endswith('/') or name.startswith('.unused'):
@@ -256,9 +256,9 @@ def main():
     assert pkgs[0].startswith('Python-')
     assert pkgs[1].startswith('enstaller-')
 
-    root = r'C:\jpm'
-    local_repo = join(root, 'repo')
-    prefix = join(root, pkgs[0])
+    root_dir = r'C:\jpm'
+    local_repo = join(root_dir, 'repo')
+    prefix = join(root_dir, pkgs[0])
     pkgs_dir = join(prefix, 'pkgs')
     python_exe = join(prefix, 'python.exe')
     repo_url = 'http://www.enthought.com/repo/.jpm/Windows/x86/'
