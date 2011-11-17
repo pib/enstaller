@@ -13,8 +13,8 @@ verbose = False
 pkgs_dir = None
 prefix = None
 python_exe = None
-repo_url = None
 local_repo = None
+repo_url = 'http://www.enthought.com/repo/.jpm/Windows/x86/'
 
 
 def unzip(zip_path, dir_path):
@@ -50,6 +50,15 @@ def download(url, path):
     fo.write(fi.read())
     fo.close()
     fi.close()
+
+
+def read_app_index():
+    fi = urllib2.urlopen(repo_url + 'index-app.json')
+    data = fi.read()
+    fi.close()
+    index = eval(data)
+    app = index["test-1.0-1.egg"]
+    return app
 
 
 def fetch_file(fn, force=False):
@@ -248,16 +257,24 @@ def main():
 
     opts, args = p.parse_args()
 
-    if len(args) != 1:
-        p.error('exactly one argument expected, try -h')
-
     global verbose, prefix, pkgs_dir, python_exe, local_repo, repo_url
     verbose = opts.verbose
 
+    pkgs = ['Python-2.6.6-1', 'enstaller-4.5.0-1', 'bsdiff4-1.0.1-2']
+    if len(args) == 0:
+        app = read_app_index()
+        entry, pkgs = app['entry'], app['pkgs']
+    elif len(args) == 1:
+        entry = args[0]
+    else:
+        p.error('not more than one argument expected, try -h')
+
     if opts.env:
         pkgs = parse_env_file(opts.env)
-    else:
-        pkgs = ['Python-2.6.6-1', 'enstaller-4.5.0-1', 'bsdiff4-1.0.1-2']
+
+    if verbose:
+        print "entry = %r" % entry
+        print "pkgs = %r" % pkgs
 
     assert pkgs[0].startswith('Python-')
     assert pkgs[1].startswith('enstaller-')
@@ -268,10 +285,9 @@ def main():
     prefix = join(root_dir, pkgs[0])
     pkgs_dir = join(prefix, 'pkgs')
     python_exe = join(prefix, 'python.exe')
-    repo_url = 'http://www.enthought.com/repo/.jpm/Windows/x86/'
 
     update_pkgs(pkgs)
-    return launch(pkgs[1:], entry_pt=args[0], args=opts.args.split())
+    return launch(pkgs[1:], entry_pt=entry, args=opts.args.split())
 
 
 if __name__ == '__main__':
