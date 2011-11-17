@@ -200,12 +200,16 @@ def update_pkgs(pkgs):
     if not isfile(python_exe):
         unzip(fetch_file(pkgs[0] + '.egg'), prefix)
 
-    enstaller = pkgs[1]
-    if not isfile(registry_pkg(enstaller)):
-        bootstrap_enstaller(enstaller)
+    if not isfile(registry_pkg(pkgs[1])):
+        bootstrap_enstaller(pkgs[1])
+
+    if not isfile(registry_pkg(pkgs[2])): # bsdiff4
+        launch(pkgs[1:2], 'egginst.main:main',
+               ['--hook', join(local_repo, fetch_file(pkgs[2] + '.egg')),
+                '--pkgs-dir', pkgs_dir])
 
     eggs_to_fetch = []
-    for pkg in pkgs[2:]:
+    for pkg in pkgs[3:]:
         if isfile(registry_pkg(pkg)):
             continue
         egg_name = pkg + '.egg'
@@ -214,13 +218,13 @@ def update_pkgs(pkgs):
 
     if eggs_to_fetch:
         args = ['--dst', local_repo, repo_url] + eggs_to_fetch
-        if launch([enstaller], 'enstaller.indexed_repo.chain:main', args):
+        if launch(pkgs[1:3], 'enstaller.indexed_repo.chain:main', args):
             sys.exit('Error: could not fetch %r' % args)
 
-    for pkg in pkgs[2:]:
+    for pkg in pkgs[1:]:
         if isfile(registry_pkg(pkg)):
             continue
-        launch([enstaller], 'egginst.main:main',
+        launch(pkgs[1:3], 'egginst.main:main',
                ['--hook', join(local_repo, pkg + '.egg'),
                 '--pkgs-dir', pkgs_dir])
 
@@ -251,10 +255,11 @@ def main():
     if opts.env:
         pkgs = parse_env_file(opts.env)
     else:
-        pkgs = ['Python-2.6.6-1', 'enstaller-4.5.0-1']
+        pkgs = ['Python-2.6.6-1', 'enstaller-4.5.0-1', 'bsdiff4-1.0.1-2']
 
     assert pkgs[0].startswith('Python-')
     assert pkgs[1].startswith('enstaller-')
+    assert pkgs[2].startswith('bsdiff4-')
 
     root_dir = r'C:\jpm'
     local_repo = join(root_dir, 'repo')
