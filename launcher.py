@@ -55,8 +55,6 @@ def download(url, path):
 def fetch_file(fn, force=False):
     path = join(local_repo, fn)
     if not isfile(path) or force:
-        if not isdir(local_repo):
-            os.makedirs(local_repo)
         download(repo_url + fn, path)
     return path
 
@@ -219,6 +217,8 @@ def update_pkgs(pkgs):
             eggs_to_fetch.append(egg_name)
 
     if eggs_to_fetch:
+        if not isdir(local_repo):
+            os.makedirs(local_repo)
         args = ['--dst', local_repo, repo_url] + eggs_to_fetch
         if launch(pkgs[1:3], 'enstaller.indexed_repo.chain:main', args):
             sys.exit('Error: could not fetch %r' % args)
