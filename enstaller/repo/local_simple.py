@@ -19,9 +19,9 @@ class LocalSimpleRepo(AbstractRepo):
         return {}
 
     def get(self, key, default=None):
-        try:
+        if self.exists(key):
             return open(self.path(key), 'rb')
-        except IOError:
+        else:
             return default
 
     def set(self, key, value, buffer_size=1048576):
@@ -42,7 +42,7 @@ class LocalSimpleRepo(AbstractRepo):
         info = {'size': getsize(path),
                 'mtime': getmtime(path)}
         h = hashlib.new('md5')
-        with open(path) as fi:            
+        with open(path) as fi:
             while True:
                 chunk = fi.read(65536)
                 if not chunk:
