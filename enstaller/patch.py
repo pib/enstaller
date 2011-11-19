@@ -22,7 +22,7 @@ def split(fn):
     return m.expand(r'\1-\2-\3.egg'), m.expand(r'\1-\4-\5.egg')
 
 
-def yield_all(url, py_ver):
+def yield_all(url):
     from enstaller.indexed_repo import Chain
 
     c = Chain(repos=[url])
@@ -31,31 +31,32 @@ def yield_all(url, py_ver):
         fn = dist_naming.filename_dist(dist)
         names.add(dist_naming.split_eggname(fn)[0])
 
-    for name in sorted(names, key=string.lower):
-        versions = []
-        for dist, spec in c.index.iteritems():
-            if spec['python'] and py_ver and spec['python'] != py_ver:
-                continue
-            fn = dist_naming.filename_dist(dist)
-            n, v, b = dist_naming.split_eggname(fn)
-            if n != name:
-                continue
-            versions.append((v, b))
-        versions.sort(key=(lambda vb: (comparable_version(vb[0]), vb[1])))
-        versions = ['%s-%d' % vb for vb in versions]
-        lv = len(versions)
-        #print name, lv, versions
-        for i in xrange(0, lv):
-            for j in xrange(i + 1, lv):
-                yield '%s-%s--%s.zdiff' % (name, versions[i], versions[j])
+    for python in None, '2.6', '2.7':
+        for name in sorted(names, key=string.lower):
+            versions = []
+            for dist, spec in c.index.iteritems():
+                if spec['python'] != python:
+                    continue
+                fn = dist_naming.filename_dist(dist)
+                n, v, b = dist_naming.split_eggname(fn)
+                if n != name:
+                    continue
+                versions.append((v, b))
+            versions.sort(key=(lambda vb: (comparable_version(vb[0]), vb[1])))
+            versions = ['%s-%d' % vb for vb in versions]
+            lv = len(versions)
+            #print name, lv, versions
+            for i in xrange(0, lv):
+                for j in xrange(i + 1, lv):
+                    yield '%s-%s--%s.zdiff' % (name, versions[i], versions[j])
 
 
-def update_patches(eggs_dir, py_ver='2.7'):
+def update_patches(eggs_dir):
     patches_dir = join(eggs_dir, 'patches')
     if not isdir(patches_dir):
         os.mkdir(patches_dir)
 
-    for patch_fn in yield_all('file://' + eggs_dir, py_ver):
+    for patch_fn in yield_all('file://' + eggs_dir):
         patch_path = join(patches_dir, patch_fn)
         if isfile(patch_path):
             continue
@@ -83,7 +84,8 @@ def update_patches(eggs_dir, py_ver='2.7'):
                     md5=md5_file(patch_path))
         info.update(zdiff.info(patch_path))
         d[basename(patch_path)] = info
-    json.dump(d, open(join(patches_dir, 'index.json'), 'w'), indent=2)
+    with open(join(patches_dir, 'index.json'), 'w') as f:
+        json.dump(d, f, indent=2, sort_keys=True)
 
 
 index = {}
