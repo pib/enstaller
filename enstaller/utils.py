@@ -7,7 +7,7 @@ import logging
 import urlparse
 import urllib2
 from cStringIO import StringIO
-from os.path import abspath, expanduser, getmtime, isfile, join
+from os.path import abspath, expanduser, getmtime, getsize, isfile, join
 
 from egginst import name_version_fn
 from enstaller import __version__
@@ -73,6 +73,14 @@ def md5_file(path):
         h.update(chunk)
     fi.close()
     return h.hexdigest()
+
+
+def info_file(path):
+    return dict(
+        size=getsize(path),
+        mtime=getmtime(path),
+        md5=md5_file(path),
+    )
 
 
 def open_with_auth(url):

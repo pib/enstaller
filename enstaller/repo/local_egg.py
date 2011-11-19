@@ -5,6 +5,7 @@ from os.path import join
 from enstaller.indexed_repo.metadata import (spec_from_dist, update_index,
                                              parse_depend_index)
 from enstaller.patch import update_patches
+import enstaller.zdiff as zdiff
 
 from local_simple import LocalSimpleRepo
 
@@ -32,13 +33,18 @@ class LocalEggRepo(LocalSimpleRepo):
         if self.exists(index_key):
             for key, info in json.load(self.get(index_key)).iteritems():
                 info['type'] = 'patch'
-                self._index[key] = info
+                self._index['patches/' + key] = info
 
     def get_metadata(self, key, default=None):
         info = super(LocalEggRepo, self).get_metadata(key, default)
         if info is default:
             return default
-        info.update(spec_from_dist(self.path(key)))
+        if key.endswith('.egg'):
+            info.update(spec_from_dist(self.path(key)))
+            info['type'] = 'egg'
+        elif key.endswith('.zdiff'):
+            info.update(zdiff.info(self.path(key)))
+            info['type'] = 'patch'
         return info
 
     def query(self, **kwargs):
@@ -62,9 +68,12 @@ if __name__ == '__main__':
     #print r1.get_metadata(fn)
     #for key in r1.query_keys(type='egg', arch='amd64'):
     #    print key
-    pprint(r1.query(type='patch'))
-    #for key, info in r1.query().iteritems():
-    #    print key
-    #    assert r1.get_metadata(key) == info
+    #pprint(r1.query(type='patch'))
+    for key, info in r1.query().iteritems():
+        print key
+        a, b = r1.get_metadata(key), info
+        if a != b:
+            pprint(a)
+            pprint(b)
     #r1._read_index()
     #pprint(r1._index)
