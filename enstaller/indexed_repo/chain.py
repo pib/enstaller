@@ -345,8 +345,8 @@ class Chain(object):
             return
 
         if not force:
-            import patch
-            if patch.patch(dist, fetch_dir):
+            from enstaller.patch import patch
+            if patch(dist, fetch_dir):
                 return
 
         self.file_action_callback(fn, ('copying', 'downloading')

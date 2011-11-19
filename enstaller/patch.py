@@ -93,19 +93,17 @@ def read_index(repo):
 
     try:
         faux = StringIO()
-        write_data_from_url(faux, repo + 'patches/index.txt')
-        index_data = faux.getvalue()
+        write_data_from_url(faux, repo + 'patches/index.json')
+        data = faux.getvalue()
         faux.close()
     except HTTPError:
         index[repo] = False
         return
 
     index[repo] = defaultdict(list)
-    for line in index_data.splitlines():
-        md5, size, patch_fn = line.split()
-        size = int(size)
-        src_fn, dst_fn = split(patch_fn)
-        index[repo][dst_fn].append((size, patch_fn, md5))
+    for patch_fn, info in json.loads(data).iteritems():
+        assert info['src'], info['dst'] == split(patch_fn)
+        index[repo][info['dst']].append((info['size'], patch_fn, info['md5']))
 
 
 def patch(dist, fetch_dir):
