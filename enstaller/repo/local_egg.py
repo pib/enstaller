@@ -1,13 +1,24 @@
-import os
-from os.path import abspath, join
+from os.path import join
 
-from enstaller.indexed_repo.dist_naming import is_valid_eggname
-from enstaller.indexed_repo.metadata import spec_from_dist
+from enstaller.indexed_repo.metadata import (spec_from_dist, update_index,
+                                             parse_depend_index)
 
 from local_simple import LocalSimpleRepo
 
 
 class LocalEggRepo(LocalSimpleRepo):
+
+    def set(self, key, value, buffer_size=1048576):
+        super(LocalEggRepo, self).set(key, value, buffer_size)
+        update_index(self.root_dir)
+
+    def delete(self, key):
+        super(LocalEggRepo, self).delete(key)
+        update_index(self.root_dir)
+
+    def _read_index(self):
+        self._index = parse_depend_index(open(join(
+                    self.root_dir, 'index-depend.txt')).read())
 
     def get_metadata(self, key, default=None):
         info = super(LocalEggRepo, self).get_metadata(key, default)
@@ -16,18 +27,18 @@ class LocalEggRepo(LocalSimpleRepo):
         info.update(spec_from_dist(self.path(key)))
         return info
 
+    def query(self, **kwargs):
+        res = {}
+        for key in self.query_keys(**kwargs):
+            res[key] = self._index[key]
+        return res
+
     def query_keys(self, **kwargs):
-        if kwargs:
-            for key in self.query_keys():
-                info = self.get_metadata(key)
-                if all(info.get(k) in (v, None)
-                       for k, v in kwargs.iteritems()):
-                    yield key
-            return
-        for fn in os.listdir(self.root_dir):
-            if not is_valid_eggname(fn):
-                continue
-            yield abspath(join(self.root_dir, fn))[self._len_abspath + 1:]
+        self._read_index()
+        for key, info in self._index.iteritems():
+            if all(info.get(k) in (v, None)
+                   for k, v in kwargs.iteritems()):
+                yield key
 
 
 if __name__ == '__main__':
@@ -37,4 +48,7 @@ if __name__ == '__main__':
     #print r1.get_metadata(fn)
     #for key in r1.query_keys(arch='amd64'):
     #    print key
-    pprint(r1.query(platform='win32'))
+    #pprint(r1.query(platform='win32'))
+    for key, info in r1.query().iteritems():
+        print key
+        assert r1.get_metadata(key) == info
