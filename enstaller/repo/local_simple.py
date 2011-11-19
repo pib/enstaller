@@ -1,0 +1,89 @@
+import os
+import hashlib
+from glob import glob
+from os.path import abspath, isfile, join, getmtime, getsize
+
+from base import AbstractRepo
+
+
+class LocalSimpleRepo(AbstractRepo):
+
+    def __init__(self, location):
+        self.root_dir = location
+        self._len_abspath = len(abspath(location))
+
+    def open(self, auth=None):
+        pass
+
+    def info(self):
+        return {}
+
+    def get(self, key, default=None):
+        try:
+            return open(self.path(key), 'rb')
+        except IOError:
+            return default
+
+    def set(self, key, value, buffer_size=1048576):
+        with open(self.path(key), 'wb') as fo:
+            while True:
+                chunk = value.read(buffer_size)
+                if not chunk:
+                    break
+                fo.write(chunk)
+
+    def delete(self, key):
+        os.unlink(self.path(key))
+
+    def get_metadata(self, key, default=None):
+        path = self.path(key)
+        if not isfile(path):
+            return default
+        info = {'size': getsize(path),
+                'mtime': getmtime(path)}
+        h = hashlib.new('md5')
+        with open(path) as fi:            
+            while True:
+                chunk = fi.read(65536)
+                if not chunk:
+                    break
+                h.update(chunk)
+        info['md5'] = h.hexdigest()
+        return info
+
+    def exists(self, key):
+        return isfile(self.path(join(key)))
+
+    def query(self, **kwargs):
+        res = {}
+        for key in self.query_keys(**kwargs):
+            res[key] = self.get_metadata(key)
+        return res
+
+    def query_keys(self, **kwargs):
+        if kwargs:
+            return
+        for root, dirs, files in os.walk(self.root_dir):
+            for fn in files:
+                yield abspath(join(root, fn))[self._len_abspath + 1:]
+
+    def glob(self, pattern):
+        for path in glob(abspath(join(self.root_dir, pattern))):
+            key = path[self._len_abspath + 1:]
+            if self.exists(key):
+                yield key
+
+    def path(self, key):
+        return join(self.root_dir, key)
+
+
+if __name__ == '__main__':
+    r1 = LocalSimpleRepo('/Users/ischnell/repo')
+    fn = 'bsdiff4-1.0.2-1.egg'
+    print r1.exists(fn), r1.get_metadata(fn)
+    r2 = LocalSimpleRepo('/Users/ischnell/repo2')
+    r2.set(fn, r1.get(fn))
+    for key in r1.query_keys():
+        print '\t', key
+    print r1.query()
+    print list(r1.glob('*'))
