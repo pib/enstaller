@@ -10,13 +10,12 @@ class LocalSimpleRepo(AbstractRepo):
 
     def __init__(self, location):
         self.root_dir = location
-        self._len_abspath = len(abspath(location))
 
     def open(self, auth=None):
         pass
 
     def info(self):
-        return {}
+        return {'summary': 'simple local filesystem repository'}
 
     def get(self, key, default=None):
         if self.exists(key):
@@ -60,16 +59,19 @@ class LocalSimpleRepo(AbstractRepo):
             res[key] = self.get_metadata(key)
         return res
 
+    def _key_from_path(self, path):
+        return abspath(path)[len(abspath(self.root_dir)) + 1:]
+
     def query_keys(self, **kwargs):
         if kwargs:
             return
         for root, dirs, files in os.walk(self.root_dir):
             for fn in files:
-                yield abspath(join(root, fn))[self._len_abspath + 1:]
+                yield self._key_from_path(join(root, fn))
 
     def glob(self, pattern):
-        for path in glob(abspath(join(self.root_dir, pattern))):
-            key = path[self._len_abspath + 1:]
+        for path in glob(join(self.root_dir, pattern)):
+            key = self._key_from_path(path)
             if self.exists(key):
                 yield key
 
@@ -78,7 +80,7 @@ class LocalSimpleRepo(AbstractRepo):
 
 
 if __name__ == '__main__':
-    r1 = LocalSimpleRepo('/Users/ischnell/repo')
+    r1 = LocalSimpleRepo('../../../repo')
     fn = 'bsdiff4-1.0.2-1.egg'
     print r1.exists(fn), r1.get_metadata(fn)
     r2 = LocalSimpleRepo('/Users/ischnell/repo2')

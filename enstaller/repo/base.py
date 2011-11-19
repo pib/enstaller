@@ -127,6 +127,7 @@ class AbstractRepo:
     @abstractmethod
     def info(self):
         """ Get information about the repository
+
         Returns
         -------
         metadata : dict
@@ -181,6 +182,7 @@ class AbstractRepo:
 
     def delete(self, key):
         """ Delete a key from the repsository.
+
         This may be left unimplemented by subclasses that represent a
         read-only repository.
 
@@ -259,6 +261,7 @@ class AbstractRepo:
 
     def query_keys(self, **kwargs):
         """ Query for keys matching metadata provided as keyword arguments
+
         This provides a very simple querying interface that returns precise
         matches with the metadata. If no arguments are supplied, the query
         will return the complete set of keys for the repository.
@@ -301,7 +304,8 @@ class AbstractRepo:
     ######################################################################
 
     def to_file(self, key, path, buffer_size=1048576):
-        """ Efficiently store the data associated with a key into a file.
+        """ Efficiently store the data associated with a key into a file
+
         This method can be optionally overriden by subclasses to proved a more
         efficient way of copy the data from the underlying data store to a path
         in the filesystem. The default implementation uses the get() method
@@ -330,7 +334,8 @@ class AbstractRepo:
                 fo.write(data_bytes)
 
     def from_file(self, key, path, buffer_size=1048576):
-        """ Efficiently store data from a file into a key in the repository.
+        """ Efficiently store data from a file into a key in the repository
+
         This method can be optionally overriden by subclasses to proved a more
         efficient way of copy the data from a path in the filesystem to the
         underlying data store. The default implementation uses the set() method

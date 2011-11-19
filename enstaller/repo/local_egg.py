@@ -1,24 +1,38 @@
+import json
+from pprint import pprint
 from os.path import join
 
 from enstaller.indexed_repo.metadata import (spec_from_dist, update_index,
                                              parse_depend_index)
+from enstaller.patch import update_patches
 
 from local_simple import LocalSimpleRepo
 
 
 class LocalEggRepo(LocalSimpleRepo):
 
+    def _update_fs_index(self):
+        update_index(self.root_dir)
+        update_patches(self.root_dir)
+
     def set(self, key, value, buffer_size=1048576):
         super(LocalEggRepo, self).set(key, value, buffer_size)
-        update_index(self.root_dir)
+        self._update_fs_index()
 
     def delete(self, key):
         super(LocalEggRepo, self).delete(key)
-        update_index(self.root_dir)
+        self._update_fs_index()
 
     def _read_index(self):
         self._index = parse_depend_index(open(join(
                     self.root_dir, 'index-depend.txt')).read())
+        for info in self._index.itervalues():
+            info['type'] = 'egg'
+        index_key = 'patches/index.json'
+        if self.exists(index_key):
+            for key, info in json.load(self.get(index_key)).iteritems():
+                info['type'] = 'patch'
+                self._index[key] = info
 
     def get_metadata(self, key, default=None):
         info = super(LocalEggRepo, self).get_metadata(key, default)
@@ -42,13 +56,15 @@ class LocalEggRepo(LocalSimpleRepo):
 
 
 if __name__ == '__main__':
-    from pprint import pprint
     r1 = LocalEggRepo('/Users/ischnell/repo')
+    r1._update_fs_index()
     #fn = 'bsdiff4-1.0.2-1.egg'
     #print r1.get_metadata(fn)
-    #for key in r1.query_keys(arch='amd64'):
+    #for key in r1.query_keys(type='egg', arch='amd64'):
     #    print key
-    #pprint(r1.query(platform='win32'))
-    for key, info in r1.query().iteritems():
-        print key
-        assert r1.get_metadata(key) == info
+    pprint(r1.query(type='patch'))
+    #for key, info in r1.query().iteritems():
+    #    print key
+    #    assert r1.get_metadata(key) == info
+    #r1._read_index()
+    #pprint(r1._index)

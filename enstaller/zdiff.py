@@ -9,8 +9,10 @@ with one of the following:
   * RM: DST does not exist (it needs removed from SRC)
 
 """
-import zipfile
 import bz2
+import json
+import zipfile
+from os.path import basename
 
 import bsdiff4
 
@@ -50,6 +52,9 @@ def diff(src_path, dst_path, patch_path):
         z.writestr(name, zdata)
         count += 1
 
+    z.writestr('__zdiff_info__.json',
+               json.dumps(dict(src=basename(src_path),
+                               dst=basename(dst_path))))
     z.close()
     y.close()
     x.close()
@@ -77,6 +82,8 @@ def patch(src_path, dst_path, patch_path, progress_callback=None):
             progress_callback(n, tot)
 
     for name in z.namelist():
+        if name == '__zdiff_info__.json':
+            continue
         zdata = z.read(name)
         if zdata.startswith('BSDIFF4'):
             ydata = bsdiff4.patch(x.read(name), zdata)
@@ -100,6 +107,13 @@ def patch(src_path, dst_path, patch_path, progress_callback=None):
     x.close()
 
 
+def info(patch_path):
+    z = zipfile.ZipFile(patch_path)
+    data = z.read('__zdiff_info__.json')
+    z.close()
+    return json.loads(data)
+
+
 if __name__ == '__main__':
     import sys
     if len(sys.argv) == 3:
@@ -107,6 +121,8 @@ if __name__ == '__main__':
     else:
         src, dst = 'nose-1.0.0-1.egg',  'nose-1.1.2-1.egg'
 
-    diff(src, dst,  'test.zdiff')
-    patch(src, dst + '2', 'test.zdiff')
+    pat = 'test.zdiff'
+    diff(src, dst, pat)
+    patch(src, dst + '2', pat)
+    print info(pat)
     assert diff(dst, dst + '2', 'dummy.zdiff') == 0
