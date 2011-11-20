@@ -7,9 +7,6 @@ from os.path import abspath, isfile, join, getmtime, getsize
 from base import AbstractRepo
 
 
-INDEX = 'index.json'
-
-
 def md5_file(path):
     fi = open(path, 'rb')
     h = hashlib.new('md5')
@@ -29,6 +26,8 @@ def info_file(path):
 
 
 class LocalSimpleRepo(AbstractRepo):
+
+    index_file = 'index.json'
 
     def __init__(self, location):
         self.root_dir = location
@@ -51,22 +50,28 @@ class LocalSimpleRepo(AbstractRepo):
                 if not chunk:
                     break
                 fo.write(chunk)
+        self.update_index()
 
     def delete(self, key):
         os.unlink(self.path(key))
+        self.update_index()
 
-    def _is_valid_key(self, key):
-        return key != INDEX
+    def is_valid_key(self, key):
+        return key != self.index_file
 
-    def _update_index(self, force=False):
-        if force or not self.exists(INDEX):
+    def update_index(self, force=False):
+        if self.index_file is None:
+            return
+
+        index_path = join(self.root_dir, self.index_file)
+        if force or not isfile(index_path):
             self._index = {}
         else:
             self._read_index()
 
         new_index = {}
         for key in os.listdir(self.root_dir):
-            if not self._is_valid_key(key):
+            if not self.is_valid_key(key):
                 continue
             path = self.path(key)
             if not isfile(path):
@@ -77,14 +82,17 @@ class LocalSimpleRepo(AbstractRepo):
                 continue
             new_index[key] = self.get_metadata(key)
 
-        with open(join(self.root_dir, INDEX), 'w') as f:
+        with open(index_path, 'w') as f:
             json.dump(new_index, f, indent=2, sort_keys=True)
 
     def _read_index(self):
-        if self.exists(INDEX):
-            self._index = json.load(self.get(INDEX))
-        else:
+        if self.index_file is None:
             self._index = None
+            return
+
+        index_path = join(self.root_dir, self.index_file)
+        if isfile(index_path):
+            self._index = json.load(open(index_path, 'r'))
 
     def get_metadata(self, key, default=None):
         path = self.path(key)
@@ -93,7 +101,7 @@ class LocalSimpleRepo(AbstractRepo):
         return default
 
     def exists(self, key):
-        return isfile(self.path(join(key)))
+        return self.is_valid_key(key) and isfile(self.path(join(key)))
 
     def query(self, **kwargs):
         res = {}
@@ -144,4 +152,4 @@ if __name__ == '__main__':
     print r1.query()
     print list(r1.glob('*'))
     """
-    r1._update_index()
+    r1.update_index(1)

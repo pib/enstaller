@@ -8,15 +8,7 @@ from local_simple import LocalSimpleRepo
 
 class LocalEggRepo(LocalSimpleRepo):
 
-    def set(self, key, value, buffer_size=1048576):
-        super(LocalEggRepo, self).set(key, value, buffer_size)
-        self._update_index()
-
-    def delete(self, key):
-        super(LocalEggRepo, self).delete(key)
-        self._update_index()
-
-    def _is_valid_key(self, key):
+    def is_valid_key(self, key):
         return is_valid_eggname(key)
 
     def get_metadata(self, key, default=None):
@@ -39,4 +31,4 @@ if __name__ == '__main__':
     r1._read_index()
     pprint(r1._index)
     """
-    r1._update_index()
+    r1.update_index(1)
