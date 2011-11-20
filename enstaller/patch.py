@@ -31,24 +31,21 @@ def yield_all(url):
         fn = dist_naming.filename_dist(dist)
         names.add(dist_naming.split_eggname(fn)[0])
 
-    for python in None, '2.6', '2.7':
-        for name in sorted(names, key=string.lower):
-            versions = []
-            for dist, spec in c.index.iteritems():
-                if spec['python'] != python:
-                    continue
-                fn = dist_naming.filename_dist(dist)
-                n, v, b = dist_naming.split_eggname(fn)
-                if n != name:
-                    continue
-                versions.append((v, b))
-            versions.sort(key=(lambda vb: (comparable_version(vb[0]), vb[1])))
-            versions = ['%s-%d' % vb for vb in versions]
-            lv = len(versions)
-            #print name, lv, versions
-            for i in xrange(0, lv):
-                for j in xrange(i + 1, lv):
-                    yield '%s-%s--%s.zdiff' % (name, versions[i], versions[j])
+    for name in sorted(names, key=string.lower):
+        versions = []
+        for dist in c.index.iterkeys():
+            fn = dist_naming.filename_dist(dist)
+            n, v, b = dist_naming.split_eggname(fn)
+            if n != name:
+                continue
+            versions.append((v, b))
+        versions.sort(key=(lambda vb: (comparable_version(vb[0]), vb[1])))
+        versions = ['%s-%d' % vb for vb in versions]
+        lv = len(versions)
+        #print name, lv, versions
+        for i in xrange(0, lv):
+            for j in xrange(i + 1, lv):
+                yield '%s-%s--%s.zdiff' % (name, versions[i], versions[j])
 
 
 def update_patches(eggs_dir):

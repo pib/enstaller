@@ -1,4 +1,5 @@
 import os
+import json
 import hashlib
 from glob import glob
 from os.path import abspath, isfile, join, getmtime, getsize
@@ -34,6 +35,12 @@ class LocalSimpleRepo(AbstractRepo):
     def delete(self, key):
         os.unlink(self.path(key))
 
+    def _read_index(self):
+        if self.exists('index.json'):
+            self._index = json.load(self.get('index.json'))
+        else:
+            self._index = None
+
     def get_metadata(self, key, default=None):
         path = self.path(key)
         if not isfile(path):
@@ -56,18 +63,29 @@ class LocalSimpleRepo(AbstractRepo):
     def query(self, **kwargs):
         res = {}
         for key in self.query_keys(**kwargs):
-            res[key] = self.get_metadata(key)
+            if self._index is None:
+                res[key] = self.get_metadata(key)
+            else:
+                res[key] = self._index[key]
         return res
 
     def _key_from_path(self, path):
         return abspath(path)[len(abspath(self.root_dir)) + 1:]
 
     def query_keys(self, **kwargs):
-        if kwargs:
-            return
-        for root, dirs, files in os.walk(self.root_dir):
-            for fn in files:
-                yield self._key_from_path(join(root, fn))
+        self._read_index()
+        if self._index is None:
+            if kwargs:
+                return
+            else:
+                for root, dirs, files in os.walk(self.root_dir):
+                    for fn in files:
+                        yield self._key_from_path(join(root, fn))
+        else:
+            for key, info in self._index.iteritems():
+                if all(info.get(k) in (v, None)
+                       for k, v in kwargs.iteritems()):
+                    yield key
 
     def glob(self, pattern):
         for path in glob(join(self.root_dir, pattern)):
