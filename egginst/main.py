@@ -16,7 +16,7 @@ from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from utils import (on_win, bin_dir_name, rel_site_packages,
                    pprint_fn_action, rm_empty_dir, rm_rf,
-                   console_file_progress)
+                   console_progress)
 import scripts
 
 
@@ -47,7 +47,7 @@ class EggInst(object):
         self.prefix = abspath(prefix)
         self.hook = bool(hook)
         self.noapp = noapp
-        self.progress_callback = console_file_progress
+        self.progress_callback = console_progress
 
         self.bin_dir = join(self.prefix, bin_dir_name)
 

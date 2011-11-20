@@ -6,7 +6,7 @@ from cStringIO import StringIO
 from collections import defaultdict
 from os.path import basename, isfile, isdir, join
 
-from egginst.utils import pprint_fn_action, rm_rf, console_file_progress
+from egginst.utils import pprint_fn_action, rm_rf, console_progress
 from enstaller.utils import comparable_version, md5_file, write_data_from_url
 import metadata
 import dist_naming
@@ -15,12 +15,10 @@ from requirement import Req, add_Reqs_to_spec
 
 class Chain(object):
 
-    def __init__(self, repos=[], verbose=False, file_action_callback=None,
-                 download_progress_callback=None):
+    def __init__(self, repos=[], verbose=False):
         self.verbose = verbose
-        self.file_action_callback = file_action_callback or pprint_fn_action
-        self.download_progress_callback = (download_progress_callback or
-                                           console_file_progress)
+        self.action_callback = pprint_fn_action
+        self.progress_callback = console_progress
 
         # maps distributions to specs
         self.index = {}
@@ -349,8 +347,8 @@ class Chain(object):
             if patch(dist, fetch_dir):
                 return
 
-        self.file_action_callback(fn, ('copying', 'downloading')
-                                  [dist.startswith(('http://', 'https://'))])
+        self.action_callback(fn, ('copying', 'downloading')
+                             [dist.startswith(('http://', 'https://'))])
         if dry_run:
             return
 
@@ -360,7 +358,7 @@ class Chain(object):
 
         fo = open(dst + '.part', 'wb')
         write_data_from_url(fo, dist, md5, size,
-                            progress_callback=self.download_progress_callback)
+                            progress_callback=self.progress_callback)
         fo.close()
         rm_rf(dst)
         os.rename(dst + '.part', dst)

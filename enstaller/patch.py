@@ -11,7 +11,7 @@ from os.path import basename, getsize, getmtime, isdir, isfile, join
 #from enstaller.repo.local_patch import LocalPatchRepo, fn_pat
 from enstaller.repo.local_simple import LocalSimpleRepo
 
-from egginst.utils import pprint_fn_action, console_file_progress
+from egginst.utils import pprint_fn_action, console_progress
 from utils import stream_to_file, comparable_version, info_file
 from enstaller.indexed_repo import dist_naming
 import zdiff
@@ -135,11 +135,11 @@ def patch(dist, fetch_dir):
     pprint_fn_action(patch_fn, 'downloading')
     patch_path = join(fetch_dir, patch_fn)
     stream_to_file(patch_path, r.get(patch_fn), md5, size,
-                   console_file_progress)
+                   console_progress)
 
     pprint_fn_action(patch_fn, 'patching')
     zdiff.patch(src_path, join(fetch_dir, fn), patch_path,
-                progress_callback=console_file_progress)
+                progress_callback=console_progress)
 
     return True
 

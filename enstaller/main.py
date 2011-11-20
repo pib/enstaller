@@ -18,7 +18,7 @@ from os.path import isdir, isfile, join
 
 import egginst
 from egginst.utils import (bin_dir_name, rel_site_packages, pprint_fn_action,
-                           console_file_progress)
+                           console_progress)
 from enstaller import __version__
 import config
 from history import History
@@ -66,11 +66,11 @@ class Enstaller(object):
 
         # Callback to be called with download status of an individual
         # egg
-        self.download_progress_callback = noop_callback
+        self.download_progress_callback = console_progress
 
         # Callback to be called with install status of an individual
         # egg
-        self.install_progress_callback = noop_callback
+        self.install_progress_callback = console_progress
 
         # Callback to be called immediately before an individual
         # package is downloaded, copied, installed, removed
@@ -78,7 +78,7 @@ class Enstaller(object):
         # Signature should be callback(egg_name, action)
         #   egg_name: name of the egg being installed
         #   action: 'copying', 'downloading', 'installing', 'removing'
-        self.file_action_callback = noop_callback
+        self.action_callback = pprint_fn_action
 
     def path_commands(self):
         commands = []
@@ -209,8 +209,8 @@ class Enstaller(object):
         return self._dependencies
 
     def set_chain_callbacks(self):
-        self.chain.file_action_callback = self.file_action_callback
-        self.chain.download_progress_callback = self.download_progress_callback
+        self.chain.action_callback = self.action_callback
+        self.chain.progress_callback = self.progress_callback
 
     def egginst_subprocess(self, egg_path, action):
         path = join(sys.prefix, bin_dir_name, 'egginst-script.py')
@@ -236,7 +236,7 @@ class Enstaller(object):
             return
         ei = egginst.EggInst(pkg_path, self.prefixes[0],
                              noapp=config.get('noapp'))
-        ei.progress_callback = self.install_progress_callback
+        ei.progress_callback = self.progress_callback
         ei.install()
         info = self.get_installed_info(cname_fn(eggname))[0][1]
         path = join(info['meta_dir'], '__enpkg__.txt')
@@ -254,7 +254,7 @@ class Enstaller(object):
             return
         ei = egginst.EggInst(eggname, self.prefixes[0],
                              noapp=config.get('noapp'))
-        ei.progress_callback = self.install_progress_callback
+        ei.progress_callback = self.progress_callback
         ei.remove()
 
     def install(self, req, mode='recur', force=False, force_all=False):
@@ -575,7 +575,7 @@ def revert(enst, rev_in, quiet=False):
         egg_path = join(enst.egg_dir, fn)
         if isfile(egg_path):
             ei = egginst.EggInst(egg_path)
-            ei.progress_callback = console_file_progress
+            ei.progress_callback = console_progress
             ei.install()
 
     history.update()
@@ -746,9 +746,6 @@ def main():
         enst.pre_install_callback = verbose_depend_warn
     else:
         enst.pre_install_callback = depend_warn
-    enst.file_action_callback = pprint_fn_action
-    enst.download_progress_callback = console_file_progress
-    enst.install_progress_callback = console_file_progress
 
     if args.add_url:                              # --add-url
         add_url(args.add_url, args.verbose)
