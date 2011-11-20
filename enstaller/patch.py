@@ -50,7 +50,7 @@ def update_patches(eggs_dir, patches_dir):
             return False
         info = zdiff.info(patch_path)
         for t in 'dst', 'src':
-            if getmtime(join(eggs_dir, info[t]['fn'])) != info[t]['mtime']:
+            if getmtime(join(eggs_dir, info[t])) != info[t + '_mtime']:
                 return False
         return True
 
@@ -119,8 +119,8 @@ def read_index(repo):
 
     index[repo] = defaultdict(list)
     for patch_fn, info in json.loads(data).iteritems():
-        assert info['src']['fn'], info['dst']['fn'] == split(patch_fn)
-        index[repo][info['dst']['fn']].append((
+        assert info['src'], info['dst'] == split(patch_fn)
+        index[repo][info['dst']].append((
                 info['size'], patch_fn, info['md5']))
 
 

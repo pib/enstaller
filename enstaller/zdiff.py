@@ -19,13 +19,6 @@ from utils import md5_file
 import bsdiff4
 
 
-def info_file(path):
-    return dict(fn=basename(path),
-                size=getsize(path),
-                mtime=getmtime(path),
-                md5=md5_file(path))
-
-
 def diff(src_path, dst_path, patch_path):
     x = zipfile.ZipFile(src_path)
     y = zipfile.ZipFile(dst_path)
@@ -61,10 +54,14 @@ def diff(src_path, dst_path, patch_path):
         z.writestr(name, zdata)
         count += 1
 
+    info = {}
+    for path, pre in (src_path, 'src'), (dst_path, 'dst'):
+        info.update({pre: basename(path),
+                     pre + '_size': getsize(path),
+                     pre + '_mtime': getmtime(path),
+                     pre + '_md5': md5_file(path)})
     z.writestr('__zdiff_info__.json',
-               json.dumps(dict(src=info_file(src_path),
-                               dst=info_file(dst_path)),
-                          indent=2, sort_keys=True))
+               json.dumps(info, indent=2, sort_keys=True))
     z.close()
     y.close()
     x.close()
