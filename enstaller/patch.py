@@ -9,7 +9,7 @@ from urllib2 import HTTPError
 from os.path import basename, dirname, getsize, getmtime, isdir, isfile, join
 
 from egginst.utils import pprint_fn_action, console_file_progress
-from utils import write_data_from_url, comparable_version, md5_file
+from utils import write_data_from_url, comparable_version, info_file
 from enstaller.indexed_repo import dist_naming
 import zdiff
 
@@ -82,9 +82,7 @@ def update_patches(eggs_dir):
         patch_size = getsize(patch_path)
         if dst_size < patch_size * 2:
             continue
-        info = dict(size=getsize(patch_path),
-                    mtime=getmtime(patch_path),
-                    md5=md5_file(patch_path))
+        info = info_file(patch_path)
         info.update(zdiff.info(patch_path))
         d[basename(patch_path)] = info
     with open(join(patches_dir, 'index.json'), 'w') as f:
