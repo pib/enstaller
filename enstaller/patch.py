@@ -8,8 +8,11 @@ from collections import defaultdict
 from urllib2 import HTTPError
 from os.path import basename, getsize, getmtime, isdir, isfile, join
 
+#from enstaller.repo.local_patch import LocalPatchRepo, fn_pat
+from enstaller.repo.local_simple import LocalSimpleRepo
+
 from egginst.utils import pprint_fn_action, console_file_progress
-from utils import write_data_from_url, comparable_version, info_file
+from utils import stream_to_file, comparable_version, info_file
 from enstaller.indexed_repo import dist_naming
 import zdiff
 
@@ -103,27 +106,6 @@ def update(eggs_dir):
     update_index(eggs_dir, patches_dir)
 
 
-index = {}
-def read_index(repo):
-    if repo in index:
-        return
-
-    try:
-        faux = StringIO()
-        write_data_from_url(faux, repo + 'patches/index.json')
-        data = faux.getvalue()
-        faux.close()
-    except HTTPError:
-        index[repo] = False
-        return
-
-    index[repo] = defaultdict(list)
-    for patch_fn, info in json.loads(data).iteritems():
-        assert info['src'], info['dst'] == split(patch_fn)
-        index[repo][info['dst']].append((
-                info['size'], patch_fn, info['md5']))
-
-
 def patch(dist, fetch_dir):
     try:
         import zdiff
@@ -132,27 +114,28 @@ def patch(dist, fetch_dir):
         return False
 
     repo, fn = dist_naming.split_dist(dist)
-    read_index(repo)
-    if index[repo] is False:
-        print "Warning: no patches for %r exist" % repo
+    r = LocalSimpleRepo(join(repo[7:], 'patches'))
+    #print r.query(dst=fn)
+
+    possible = []
+    for patch_fn, info in r.query(dst=fn).iteritems():
+        src_fn, dst_fn = split(patch_fn)
+        assert info['dst'] == dst_fn == fn
+        assert info['src'] == src_fn
+        src_path = join(fetch_dir, src_fn)
+        #print '%8d %s %s %s' % (info['size'], patch_fn, src_fn, isfile(src_path))
+        if isfile(src_path):
+            possible.append((info['size'], patch_fn, src_fn, info['md5']))
+
+    if not possible:
         return False
 
-    for size, patch_fn, md5 in sorted(index[repo][fn]):
-        src_fn, dst_fn = split(patch_fn)
-        assert dst_fn == fn
-        src_path = join(fetch_dir, src_fn)
-        print '%8d %s %s %s' % (size, patch_fn, src_fn, isfile(src_path))
-        if isfile(src_path):
-            break
-    else:
-        return False
+    size, patch_fn, src_fn, md5 = min(possible)
 
     pprint_fn_action(patch_fn, 'downloading')
     patch_path = join(fetch_dir, patch_fn)
-    fo = open(patch_path, 'wb')
-    write_data_from_url(fo, repo + 'patches/' + patch_fn, md5=md5, size=size,
-                        progress_callback=console_file_progress)
-    fo.close()
+    stream_to_file(patch_path, r.get(patch_fn), md5, size,
+                   console_file_progress)
 
     pprint_fn_action(patch_fn, 'patching')
     zdiff.patch(src_path, join(fetch_dir, fn), patch_path,

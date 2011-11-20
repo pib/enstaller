@@ -117,6 +117,11 @@ def open_with_auth(url):
     return urllib2.urlopen(request)
 
 
+def stream_to_file(path, fi, md5=None, size=None, progress_callback=None):
+    with open(path, 'wb') as fo:
+        write_data_from_url(fo, fi, md5, size, progress_callback)
+
+
 def write_data_from_url(fo, url, md5=None, size=None, progress_callback=None):
     """
     Read data from the url and write to the file handle fo, which must
@@ -138,7 +143,9 @@ def write_data_from_url(fo, url, md5=None, size=None, progress_callback=None):
         n = 0
         progress_callback(0, size)
 
-    if url.startswith('file://'):
+    if not isinstance(url, str):
+        fi = url
+    elif url.startswith('file://'):
         path = url[7:]
         fi = open(path, 'rb')
     elif url.startswith(('http://', 'https://')):

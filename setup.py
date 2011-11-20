@@ -26,6 +26,7 @@ setup(
     packages = [
         'egginst',
         'enstaller',
+        'enstaller.repo',
         'enstaller/indexed_repo',
         'enstaller/proxy',
     ],

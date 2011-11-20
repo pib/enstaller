@@ -1,10 +1,13 @@
+import re
 from pprint import pprint
 from os.path import join
 
 import enstaller.zdiff as zdiff
-from enstaller.patch import fn_pat
 
 from local_simple import LocalSimpleRepo
+
+
+fn_pat = re.compile(r'([\w.]+)-([\w.]+)-(\d+)--([\w.]+)-(\d+)\.zdiff$')
 
 
 class LocalPatchRepo(LocalSimpleRepo):
@@ -22,8 +25,11 @@ class LocalPatchRepo(LocalSimpleRepo):
 
 if __name__ == '__main__':
     r1 = LocalPatchRepo('/Users/ischnell/repo/patches')
+    """
     r1.update_index()
     for key, info in r1.query().iteritems():
         assert r1.get_metadata(key) == info
-#    r1._read_index()
-#    pprint(r1._index)
+    """
+    #r1._read_index()
+    #pprint(r1._index)
+    print r1.query(dst='nose-1.1.2-1.egg')
