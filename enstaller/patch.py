@@ -6,7 +6,7 @@ from glob import glob
 from cStringIO import StringIO
 from collections import defaultdict
 from urllib2 import HTTPError
-from os.path import basename, dirname, getsize, getmtime, isdir, isfile, join
+from os.path import basename, getsize, getmtime, isdir, isfile, join
 
 from egginst.utils import pprint_fn_action, console_file_progress
 from utils import write_data_from_url, comparable_version, info_file
@@ -22,47 +22,39 @@ def split(fn):
     return m.expand(r'\1-\2-\3.egg'), m.expand(r'\1-\4-\5.egg')
 
 
-def yield_all(eggs_dir):
-    egg_names = [fn for fn in os.listdir(eggs_dir)
-                 if dist_naming.is_valid_eggname(fn)]
-    names = set(dist_naming.split_eggname(egg_name)[0]
-                for egg_name in egg_names)
-    for name in sorted(names, key=string.lower):
-        versions = []
-        for egg_name in egg_names:
-            n, v, b = dist_naming.split_eggname(egg_name)
-            if n != name:
-                continue
-            versions.append((v, b))
-        versions.sort(key=(lambda vb: (comparable_version(vb[0]), vb[1])))
-        versions = ['%s-%d' % vb for vb in versions]
-        lv = len(versions)
-        #print name, lv, versions
-        for i in xrange(0, lv):
-            for j in xrange(i + 1, lv):
-                yield '%s-%s--%s.zdiff' % (name, versions[i], versions[j])
-
-
-def up_to_date(patch_path):
-    if not isfile(patch_path):
-        return False
-    info = zdiff.info(patch_path)
-    eggs_dir = dirname(dirname(patch_path))
-    for t in 'dst', 'src':
-        if getmtime(join(eggs_dir, info[t]['fn'])) != info[t]['mtime']:
-            return False
-    return True
-
-
 def update_patches(eggs_dir):
-    patches_dir = join(eggs_dir, 'patches')
-    if not isdir(patches_dir):
-        os.mkdir(patches_dir)
 
-    for patch_fn in yield_all(eggs_dir):
-        patch_path = join(patches_dir, patch_fn)
-        if up_to_date(patch_path):
-            continue
+    def calculate_all_patches():
+        egg_names = [fn for fn in os.listdir(eggs_dir)
+                     if dist_naming.is_valid_eggname(fn)]
+        names = set(dist_naming.split_eggname(egg_name)[0]
+                    for egg_name in egg_names)
+        for name in sorted(names, key=string.lower):
+            versions = []
+            for egg_name in egg_names:
+                n, v, b = dist_naming.split_eggname(egg_name)
+                if n != name:
+                    continue
+                versions.append((v, b))
+            versions.sort(key=(lambda vb: (comparable_version(vb[0]), vb[1])))
+            versions = ['%s-%d' % vb for vb in versions]
+            lv = len(versions)
+            #print name, lv, versions
+            for i in xrange(0, lv):
+                for j in xrange(i + 1, lv):
+                    yield '%s-%s--%s.zdiff' % (name, versions[i], versions[j])
+
+    def up_to_date(patch_path):
+        if not isfile(patch_path):
+            return False
+        info = zdiff.info(patch_path)
+        for t in 'dst', 'src':
+            if getmtime(join(eggs_dir, info[t]['fn'])) != info[t]['mtime']:
+                return False
+        return True
+
+    def create(patch_path):
+        patch_fn = basename(patch_path)
         src_fn, dst_fn = split(patch_fn)
         src_path = join(eggs_dir, src_fn)
         dst_path = join(eggs_dir, dst_fn)
@@ -71,6 +63,26 @@ def update_patches(eggs_dir):
         zdiff.diff(src_path, dst_path, patch_path + '.part')
         os.rename(patch_path + '.part', patch_path)
 
+    patches_dir = join(eggs_dir, 'patches')
+    if not isdir(patches_dir):
+        os.mkdir(patches_dir)
+
+    all_patches = set()
+    for patch_fn in calculate_all_patches():
+        all_patches.add(patch_fn)
+        patch_path = join(patches_dir, patch_fn)
+        if not up_to_date(patch_path):
+            create(patch_path)
+
+    for patch_fn in os.listdir(patches_dir):
+        if patch_fn.endswith('.zdiff') and patch_fn not in all_patches:
+            os.unlink(join(patches_dir, patch_fn))
+
+    update_patch_index(eggs_dir)
+
+
+def update_patch_index(eggs_dir):
+    patches_dir = join(eggs_dir, 'patches')
     d = {}
     for patch_path in sorted(glob(join(patches_dir, '*.zdiff')),
                              key=string.lower):
