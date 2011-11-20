@@ -55,6 +55,31 @@ class LocalSimpleRepo(AbstractRepo):
     def delete(self, key):
         os.unlink(self.path(key))
 
+    def _is_valid_key(self, key):
+        return key != INDEX
+
+    def _update_index(self, force=False):
+        if force or not self.exists(INDEX):
+            self._index = {}
+        else:
+            self._read_index()
+
+        new_index = {}
+        for key in os.listdir(self.root_dir):
+            if not self._is_valid_key(key):
+                continue
+            path = self.path(key)
+            if not isfile(path):
+                continue
+            info = self._index.get(key)
+            if info and getmtime(path) == info['mtime']:
+                new_index[key] = info
+                continue
+            new_index[key] = self.get_metadata(key)
+
+        with open(join(self.root_dir, INDEX), 'w') as f:
+            json.dump(new_index, f, indent=2, sort_keys=True)
+
     def _read_index(self):
         if self.exists(INDEX):
             self._index = json.load(self.get(INDEX))
@@ -109,6 +134,7 @@ class LocalSimpleRepo(AbstractRepo):
 
 if __name__ == '__main__':
     r1 = LocalSimpleRepo('../../../repo')
+    """
     fn = 'bsdiff4-1.0.2-1.egg'
     print r1.exists(fn), r1.get_metadata(fn)
     r2 = LocalSimpleRepo('/Users/ischnell/repo2')
@@ -117,3 +143,5 @@ if __name__ == '__main__':
         print '\t', key
     print r1.query()
     print list(r1.glob('*'))
+    """
+    r1._update_index()
