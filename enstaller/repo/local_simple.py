@@ -6,6 +6,26 @@ from os.path import abspath, isfile, join, getmtime, getsize
 
 from base import AbstractRepo
 
+INDEX = 'index.json'
+
+
+def md5_file(path):
+    fi = open(path, 'rb')
+    h = hashlib.new('md5')
+    while True:
+        chunk = fi.read(65536)
+        if not chunk:
+            break
+        h.update(chunk)
+    fi.close()
+    return h.hexdigest()
+
+
+def info_file(path):
+    return dict(size=getsize(path),
+                mtime=getmtime(path),
+                md5=md5_file(path))
+
 
 class LocalSimpleRepo(AbstractRepo):
 
@@ -36,8 +56,8 @@ class LocalSimpleRepo(AbstractRepo):
         os.unlink(self.path(key))
 
     def _read_index(self):
-        if self.exists('index.json'):
-            self._index = json.load(self.get('index.json'))
+        if self.exists(INDEX):
+            self._index = json.load(self.get(INDEX))
         else:
             self._index = None
 

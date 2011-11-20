@@ -6,7 +6,7 @@ from glob import glob
 from cStringIO import StringIO
 from collections import defaultdict
 from urllib2 import HTTPError
-from os.path import basename, getsize, getmtime, isdir, isfile, join
+from os.path import basename, dirname, getsize, getmtime, isdir, isfile, join
 
 from egginst.utils import pprint_fn_action, console_file_progress
 from utils import write_data_from_url, comparable_version, md5_file
@@ -22,20 +22,15 @@ def split(fn):
     return m.expand(r'\1-\2-\3.egg'), m.expand(r'\1-\4-\5.egg')
 
 
-def yield_all(url):
-    from enstaller.indexed_repo import Chain
-
-    c = Chain(repos=[url])
-    names = set()
-    for dist in c.index.iterkeys():
-        fn = dist_naming.filename_dist(dist)
-        names.add(dist_naming.split_eggname(fn)[0])
-
+def yield_all(eggs_dir):
+    egg_names = [fn for fn in os.listdir(eggs_dir)
+                 if dist_naming.is_valid_eggname(fn)]
+    names = set(dist_naming.split_eggname(egg_name)[0]
+                for egg_name in egg_names)
     for name in sorted(names, key=string.lower):
         versions = []
-        for dist in c.index.iterkeys():
-            fn = dist_naming.filename_dist(dist)
-            n, v, b = dist_naming.split_eggname(fn)
+        for egg_name in egg_names:
+            n, v, b = dist_naming.split_eggname(egg_name)
             if n != name:
                 continue
             versions.append((v, b))
@@ -48,20 +43,31 @@ def yield_all(url):
                 yield '%s-%s--%s.zdiff' % (name, versions[i], versions[j])
 
 
+def up_to_date(patch_path):
+    if not isfile(patch_path):
+        return False
+    info = zdiff.info(patch_path)
+    eggs_dir = dirname(dirname(patch_path))
+    for t in 'dst', 'src':
+        if getmtime(join(eggs_dir, info[t]['fn'])) != info[t]['mtime']:
+            return False
+    return True
+
+
 def update_patches(eggs_dir):
     patches_dir = join(eggs_dir, 'patches')
     if not isdir(patches_dir):
         os.mkdir(patches_dir)
 
-    for patch_fn in yield_all('file://' + eggs_dir):
+    for patch_fn in yield_all(eggs_dir):
         patch_path = join(patches_dir, patch_fn)
-        if isfile(patch_path):
+        if up_to_date(patch_path):
             continue
         src_fn, dst_fn = split(patch_fn)
         src_path = join(eggs_dir, src_fn)
         dst_path = join(eggs_dir, dst_fn)
         assert isfile(src_path) and isfile(dst_path)
-        #print src_fn, dst_fn, patch_fn
+        print patch_fn
         zdiff.diff(src_path, dst_path, patch_path + '.part')
         os.rename(patch_path + '.part', patch_path)
 
@@ -101,8 +107,9 @@ def read_index(repo):
 
     index[repo] = defaultdict(list)
     for patch_fn, info in json.loads(data).iteritems():
-        assert info['src'], info['dst'] == split(patch_fn)
-        index[repo][info['dst']].append((info['size'], patch_fn, info['md5']))
+        assert info['src']['fn'], info['dst']['fn'] == split(patch_fn)
+        index[repo][info['dst']['fn']].append((
+                info['size'], patch_fn, info['md5']))
 
 
 def patch(dist, fetch_dir):
@@ -140,3 +147,7 @@ def patch(dist, fetch_dir):
                 progress_callback=console_file_progress)
 
     return True
+
+
+if __name__ == '__main__':
+    update_patches('/Users/ischnell/repo')

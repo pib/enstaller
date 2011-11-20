@@ -12,9 +12,18 @@ with one of the following:
 import bz2
 import json
 import zipfile
-from os.path import basename
+from os.path import basename, getmtime, getsize
+
+from utils import md5_file
 
 import bsdiff4
+
+
+def info_file(path):
+    return dict(fn=basename(path),
+                size=getsize(path),
+                mtime=getmtime(path),
+                md5=md5_file(path))
 
 
 def diff(src_path, dst_path, patch_path):
@@ -53,8 +62,9 @@ def diff(src_path, dst_path, patch_path):
         count += 1
 
     z.writestr('__zdiff_info__.json',
-               json.dumps(dict(src=basename(src_path),
-                               dst=basename(dst_path))))
+               json.dumps(dict(src=info_file(src_path),
+                               dst=info_file(dst_path)),
+                          indent=2, sort_keys=True))
     z.close()
     y.close()
     x.close()
