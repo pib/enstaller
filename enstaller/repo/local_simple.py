@@ -6,6 +6,7 @@ from os.path import abspath, isfile, join, getmtime, getsize
 
 from base import AbstractRepo
 
+
 INDEX = 'index.json'
 
 
@@ -41,8 +42,7 @@ class LocalSimpleRepo(AbstractRepo):
     def get(self, key, default=None):
         if self.exists(key):
             return open(self.path(key), 'rb')
-        else:
-            return default
+        return default
 
     def set(self, key, value, buffer_size=1048576):
         with open(self.path(key), 'wb') as fo:
@@ -63,19 +63,9 @@ class LocalSimpleRepo(AbstractRepo):
 
     def get_metadata(self, key, default=None):
         path = self.path(key)
-        if not isfile(path):
-            return default
-        info = {'size': getsize(path),
-                'mtime': getmtime(path)}
-        h = hashlib.new('md5')
-        with open(path) as fi:
-            while True:
-                chunk = fi.read(65536)
-                if not chunk:
-                    break
-                h.update(chunk)
-        info['md5'] = h.hexdigest()
-        return info
+        if isfile(path):
+            return info_file(path)
+        return default
 
     def exists(self, key):
         return isfile(self.path(join(key)))
