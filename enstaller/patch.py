@@ -17,7 +17,7 @@ def split(fn):
     return m.expand(r'\1-\2-\3.egg'), m.expand(r'\1-\4-\5.egg')
 
 
-def update_patches(eggs_dir, patches_dir):
+def update_patches(eggs_dir, patches_dir, verbose=False):
 
     def calculate_all_patches():
         egg_names = [fn for fn in os.listdir(eggs_dir)
@@ -54,7 +54,8 @@ def update_patches(eggs_dir, patches_dir):
         src_path = join(eggs_dir, src_fn)
         dst_path = join(eggs_dir, dst_fn)
         assert isfile(src_path) and isfile(dst_path)
-        print patch_fn
+        if verbose:
+            print 'creating', patch_fn
         patch_path = join(patches_dir, patch_fn)
         zdiff.diff(src_path, dst_path, patch_path + '.part')
         os.rename(patch_path + '.part', patch_path)
@@ -102,11 +103,11 @@ def update_index(eggs_dir, patches_dir, force=False):
         json.dump(new_index, f, indent=2, sort_keys=True)
 
 
-def update(eggs_dir):
+def update(eggs_dir, verbose=False):
     patches_dir = join(eggs_dir, 'patches')
     if not isdir(patches_dir):
         os.mkdir(patches_dir)
-    update_patches(eggs_dir, patches_dir)
+    update_patches(eggs_dir, patches_dir, verbose)
     update_index(eggs_dir, patches_dir)
 
 
