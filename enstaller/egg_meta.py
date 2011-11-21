@@ -2,7 +2,8 @@ import os
 import json
 from os.path import getmtime, isfile, join
 
-from enstaller.indexed_repo.metadata import spec_from_dist, is_valid_eggname
+from enstaller.indexed_repo.dist_naming import is_valid_eggname
+from enstaller.indexed_repo.metadata import spec_from_dist
 from utils import info_file
 
 

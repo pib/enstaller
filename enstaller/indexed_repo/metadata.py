@@ -229,3 +229,6 @@ def update_index(dir_path, force=False, verbose=False):
         print
     write_txt_bz2(txt_path, faux.getvalue())
     faux.close()
+
+    from enstaller.egg_meta import update_index as ui
+    ui(dir_path, force, verbose)
