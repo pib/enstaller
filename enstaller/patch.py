@@ -3,16 +3,9 @@ import re
 import json
 import string
 from glob import glob
-from cStringIO import StringIO
-from collections import defaultdict
-from urllib2 import HTTPError
 from os.path import basename, getsize, getmtime, isdir, isfile, join
 
-#from enstaller.repo.local_patch import LocalPatchRepo, fn_pat
-from enstaller.repo.local_simple import LocalSimpleRepo
-
-from egginst.utils import pprint_fn_action, console_progress
-from utils import stream_to_file, comparable_version, info_file
+from utils import comparable_version, info_file
 from enstaller.indexed_repo import dist_naming
 import zdiff
 

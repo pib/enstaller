@@ -334,7 +334,7 @@ class Chain(object):
         for patch_fn, info in r.query(dst=fn).iteritems():
             assert info['dst'] == fn
             src_path = join(fetch_dir, info['src'])
-            #print '%8d %s %s %s' % (info['size'], patch_fn, isfile(src_path))
+            #print '%8d %s %s' % (info['size'], patch_fn, isfile(src_path))
             if isfile(src_path):
                 possible.append((info['size'], patch_fn, info))
 
@@ -374,9 +374,8 @@ class Chain(object):
                 print "Not forcing refetch, %r already matches MD5" % dst
             return
 
-        if not force:
-            if self.patch_dist(dist, fetch_dir):
-                return
+        if not force and self.patch_dist(dist, fetch_dir):
+            return
 
         self.action_callback(fn, 'fetching')
         if dry_run:
