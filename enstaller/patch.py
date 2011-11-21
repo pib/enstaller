@@ -119,5 +119,28 @@ def update(eggs_dir, verbose=False):
     update_index(eggs_dir, patches_dir)
 
 
+
+def main():
+    from optparse import OptionParser
+
+    p = OptionParser(
+        usage="usage: %prog [options] [DIRECTORY]",
+        description="updates egg patches, for a given egg repository.  "
+                    "DIRECTORY defaults to CWD")
+
+    p.add_option('-v', "--verbose", action="store_true")
+
+    opts, args = p.parse_args()
+
+    if len(args) == 0:
+        dir_path = os.getcwd()
+    elif len(args) == 1:
+        dir_path = abspath(args[0])
+    else:
+        p.error("too many arguments")
+
+    update(dir_path, opts.verbose)
+
+
 if __name__ == '__main__':
-    update('/Users/ischnell/repo')
+    main()

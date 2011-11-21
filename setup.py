@@ -34,6 +34,7 @@ setup(
         "console_scripts": [
              "enpkg = enstaller.main:main",
              "egginst = egginst.main:main",
+             "update-patches = enstaller.patch:main",
         ],
     },
     classifiers = [
