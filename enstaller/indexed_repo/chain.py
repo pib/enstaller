@@ -324,6 +324,8 @@ class Chain(object):
         try:
             import enstaller.zdiff as zdiff
         except ImportError:
+            if self.verbose:
+                print "Warning: could not import bsdiff4, cannot patch"
             return False
 
         # todo: what is no "patches" repository exists?

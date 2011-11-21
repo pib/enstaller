@@ -6,7 +6,10 @@ from os.path import getsize, getmtime, isdir, isfile, join
 
 from utils import comparable_version, info_file
 from enstaller.indexed_repo import dist_naming
-import zdiff
+try:
+    import zdiff
+except ImportError:
+    zdiff = None
 
 
 fn_pat = re.compile(r'([\w.]+)-([\w.]+)-(\d+)--([\w.]+)-(\d+)\.zdiff$')
@@ -104,6 +107,11 @@ def update_index(eggs_dir, patches_dir, force=False):
 
 
 def update(eggs_dir, verbose=False):
+    if zdiff is None:
+        if verbose:
+            print "Warning: could not import bsdiff4, cannot create patches"
+        return
+
     patches_dir = join(eggs_dir, 'patches')
     if not isdir(patches_dir):
         os.mkdir(patches_dir)
