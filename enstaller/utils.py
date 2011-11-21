@@ -118,7 +118,7 @@ def open_with_auth(url):
     return urllib2.urlopen(request)
 
 
-def stream_to_file(path, fi, md5=None, size=None, progress_callback=None):
+def stream_to_file(fi, path, md5=None, size=None, progress_callback=None):
     with open(path + '.part', 'wb') as fo:
         write_data_from_url(fo, fi, md5, size, progress_callback)
     fi.close()

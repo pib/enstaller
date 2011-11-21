@@ -347,8 +347,8 @@ class Chain(object):
 
         self.action_callback(patch_fn, 'fetching')
         patch_path = join(fetch_dir, patch_fn)
-        stream_to_file(patch_path, r.get(patch_fn), info['md5'], size,
-                       self.progress_callback)
+        stream_to_file(r.get(patch_fn), patch_path,
+                       info['md5'], size, self.progress_callback)
 
         self.action_callback(info['src'], 'patching')
         zdiff.patch(join(fetch_dir, info['src']),
@@ -388,8 +388,8 @@ class Chain(object):
             print "Fetching: %r" % dist
             print "      to: %r" % path
 
-        stream_to_file(path, self.repo_objs[repo].get(fn), md5, size,
-                       self.progress_callback)
+        stream_to_file(self.repo_objs[repo].get(fn), path,
+                       md5, size, self.progress_callback)
 
 
     def index_file(self, filename, repo):
