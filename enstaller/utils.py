@@ -1,4 +1,5 @@
 import bz2
+import os
 import re
 import sys
 import time
@@ -118,8 +119,9 @@ def open_with_auth(url):
 
 
 def stream_to_file(path, fi, md5=None, size=None, progress_callback=None):
-    with open(path, 'wb') as fo:
+    with open(path + '.part', 'wb') as fo:
         write_data_from_url(fo, fi, md5, size, progress_callback)
+    os.rename(path + '.part', path)
 
 
 def write_data_from_url(fo, url, md5=None, size=None, progress_callback=None):

@@ -23,7 +23,7 @@ if __name__ == '__main__':
     r1 = LocalEggRepo('/Users/ischnell/repo')
     #fn = 'bsdiff4-1.0.2-1.egg'
     #print r1.get_metadata(fn)
-    #for key in r1.query_keys(type='egg', arch='amd64'):
+    #for key in r1.query_keys(arch='amd64'):
     #    print key
     """
     for key, info in r1.query().iteritems():

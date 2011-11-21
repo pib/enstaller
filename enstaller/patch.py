@@ -106,43 +106,5 @@ def update(eggs_dir):
     update_index(eggs_dir, patches_dir)
 
 
-def patch(dist, fetch_dir):
-    try:
-        import zdiff
-    except ImportError:
-        print "Warning: cannot import zdiff"
-        return False
-
-    repo, fn = dist_naming.split_dist(dist)
-    r = LocalSimpleRepo(join(repo[7:], 'patches'))
-    #print r.query(dst=fn)
-
-    possible = []
-    for patch_fn, info in r.query(dst=fn).iteritems():
-        src_fn, dst_fn = split(patch_fn)
-        assert info['dst'] == dst_fn == fn
-        assert info['src'] == src_fn
-        src_path = join(fetch_dir, src_fn)
-        #print '%8d %s %s %s' % (info['size'], patch_fn, src_fn, isfile(src_path))
-        if isfile(src_path):
-            possible.append((info['size'], patch_fn, src_fn, info['md5']))
-
-    if not possible:
-        return False
-
-    size, patch_fn, src_fn, md5 = min(possible)
-
-    pprint_fn_action(patch_fn, 'downloading')
-    patch_path = join(fetch_dir, patch_fn)
-    stream_to_file(patch_path, r.get(patch_fn), md5, size,
-                   console_progress)
-
-    pprint_fn_action(patch_fn, 'patching')
-    zdiff.patch(src_path, join(fetch_dir, fn), patch_path,
-                progress_callback=console_progress)
-
-    return True
-
-
 if __name__ == '__main__':
     update('/Users/ischnell/repo')

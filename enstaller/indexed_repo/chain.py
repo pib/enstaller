@@ -1,13 +1,13 @@
 import os
 import sys
-import bz2
 import zipfile
-from cStringIO import StringIO
 from collections import defaultdict
 from os.path import basename, isfile, isdir, join
 
-from egginst.utils import pprint_fn_action, rm_rf, console_progress
-from enstaller.utils import comparable_version, md5_file, write_data_from_url
+from enstaller.repo.local_simple import LocalSimpleRepo
+
+from egginst.utils import pprint_fn_action, console_progress
+from enstaller.utils import comparable_version, md5_file, stream_to_file
 import metadata
 import dist_naming
 from requirement import Req, add_Reqs_to_spec
@@ -26,6 +26,9 @@ class Chain(object):
         # maps cnames to the list of distributions (in repository order)
         self.groups = defaultdict(list)
 
+        # maps the url of a repo to repository objects
+        self.repo_objs = {}
+
         # Chain of repositories, either local or remote
         self.repos = []
         for repo in repos:
@@ -43,7 +46,7 @@ class Chain(object):
         print
 
 
-    def add_repo(self, repo, index_fn='index-depend.bz2'):
+    def add_repo(self, repo, index_fn=None):
         """
         Add a repo to the chain, i.e. read the index file of the url,
         parse it and update the index.
@@ -52,38 +55,26 @@ class Chain(object):
             print "Adding repository:"
             print "   URL:", repo
         repo = dist_naming.cleanup_reponame(repo)
-
         self.repos.append(repo)
 
-        index_url = repo + index_fn
+        if index_fn: # for running the tests locally
+            assert repo.startswith('file://')
+            index_data = open(repo[7:] + index_fn).read()
+            new_index = metadata.parse_depend_index(index_data)
 
-        if index_url.startswith('file://'):
-            if isfile(index_url[7:]):
-                # A local url with index file
-                if self.verbose:
-                    print "    found index", index_url
-            else:
-                # A local url without index file
-                self.index_all_files(repo)
-                return
+        else:
+            if repo.startswith('file://'):
+                r = LocalSimpleRepo(repo[7:])
 
-        if self.verbose:
-            print " index:", index_fn
+            elif repo.startswith(('http://', 'https://')):
+                r = RemoteHTTPRepo(repo)
+                if repo.startswith('https://'):
+                    r.open(auth='foo:bar') # XXX
 
-        faux = StringIO()
-        write_data_from_url(faux, index_url)
-        index_data = faux.getvalue()
-        faux.close()
+            self.repo_objs[repo] = r
 
-        if self.verbose:
-            import hashlib
-            print "   md5:", hashlib.md5(index_data).hexdigest()
-            print
+            new_index = r.query()
 
-        if index_fn.endswith('.bz2'):
-            index_data = bz2.decompress(index_data)
-
-        new_index = metadata.parse_depend_index(index_data)
         for spec in new_index.itervalues():
             add_Reqs_to_spec(spec)
 
@@ -322,6 +313,47 @@ class Chain(object):
             return list(versions)
 
 
+    def patch_dist(self, dist, fetch_dir):
+        """
+        Try to create 'dist' by patching an already existing egg, returns
+        True on success and False on failure, i.e. when either:
+            - bsdiff4 is not installed
+            - there is no "patches" repository
+            - no patches are available
+        """
+        try:
+            import enstaller.zdiff as zdiff
+        except ImportError:
+            return False
+
+        repo, fn = dist_naming.split_dist(dist)
+        r = LocalSimpleRepo(join(repo[7:], 'patches'))
+        #print r.query(dst=fn)
+
+        possible = []
+        for patch_fn, info in r.query(dst=fn).iteritems():
+            assert info['dst'] == fn
+            src_path = join(fetch_dir, info['src'])
+            #print '%8d %s %s %s' % (info['size'], patch_fn, isfile(src_path))
+            if isfile(src_path):
+                possible.append((info['size'], patch_fn, info))
+
+        if not possible:
+            return False
+        size, patch_fn, info = min(possible)
+
+        pprint_fn_action(patch_fn, 'fetching')
+        patch_path = join(fetch_dir, patch_fn)
+        stream_to_file(patch_path, r.get(patch_fn), info['md5'], size,
+                       console_progress)
+
+        pprint_fn_action(info['src'], 'patching')
+        zdiff.patch(join(fetch_dir, info['src']),
+                    join(fetch_dir, fn), patch_path,
+                    progress_callback=console_progress)
+        return True
+
+
     def fetch_dist(self, dist, fetch_dir, force=False, dry_run=False):
         """
         Get a distribution, i.e. copy or download the distribution into
@@ -333,7 +365,7 @@ class Chain(object):
         md5 = self.index[dist].get('md5')
         size = self.index[dist].get('size')
 
-        fn = dist_naming.filename_dist(dist)
+        repo, fn = dist_naming.split_dist(dist)
         dst = join(fetch_dir, fn)
         # if force is used, make sure the md5 is the expected, otherwise
         # only see if the file exists
@@ -343,25 +375,19 @@ class Chain(object):
             return
 
         if not force:
-            from enstaller.patch import patch
-            if patch(dist, fetch_dir):
+            if self.patch_dist(dist, fetch_dir):
                 return
 
-        self.action_callback(fn, ('copying', 'downloading')
-                             [dist.startswith(('http://', 'https://'))])
+        self.action_callback(fn, 'fetching')
         if dry_run:
             return
 
         if self.verbose:
-            print "Copying: %r" % dist
-            print "     to: %r" % dst
+            print "Fetching: %r" % dist
+            print "      to: %r" % dst
 
-        fo = open(dst + '.part', 'wb')
-        write_data_from_url(fo, dist, md5, size,
-                            progress_callback=self.progress_callback)
-        fo.close()
-        rm_rf(dst)
-        os.rename(dst + '.part', dst)
+        stream_to_file(dst, self.repo_objs[repo].get(fn), md5, size,
+                       self.progress_callback)
 
 
     def index_file(self, filename, repo):
