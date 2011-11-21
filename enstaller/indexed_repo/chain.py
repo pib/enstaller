@@ -67,9 +67,9 @@ class Chain(object):
                 r = LocalSimpleRepo(repo[7:])
 
             elif repo.startswith(('http://', 'https://')):
-                r = RemoteHTTPRepo(repo)
-                if repo.startswith('https://'):
-                    r.open(auth='foo:bar') # XXX
+                pass
+                #r = RemoteHTTPRepo(repo)
+                #r.open(auth='foo:bar') # XXX
 
             self.repo_objs[repo] = r
 
@@ -326,6 +326,7 @@ class Chain(object):
         except ImportError:
             return False
 
+        # todo: what is no "patches" repository exists?
         repo, fn = dist_naming.split_dist(dist)
         r = LocalSimpleRepo(join(repo[7:], 'patches'))
         #print r.query(dst=fn)
@@ -342,15 +343,15 @@ class Chain(object):
             return False
         size, patch_fn, info = min(possible)
 
-        pprint_fn_action(patch_fn, 'fetching')
+        self.action_callback(patch_fn, 'fetching')
         patch_path = join(fetch_dir, patch_fn)
         stream_to_file(patch_path, r.get(patch_fn), info['md5'], size,
-                       console_progress)
+                       self.progress_callback)
 
-        pprint_fn_action(info['src'], 'patching')
+        self.action_callback(info['src'], 'patching')
         zdiff.patch(join(fetch_dir, info['src']),
                     join(fetch_dir, fn), patch_path,
-                    progress_callback=console_progress)
+                    self.progress_callback)
         return True
 
 
@@ -366,12 +367,12 @@ class Chain(object):
         size = self.index[dist].get('size')
 
         repo, fn = dist_naming.split_dist(dist)
-        dst = join(fetch_dir, fn)
+        path = join(fetch_dir, fn)
         # if force is used, make sure the md5 is the expected, otherwise
         # only see if the file exists
-        if isfile(dst) and (not force or md5_file(dst) == md5):
+        if isfile(path) and (not force or md5_file(path) == md5):
             if self.verbose:
-                print "Not forcing refetch, %r already matches MD5" % dst
+                print "Not forcing refetch, %r already matches MD5" % path
             return
 
         if not force and self.patch_dist(dist, fetch_dir):
@@ -383,9 +384,9 @@ class Chain(object):
 
         if self.verbose:
             print "Fetching: %r" % dist
-            print "      to: %r" % dst
+            print "      to: %r" % path
 
-        stream_to_file(dst, self.repo_objs[repo].get(fn), md5, size,
+        stream_to_file(path, self.repo_objs[repo].get(fn), md5, size,
                        self.progress_callback)
 
 

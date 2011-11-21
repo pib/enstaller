@@ -121,6 +121,7 @@ def open_with_auth(url):
 def stream_to_file(path, fi, md5=None, size=None, progress_callback=None):
     with open(path + '.part', 'wb') as fo:
         write_data_from_url(fo, fi, md5, size, progress_callback)
+    fi.close()
     os.rename(path + '.part', path)
 
 
