@@ -5,6 +5,7 @@ from collections import defaultdict
 from os.path import basename, isfile, isdir, join
 
 from enstaller.repo.local_simple import LocalSimpleRepo
+from enstaller.repo.remote_http import RemoteHTTPRepo
 
 from egginst.utils import pprint_fn_action, console_progress
 from enstaller.utils import comparable_version, md5_file, stream_to_file
@@ -65,11 +66,14 @@ class Chain(object):
         else:
             if repo.startswith('file://'):
                 r = LocalSimpleRepo(repo[7:])
+                r.open()
 
             elif repo.startswith(('http://', 'https://')):
-                pass
-                #r = RemoteHTTPRepo(repo)
-                #r.open(auth='foo:bar') # XXX
+                r = RemoteHTTPRepo(repo)
+                if repo.startswith('https://'):
+                    r.open(userpass=('EPDUser', 'Epd789'))
+                else:
+                    r.open()
 
             self.repo_objs[repo] = r
 
