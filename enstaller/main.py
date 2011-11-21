@@ -64,13 +64,8 @@ class Enstaller(object):
         #   action: 'install' or 'remove'
         self.pre_install_callback = noop_callback
 
-        # Callback to be called with download status of an individual
-        # egg
-        self.download_progress_callback = console_progress
-
-        # Callback to be called with install status of an individual
-        # egg
-        self.install_progress_callback = console_progress
+        # Callback to be called with download / install of eggs
+        self.progress_callback = console_progress
 
         # Callback to be called immediately before an individual
         # package is downloaded, copied, installed, removed
@@ -231,7 +226,7 @@ class Enstaller(object):
             eggname.lower().startswith(('appinst-', 'pywin32-'))):
             self.egginst_subprocess(pkg_path, 'install')
             return
-        self.file_action_callback(eggname, 'installing')
+        self.action_callback(eggname, 'installing')
         if self.dry_run:
             return
         ei = egginst.EggInst(pkg_path, self.prefixes[0],
@@ -249,7 +244,7 @@ class Enstaller(object):
             eggname.lower().startswith(('appinst-', 'pywin32-'))):
             self.egginst_subprocess(eggname, 'remove')
             return
-        self.file_action_callback(eggname, 'removing')
+        self.action_callback(eggname, 'removing')
         if self.dry_run:
             return
         ei = egginst.EggInst(eggname, self.prefixes[0],

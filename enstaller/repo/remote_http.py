@@ -1,3 +1,4 @@
+import sys
 import json
 import urlparse
 import urllib2
@@ -39,10 +40,11 @@ class RemoteHTTPRepo(AbstractRepo):
         else:
             request = urllib2.Request(url)
         request.add_header('User-Agent', 'enstaller')
-        #try:
-        return urllib2.urlopen(request)
-        #except urllib2.HTTPError:
-        #    return default
+        try:
+            return urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+            sys.stderr.write("%s: %r\n" % (e, url))
+            return default
 
     def set(self, key, value, buffer_size=1048576):
         pass
