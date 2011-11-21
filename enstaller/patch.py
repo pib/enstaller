@@ -2,8 +2,7 @@ import os
 import re
 import json
 import string
-from glob import glob
-from os.path import basename, getsize, getmtime, isdir, isfile, join
+from os.path import getsize, getmtime, isdir, isfile, join
 
 from utils import comparable_version, info_file
 from enstaller.indexed_repo import dist_naming
@@ -72,23 +71,35 @@ def update_patches(eggs_dir, patches_dir):
             os.unlink(join(patches_dir, patch_fn))
 
 
-def update_index(eggs_dir, patches_dir):
-    d = {}
-    for patch_path in sorted(glob(join(patches_dir, '*.zdiff')),
-                             key=string.lower):
-        src_fn, dst_fn = split(basename(patch_path))
+def update_index(eggs_dir, patches_dir, force=False):
+    index_path = join(patches_dir, 'index.json')
+    if force or not isfile(index_path):
+        index = {}
+    else:
+        index = json.load(open(index_path, 'r'))
+
+    new_index = {}
+    for patch_fn in os.listdir(patches_dir):
+        if not fn_pat.match(patch_fn):
+            continue
+        src_fn, dst_fn = split(patch_fn)
         dst_path = join(eggs_dir, dst_fn)
         dst_size = getsize(dst_path)
         if dst_size < 131072:
             continue
-        patch_size = getsize(patch_path)
-        if dst_size < patch_size * 2:
+        patch_path = join(patches_dir, patch_fn)
+        if dst_size < getsize(patch_path) * 2:
+            continue
+        info = index.get(patch_fn)
+        if info and getmtime(patch_path) == info['mtime']:
+            new_index[patch_fn] = info
             continue
         info = info_file(patch_path)
         info.update(zdiff.info(patch_path))
-        d[basename(patch_path)] = info
-    with open(join(patches_dir, 'index.json'), 'w') as f:
-        json.dump(d, f, indent=2, sort_keys=True)
+        new_index[patch_fn] = info
+
+    with open(index_path, 'w') as f:
+        json.dump(new_index, f, indent=2, sort_keys=True)
 
 
 def update(eggs_dir):
