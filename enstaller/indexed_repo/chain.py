@@ -338,7 +338,10 @@ class Chain(object):
             return False
 
         repo, fn = dist_naming.split_dist(dist)
-        r = self.connect(repo + 'patches/')
+        try:
+            r = self.connect(repo + 'patches/')
+        except:
+            return False
         #print dict(r.query(dst=fn))
 
         possible = []

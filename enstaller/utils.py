@@ -84,52 +84,11 @@ def info_file(path):
     )
 
 
-def open_with_auth(url):
-    """
-    Open a urllib2 request, handling HTTP authentication
-    """
-    import config
-
-    scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
-    assert not query
-    auth, host = urllib2.splituser(netloc)
-    if auth:
-        auth = urllib2.unquote(auth).encode('base64').strip()
-    elif host.endswith('enthought.com') and not (
-             'repo/pypi/eggs/' in url or 'runner.enthought.com' in url):
-        username, password = config.get_auth()
-        if username and password:
-            auth = ('%s:%s' % (username, password)).encode('base64')
-        if auth is None:
-            userpass = config.get('EPD_userpass')
-            if userpass:
-                auth = userpass.encode('base64').strip()
-
-    if auth:
-        new_url = urlparse.urlunparse((scheme, host, path,
-                                       params, query, frag))
-        request = urllib2.Request(new_url)
-        request.add_unredirected_header("Authorization", "Basic " + auth)
-        logger.debug('Requesting %s with auth' % new_url)
-    else:
-        request = urllib2.Request(url)
-        logger.debug('Requesting %s without auth' % url)
-    request.add_header('User-Agent', 'enstaller/%s' % __version__)
-    return urllib2.urlopen(request)
-
-
 def stream_to_file(fi, path, md5=None, size=None, progress_callback=None):
-    with open(path + '.part', 'wb') as fo:
-        write_data_from_url(fo, fi, md5, size, progress_callback)
-    fi.close()
-    os.rename(path + '.part', path)
-
-
-def write_data_from_url(fo, url, md5=None, size=None, progress_callback=None):
     """
-    Read data from the url and write to the file handle fo, which must
-    be open for writing.  Optionally check the MD5.  When the size in
-    bytes and progress_callback are provided, the callback is called
+    Read data from the filehandle and write a the file.
+    Optionally check the MD5.  When the size in bytes and
+    progress_callback are provided, the callback is called
     with progress updates as the download/copy occurs. If no size is
     provided, the callback will be called with None for the total
     size.
@@ -146,53 +105,31 @@ def write_data_from_url(fo, url, md5=None, size=None, progress_callback=None):
         n = 0
         progress_callback(0, size)
 
-    if not isinstance(url, str):
-        fi = url
-    elif url.startswith('file://'):
-        path = url[7:]
-        fi = open(path, 'rb')
-    elif url.startswith(('http://', 'https://')):
-        try:
-            fi = open_with_auth(url)
-        except urllib2.HTTPError, e:
-            sys.stderr.write(str(e) + '\n')
-            if '401' in str(e):
-                sys.stderr.write("""\
-Please make sure you are using the correct authentication.
-Use "enpkg --userpass" to update authentication in configuration file.
-""")
-                sys.exit(1)
-            else:
-                raise
-    else:
-        sys.exit("Error: invalid url: %r" % url)
-
     h = hashlib.new('md5')
-
     if size and size < 16384:
         buffsize = 1
     else:
         buffsize = 256
 
-    while True:
-        chunk = fi.read(buffsize)
-        if not chunk:
-            break
-        fo.write(chunk)
-        if md5:
-            h.update(chunk)
-        if progress_callback is not None and size:
-            n += len(chunk)
-            progress_callback(n, size)
-
+    with open(path + '.part', 'wb') as fo:
+        while True:
+            chunk = fi.read(buffsize)
+            if not chunk:
+                break
+            fo.write(chunk)
+            if md5:
+                h.update(chunk)
+            if progress_callback is not None and size:
+                n += len(chunk)
+                progress_callback(n, size)
     fi.close()
 
     if md5 and h.hexdigest() != md5:
-        sys.stderr.write("FATAL ERROR: Data received from\n\n"
-                         "    %s\n\n"
+        sys.stderr.write("FATAL ERROR: Data received from\n"
+                         "    %s\n"
                          "is corrupted.  MD5 sums mismatch.\n" % url)
-        fo.close()
         sys.exit(1)
+    os.rename(path + '.part', path)
 
 # -----------------------------------------------------------------
 
