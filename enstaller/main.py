@@ -24,8 +24,7 @@ import config
 from history import History
 from proxy.api import setup_proxy
 from utils import (canonical, cname_fn, get_info, comparable_version,
-                   shorten_repo, get_installed_info, get_available,
-                   abs_expanduser)
+                   shorten_repo, get_installed_info, abs_expanduser)
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
 
@@ -492,27 +491,6 @@ def remove_req(enst, req):
         return
 
 
-def check_available(cname):
-    avail = get_available()
-    if cname not in avail:
-        return False
-    print """
-But wait, %r is available in the EPD subscriber repository!
-Would you like to go to %r
-to subscribe?
-""" % (cname, config.upgrade_epd_url)
-    answer = raw_input('[yes|no]> ').strip().lower()
-    if answer not in ('y', 'yes'):
-        return False
-    print """
-Once you have obtained a subscription, you can proceed here.
-"""
-    import webbrowser
-    webbrowser.open(config.upgrade_epd_url)
-    config.write()
-    return True
-
-
 def add_url(url, verbose):
     url = dist_naming.cleanup_reponame(url)
 
@@ -601,8 +579,6 @@ def install_req(enst, req, opts):
         info = enst.get_installed_info(req.name)[0][1]
         if info:
             print "%(egg_name)s was installed on: %(mtime)s" % info
-        elif 'EPD_free' in sys.version:
-            check_available(req.name)
         sys.exit(1)
 
     if not installed:

@@ -260,28 +260,3 @@ def get_info():
                          'summary', 'description'):
             res[cname][var_name] = d[var_name]
     return res
-
-
-def get_available():
-    """
-    return a dict mapping canonical project names to versions which
-    are available in the subscriber repositories
-    """
-    import plat
-    import config
-
-    url = '%savailable/%s.txt' % (config.pypi_url, plat.custom_plat)
-    faux = StringIO()
-    write_data_from_url(faux, url)
-    data = faux.getvalue()
-    faux.close()
-
-    res = {}
-    for line in data.splitlines():
-        line = line.strip()
-        if line:
-            parts = line.split()
-            cname = parts[0]
-            versions = parts[1:]
-            res[cname] = versions
-    return res

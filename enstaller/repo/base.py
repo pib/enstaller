@@ -124,7 +124,7 @@ class AbstractRepo:
         """
         raise NotImplementedError
 
-    @abstractmethod
+    #@abstractmethod
     def info(self):
         """ Get information about the repository
 
@@ -215,7 +215,7 @@ class AbstractRepo:
         """
         raise NotImplementedError
 
-    @abstractmethod
+    #@abstractmethod
     def exists(self, key):
         """ Test whether or not a key exists in the repository
 

@@ -42,9 +42,6 @@ class LocalIndexedRepo(IndexedRepo):
     def __init__(self, root_dir):
         self.root_dir = root_dir
 
-    def info(self):
-        return {'summary': 'indexed local filesystem repository'}
-
     def get(self, key, default=None):
         try:
             return open(join(self.root_dir, key), 'rb')
@@ -57,9 +54,6 @@ class RemoteHTTPIndexedRepo(IndexedRepo):
 
     def __init__(self, url):
         self.root_url = url
-
-    def info(self):
-        return {'summary': 'indexed remote HTTP repository'}
 
     def get(self, key, default=None):
         url = self.root_url + key
