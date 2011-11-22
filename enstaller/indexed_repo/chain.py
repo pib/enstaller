@@ -359,7 +359,7 @@ class Chain(object):
         self.action_callback(patch_fn, 'fetching')
         patch_path = join(fetch_dir, patch_fn)
         stream_to_file(r.get(patch_fn), patch_path,
-                       info['md5'], size, self.progress_callback)
+                       info, self.progress_callback)
 
         self.action_callback(info['src'], 'patching')
         zdiff.patch(join(fetch_dir, info['src']),
@@ -376,19 +376,18 @@ class Chain(object):
         force:
             force download or copy if MD5 mismatches
         """
-        md5 = self.index[dist].get('md5')
-        size = self.index[dist].get('size')
-
+        info = self.index[dist]
         repo, fn = dist_naming.split_dist(dist)
         path = join(fetch_dir, fn)
         # if force is used, make sure the md5 is the expected, otherwise
         # only see if the file exists
-        if isfile(path) and (not force or md5_file(path) == md5):
+        if isfile(path) and (not force or md5_file(path) == info.get('md5')):
             if self.verbose:
                 print "Not forcing refetch, %r already matches MD5" % path
             return
 
-        if not force and self.patch_dist(dist, fetch_dir):
+        if (not force and info.get('patchable') and
+                  self.patch_dist(dist, fetch_dir)):
             return
 
         self.action_callback(fn, 'fetching')
@@ -400,7 +399,7 @@ class Chain(object):
             print "      to: %r" % path
 
         stream_to_file(self.repo_objs[repo].get(fn), path,
-                       md5, size, self.progress_callback)
+                       info, self.progress_callback)
 
 
     def index_file(self, filename, repo):

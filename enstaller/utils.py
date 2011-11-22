@@ -81,7 +81,7 @@ def info_file(path):
     )
 
 
-def stream_to_file(fi, path, md5=None, size=None, progress_callback=None):
+def stream_to_file(fi, path, info={}, progress_callback=None):
     """
     Read data from the filehandle and write a the file.
     Optionally check the MD5.  When the size in bytes and
@@ -98,6 +98,9 @@ def stream_to_file(fi, path, md5=None, size=None, progress_callback=None):
       so_far -- bytes so far
       total -- bytes total, if known, otherwise None
     """
+    size = info.get('size')
+    md5 = info.get('md5')
+
     if progress_callback is not None and size:
         n = 0
         progress_callback(0, size)
