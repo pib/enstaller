@@ -119,7 +119,7 @@ class AbstractRepo:
         raise NotImplementedError
 
     @abstractmethod
-    def open(self, auth=None):
+    def connect(self, auth=None):
         """ Connect to the repository, optionally with authentication
         """
         raise NotImplementedError

@@ -66,14 +66,14 @@ class Chain(object):
         else:
             if repo.startswith('file://'):
                 r = LocalSimpleRepo(repo[7:])
-                r.open()
+                r.connect()
 
             elif repo.startswith(('http://', 'https://')):
                 r = RemoteHTTPRepo(repo)
                 if repo.startswith('https://'):
-                    r.open(userpass=('EPDUser', 'Epd789'))
+                    r.connect(userpass=('EPDUser', 'Epd789'))
                 else:
-                    r.open()
+                    r.connect()
 
             self.repo_objs[repo] = r
 

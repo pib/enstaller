@@ -10,7 +10,7 @@ class RemoteHTTPRepo(AbstractRepo):
     def __init__(self, url):
         self.root_url = url
 
-    def open(self, userpass=None):
+    def connect(self, userpass=None):
         self.userpass = userpass  # tuple(username, password)
 
         fp = self.get('index.json')

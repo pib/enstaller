@@ -32,7 +32,7 @@ class LocalSimpleRepo(AbstractRepo):
     def __init__(self, location):
         self.root_dir = location
 
-    def open(self, auth=None):
+    def connect(self, auth=None):
         pass
 
     def info(self):
