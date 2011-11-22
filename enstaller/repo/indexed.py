@@ -46,11 +46,10 @@ class LocalIndexedRepo(IndexedRepo):
         return {'summary': 'indexed local filesystem repository'}
 
     def get(self, key, default=None):
-        path = join(self.root_dir, key)
         try:
-            return open(path, 'rb')
+            return open(join(self.root_dir, key), 'rb')
         except IOError as e:
-            sys.stderr.write("%s: %r\n" % (e, path))
+            sys.stderr.write("%s\n" % e)
             return default
 
 
@@ -64,7 +63,6 @@ class RemoteHTTPIndexedRepo(IndexedRepo):
 
     def get(self, key, default=None):
         url = self.root_url + key
-        print url
         scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
         auth, host = urllib2.splituser(netloc)
         if auth:
@@ -85,10 +83,3 @@ class RemoteHTTPIndexedRepo(IndexedRepo):
         except urllib2.HTTPError as e:
             sys.stderr.write("%s: %r\n" % (e, url))
             return default
-
-
-if __name__ == '__main__':
-    url='https://www.enthought.com/repo/epd/eggs/RedHat/RH5_amd64/'
-    r = RemoteHTTPIndexedRepo(url)
-    r.connect(('EPDUser', 'Epd789'))
-    print r.query(name='bsdiff4')

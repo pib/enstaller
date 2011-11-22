@@ -339,7 +339,7 @@ class Chain(object):
 
         repo, fn = dist_naming.split_dist(dist)
         r = self.connect(repo + 'patches/')
-        #print r.query(dst=fn)
+        #print dict(r.query(dst=fn))
 
         possible = []
         for patch_fn, info in r.query(dst=fn):

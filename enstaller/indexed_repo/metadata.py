@@ -232,6 +232,3 @@ def update_index(dir_path, force=False, verbose=False):
 
     import enstaller.egg_meta
     enstaller.egg_meta.update_index(dir_path, force, verbose)
-
-    #import enstaller.patch
-    #enstaller.patch.update(dir_path, verbose)
