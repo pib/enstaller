@@ -13,6 +13,21 @@ import dist_naming
 from requirement import Req, add_Reqs_to_spec
 
 
+def connect(repo):
+    if repo.startswith('file://'):
+        r = LocalIndexedRepo(repo[7:])
+        r.connect()
+
+    elif repo.startswith(('http://', 'https://')):
+        r = RemoteHTTPIndexedRepo(repo)
+        if repo.startswith('https://'):
+            r.connect(userpass=('EPDUser', 'Epd789'))
+        else:
+            r.connect()
+
+    return r
+
+
 class Chain(object):
 
     def __init__(self, repos=[], verbose=False):
@@ -63,19 +78,8 @@ class Chain(object):
             new_index = metadata.parse_depend_index(index_data)
 
         else:
-            if repo.startswith('file://'):
-                r = LocalIndexedRepo(repo[7:])
-                r.connect()
-
-            elif repo.startswith(('http://', 'https://')):
-                r = RemoteHTTPIndexedRepo(repo)
-                if repo.startswith('https://'):
-                    r.connect(userpass=('EPDUser', 'Epd789'))
-                else:
-                    r.connect()
-
+            r = connect(repo)
             self.repo_objs[repo] = r
-
             new_index = r.query()
 
         for spec in new_index.itervalues():
@@ -331,9 +335,8 @@ class Chain(object):
                 print "Warning: could not import bsdiff4, cannot patch"
             return False
 
-        # todo: what is no "patches" repository exists?
         repo, fn = dist_naming.split_dist(dist)
-        r = LocalSimpleRepo(join(repo[7:], 'patches'))
+        r = connect(repo + 'patches/')
         #print r.query(dst=fn)
 
         possible = []

@@ -42,7 +42,7 @@ class IndexedRepo(AbstractRepo):
         for key, info in self._index.iteritems():
             if all(info.get(k) in (v, None)
                    for k, v in kwargs.iteritems()):
-                yield key    
+                yield key
 
 
 class LocalIndexedRepo(IndexedRepo):
@@ -51,15 +51,14 @@ class LocalIndexedRepo(IndexedRepo):
         self.root_dir = root_dir
 
     def info(self):
-        return {'summary': 'indexed local filesystem repository'}    
-
-    def _path(self, key):
-        return join(self.root_dir, key)
+        return {'summary': 'indexed local filesystem repository'}
 
     def get(self, key, default=None):
+        path = join(self.root_dir, key)
         try:
-            return open(self._path(key), 'rb')
-        except IOError:
+            return open(path, 'rb')
+        except IOError as e:
+            sys.stderr.write("%s: %r\n" % (e, path))
             return default
 
 
@@ -98,6 +97,6 @@ class RemoteHTTPIndexedRepo(IndexedRepo):
 
 if __name__ == '__main__':
     url='https://www.enthought.com/repo/epd/eggs/RedHat/RH5_amd64/'
-    r = RemoteHTTPRepo(url)
-    r.open(('EPDUser', 'Epd789'))
+    r = RemoteHTTPIndexedRepo(url)
+    r.connect(('EPDUser', 'Epd789'))
     print r.query(name='bsdiff4')
