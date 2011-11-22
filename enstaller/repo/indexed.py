@@ -57,9 +57,9 @@ class RemoteHTTPIndexedRepo(IndexedRepo):
     def get(self, key, default=None):
         url = self.root_url + key
         scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
-        userpasswd, host = urllib2.splituser(netloc)
-        if userpasswd:
-            auth = urllib2.unquote(userpasswd)
+        auth, host = urllib2.splituser(netloc)
+        if auth:
+            auth = urllib2.unquote(auth) 
         elif self.userpass:
             auth = ('%s:%s' % self.userpass)
 
