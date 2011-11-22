@@ -2,7 +2,7 @@ import os
 import re
 import json
 import string
-from os.path import getsize, getmtime, isdir, isfile, join
+from os.path import abspath, getsize, getmtime, isdir, isfile, join
 
 from utils import comparable_version, info_file
 from enstaller.indexed_repo import dist_naming
@@ -106,18 +106,23 @@ def update_index(eggs_dir, patches_dir, force=False):
         json.dump(new_index, f, indent=2, sort_keys=True)
 
 
-def update(eggs_dir, verbose=False):
+def update(eggs_dir, force=False, verbose=False):
     if zdiff is None:
-        if verbose:
-            print "Warning: could not import bsdiff4, cannot create patches"
+        print "Warning: could not import bsdiff4, cannot create patches"
         return
 
     patches_dir = join(eggs_dir, 'patches')
     if not isdir(patches_dir):
         os.mkdir(patches_dir)
+
+    if force:
+        index_files = ['index.json']
+        for fn in os.listdir(patches_dir):
+            if fn.endswith('.zdiff') or fn in index_files:
+                os.unlink(join(patches_dir, fn))
+
     update_patches(eggs_dir, patches_dir, verbose)
     update_index(eggs_dir, patches_dir)
-
 
 
 def main():
@@ -128,6 +133,7 @@ def main():
         description="updates egg patches, for a given egg repository.  "
                     "DIRECTORY defaults to CWD")
 
+    p.add_option('-f', "--force", action="store_true")
     p.add_option('-v', "--verbose", action="store_true")
 
     opts, args = p.parse_args()
@@ -139,7 +145,7 @@ def main():
     else:
         p.error("too many arguments")
 
-    update(dir_path, opts.verbose)
+    update(dir_path, opts.force, opts.verbose)
 
 
 if __name__ == '__main__':
