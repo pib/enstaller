@@ -133,7 +133,7 @@ class AbstractRepo:
         metadata : dict
             A dictionary of metadata giving information about the repository.
         """
-        raise NotImplementedError
+        raise {} #NotImplementedError
 
     ######################################################################
     # Create/Read/Update/Delete Methods

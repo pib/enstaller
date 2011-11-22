@@ -32,8 +32,7 @@ class IndexedRepo(AbstractRepo):
 
     def query_keys(self, **kwargs):
         for key, info in self._index.iteritems():
-            if all(info.get(k) in (v, None)
-                   for k, v in kwargs.iteritems()):
+            if all(info.get(k) in (v, None) for k, v in kwargs.iteritems()):
                 yield key
 
 
@@ -58,17 +57,18 @@ class RemoteHTTPIndexedRepo(IndexedRepo):
     def get(self, key, default=None):
         url = self.root_url + key
         scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
-        auth, host = urllib2.splituser(netloc)
-        if auth:
-            auth = urllib2.unquote(auth).encode('base64').strip()
+        userpasswd, host = urllib2.splituser(netloc)
+        if userpasswd:
+            auth = urllib2.unquote(userpasswd)
         elif self.userpass:
-            auth = ('%s:%s' % self.userpass).encode('base64').strip()
+            auth = ('%s:%s' % self.userpass)
 
         if auth:
             new_url = urlparse.urlunparse((scheme, host, path,
                                            params, query, frag))
             request = urllib2.Request(new_url)
-            request.add_unredirected_header("Authorization", "Basic " + auth)
+            request.add_unredirected_header("Authorization",
+                                "Basic " + auth.encode('base64').strip())
         else:
             request = urllib2.Request(url)
         request.add_header('User-Agent', 'enstaller')
