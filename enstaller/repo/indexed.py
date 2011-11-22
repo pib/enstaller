@@ -27,10 +27,8 @@ class IndexedRepo(AbstractRepo):
         return key in self._index
 
     def query(self, **kwargs):
-        res = {}
         for key in self.query_keys(**kwargs):
-            res[key] = self._index[key]
-        return res
+            yield key, self._index[key]
 
     def query_keys(self, **kwargs):
         for key, info in self._index.iteritems():

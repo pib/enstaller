@@ -13,21 +13,6 @@ import dist_naming
 from requirement import Req, add_Reqs_to_spec
 
 
-def connect(repo):
-    if repo.startswith('file://'):
-        r = LocalIndexedRepo(repo[7:])
-        r.connect()
-
-    elif repo.startswith(('http://', 'https://')):
-        r = RemoteHTTPIndexedRepo(repo)
-        if repo.startswith('https://'):
-            r.connect(userpass=('EPDUser', 'Epd789'))
-        else:
-            r.connect()
-
-    return r
-
-
 class Chain(object):
 
     def __init__(self, repos=[], verbose=False):
@@ -61,6 +46,25 @@ class Chain(object):
         print
 
 
+    def connect(self, repo):
+        if repo in self.repo_objs:
+            return self.repo_objs[repo]
+
+        if repo.startswith('file://'):
+            r = LocalIndexedRepo(repo[7:])
+            r.connect()
+
+        elif repo.startswith(('http://', 'https://')):
+            r = RemoteHTTPIndexedRepo(repo)
+            if repo.startswith('https://'):
+                r.connect(userpass=('EPDUser', 'Epd789'))
+            else:
+                r.connect()
+
+        self.repo_objs[repo] = r
+        return r
+
+
     def add_repo(self, repo, index_fn=None):
         """
         Add a repo to the chain, i.e. read the index file of the url,
@@ -78,9 +82,7 @@ class Chain(object):
             new_index = metadata.parse_depend_index(index_data)
 
         else:
-            r = connect(repo)
-            self.repo_objs[repo] = r
-            new_index = r.query()
+            new_index = dict(self.connect(repo).query())
 
         for spec in new_index.itervalues():
             add_Reqs_to_spec(spec)
@@ -336,11 +338,11 @@ class Chain(object):
             return False
 
         repo, fn = dist_naming.split_dist(dist)
-        r = connect(repo + 'patches/')
+        r = self.connect(repo + 'patches/')
         #print r.query(dst=fn)
 
         possible = []
-        for patch_fn, info in r.query(dst=fn).iteritems():
+        for patch_fn, info in r.query(dst=fn):
             assert info['dst'] == fn
             src_path = join(fetch_dir, info['src'])
             #print '%8d %s %s' % (info['size'], patch_fn, isfile(src_path))

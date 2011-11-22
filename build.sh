@@ -37,4 +37,4 @@ rm -f tmp.sh dist/enstaller-*-py*.egg
 chmod +x $EGG
 
 egginfo --sd $EGG
-repo-upload --force --no-confirm $EGG
+#repo-upload --force --no-confirm $EGG

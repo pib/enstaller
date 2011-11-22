@@ -280,7 +280,8 @@ class AbstractRepo:
             A list of repository keys whose metadata matches all the specified
             values for the specified metadata keywords.
         """
-        return self.query(**kwargs).keys()
+        for key, dummy in self.query(**kwargs):
+            yield key
 
     def glob(self, pattern, metadata=False):
         """ Return keys which match glob-style patterns
