@@ -5,13 +5,10 @@ import sys
 import time
 import hashlib
 import logging
-import urlparse
-import urllib2
 from cStringIO import StringIO
 from os.path import abspath, expanduser, getmtime, getsize, isfile, join
 
 from egginst import name_version_fn
-from enstaller import __version__
 from enstaller.verlib import NormalizedVersion, IrrationalVersionError
 
 logger = logging.getLogger(__name__)
@@ -125,10 +122,7 @@ def stream_to_file(fi, path, md5=None, size=None, progress_callback=None):
     fi.close()
 
     if md5 and h.hexdigest() != md5:
-        sys.stderr.write("FATAL ERROR: Data received from\n"
-                         "    %s\n"
-                         "is corrupted.  MD5 sums mismatch.\n" % url)
-        sys.exit(1)
+        sys.exit("Error: received data MD5 sums mismatch")
     os.rename(path + '.part', path)
 
 # -----------------------------------------------------------------
@@ -180,7 +174,7 @@ def get_info():
 
     url = config.get('info_url')
     faux = StringIO()
-    write_data_from_url(faux, url)
+    #write_data_from_url(faux, url)
     index_data = faux.getvalue()
     faux.close()
 
