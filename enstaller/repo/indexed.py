@@ -17,12 +17,6 @@ class IndexedRepo(AbstractRepo):
         self._index = json.load(fp)
         fp.close()
 
-    def set(self, key, value, buffer_size=1048576):
-        pass
-
-    def delete(self, key):
-        pass
-
     def get_metadata(self, key, default=None):
         try:
             return self._index[key]
