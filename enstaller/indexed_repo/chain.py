@@ -327,8 +327,7 @@ class Chain(object):
         Try to create 'dist' by patching an already existing egg, returns
         True on success and False on failure, i.e. when either:
             - bsdiff4 is not installed
-            - there is no "patches" repository
-            - no patches are available
+            - no patches can be applied (because the source is missing)
         """
         try:
             import enstaller.zdiff as zdiff
@@ -338,10 +337,7 @@ class Chain(object):
             return False
 
         repo, fn = dist_naming.split_dist(dist)
-        try:
-            r = self.connect(repo + 'patches/')
-        except:
-            return False
+        r = self.connect(repo + 'patches/')
         #print dict(r.query(dst=fn))
 
         possible = []
