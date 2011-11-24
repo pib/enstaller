@@ -67,7 +67,7 @@ def rm_rf(path, verbose=False):
     elif isfile(path):
         if verbose:
             print "Removing: %r (file)" % path
-        if sys.platform == 'win32':
+        if on_win:
             try:
                 os.unlink(path)
             except WindowsError:
@@ -87,9 +87,7 @@ def human_bytes(n):
     """
     if n < 1024:
         return '%i B' % n
-
     k = (n - 1) / 1024 + 1
     if k < 1024:
         return '%i KB' % k
-
     return '%.2f MB' % (float(n) / (2**20))
