@@ -27,8 +27,7 @@ class Resolve(object):
         """
         Returns a tuple(version, build) for an egg name, where version is a
         RationalVersion object (see verlib).  This method is used below
-        for determining the distribution with the largest version and build
-        number.
+        for determining the egg with the largest version and build number.
         """
         return dist_naming.comparable_spec(self.index[egg])
 
@@ -52,15 +51,14 @@ class Resolve(object):
 
     def cname_egg(self, egg):
         """
-        return the canonical project name for a given distribution
+        return the canonical project name for a given egg name
         """
         return self.index[egg]['cname']
 
     def are_complete(self, eggs):
         """
-        return True if the distributions 'eggs' are complete, i.e. the for
-        each distribution all dependencies (by name only) are also included
-        in the 'eggs'
+        return True if the 'eggs' are complete, i.e. the for each egg all
+        dependencies (by name only) are also included in 'eggs'
         """
         cnames = set(self.cname_egg(d) for d in eggs)
         for egg in eggs:
@@ -71,10 +69,9 @@ class Resolve(object):
 
     def determine_install_order(self, eggs):
         """
-        given the distributions 'eggs' (which are already complete, i.e.
-        the for each distribution all dependencies are also included in
-        the 'eggs'), return a list of the same distribution in the correct
-        install order
+        given the 'eggs' (which are already complete, i.e. the for each
+        egg all dependencies are also included in 'eggs'), return a list
+        of the same eggs in the correct install order
         """
         eggs = list(eggs)
         assert self.are_complete(eggs)
@@ -82,7 +79,7 @@ class Resolve(object):
         # make sure each project name is listed only once
         assert len(eggs) == len(set(self.cname_egg(d) for d in eggs))
 
-        # the distributions corresponding to the requirements must be sorted
+        # the eggs corresponding to the requirements must be sorted
         # because the output of this function is otherwise not deterministic
         eggs.sort(key=self.cname_egg)
 
@@ -170,11 +167,11 @@ class Resolve(object):
 
     def install_sequence(self, req, mode='recur'):
         """
-        Return the list of distributions which need to be installed.
+        Return the list of eggs which need to be installed.
         The returned list is given in dependency order.
         The 'mode' may be:
 
-        'root':  only the distribution for the requirement itself is
+        'root':  only the egg for the requirement itself is
                  contained in the result (but not any dependencies)
 
         'flat':  dependencies are handled only one level deep

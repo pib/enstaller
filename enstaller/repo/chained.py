@@ -10,7 +10,7 @@ class ChainedRepo(AbstractRepo):
         for repo in self.repos:
             repo.connect(auth)
 
-    def from_which(self, key):
+    def from_which_repo(self, key):
         for repo in self.repos:
             if repo.exists(key):
                 return repo
