@@ -7,9 +7,8 @@ from os.path import basename, isfile, isdir, join
 from enstaller.repo.indexed import LocalIndexedRepo, RemoteHTTPIndexedRepo
 
 from enstaller.utils import comparable_version, md5_file, stream_to_file
-import metadata
-import dist_naming
-from requirement import Req, add_Reqs_to_spec
+from indexed_repo import dist_naming
+from indexed_repo.requirement import Req, add_Reqs_to_spec
 
 
 class Resolve(object):
@@ -25,7 +24,7 @@ class Resolve(object):
         # maps cnames to the list of egg names
         self.groups = defaultdict(list)
 
-        for egg, spec in self.index.itervalues():
+        for egg, spec in self.index.iteritems():
             add_Reqs_to_spec(spec)
             self.groups[spec['cname']].append(egg)
 
@@ -223,11 +222,11 @@ class Resolve(object):
 
 
 if __name__ == '__main__':
-    from indexed import LocalIndexedRepo
+    from repo.indexed import LocalIndexedRepo
+    from repo.chained import ChainedRepo
 
-    res = Resolve([LocalIndexedRepo('/Users/ischnell/repo'),
-                   LocalIndexedRepo('/Users/ischnell/repo2'),
-                   ])
-    res.get_egg
-    for key in r.query_keys():#name='Cython'):
-        print key
+    res = Resolve(ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
+                               LocalIndexedRepo('/Users/ischnell/repo2'),
+                               ]))
+    print res.get_egg(Req('pyside'))
+    print res.install_sequence(Req('pyside'))
