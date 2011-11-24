@@ -8,7 +8,7 @@ from indexed_repo.requirement import Req, add_Reqs_to_spec
 
 class Resolve(object):
 
-    def __init__(self, repo, auth=None, verbose=False):
+    def __init__(self, repo, verbose=False):
         self.verbose = verbose
 
         # maps egg names to specs
