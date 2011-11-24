@@ -10,8 +10,6 @@ class Resolve(object):
 
     def __init__(self, repo, auth=None, verbose=False):
         self.verbose = verbose
-        repo.connect(auth=auth)
-        self.repo = repo
 
         # maps egg names to specs
         self.index = dict(repo.query())
@@ -196,9 +194,10 @@ class Resolve(object):
         raise Exception('did not expect: mode = %r' % mode)
 
     def list_versions(self, name):
+        # XXX: this method does not really belong to this class
         """
-        given the name of a package, retruns a sorted list of versions for
-        package `name` found in any repo.
+        given the name of a package, returns a sorted list of versions for
+        package `name`
         """
         versions = set()
 
@@ -218,9 +217,10 @@ if __name__ == '__main__':
     from repo.indexed import LocalIndexedRepo
     from repo.chained import ChainedRepo
 
-    res = Resolve(ChainedRepo([
-                LocalIndexedRepo('/Users/ischnell/repo'),
-                LocalIndexedRepo('/Users/ischnell/repo2'),
-                ]))
+    r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
+                     LocalIndexedRepo('/Users/ischnell/repo2'),
+                     ])
+    r.connect()
+    res = Resolve(r)
     print res.get_egg(Req('pyside'))
     print res.install_sequence(Req('pyside'))

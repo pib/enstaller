@@ -32,9 +32,11 @@ def eggs_rs(c, req_string):
 
 class TestChain0(unittest.TestCase):
 
-    c = Resolve(ChainedRepo([
+    r = ChainedRepo([
            DummyRepo(join(this_dir, fn))
-           for fn in ['index-add.txt', 'index-5.1.txt', 'index-5.0.txt']]))
+           for fn in ['index-add.txt', 'index-5.1.txt', 'index-5.0.txt']])
+    r.connect()
+    c = Resolve(r)
 
     def test_25(self):
         requirement.PY_VER = '2.5'
@@ -62,10 +64,11 @@ class TestChain0(unittest.TestCase):
 
 class TestChain1(unittest.TestCase):
 
-    cr = ChainedRepo([
+    r = ChainedRepo([
             DummyRepo(join(this_dir, name, 'index-7.1.txt'), name)
             for name in ('epd', 'gpl')])
-    c = Resolve(cr)
+    r.connect()
+    c = Resolve(r)
 
     def test_get_repo(self):
         for req_string, repo_name in [
@@ -75,7 +78,7 @@ class TestChain1(unittest.TestCase):
             ]:
             egg = self.c.get_egg(Req(req_string))
             if egg is not None:
-                self.assertEqual(self.cr.from_which_repo(egg).name,
+                self.assertEqual(self.r.from_which_repo(egg).name,
                                  repo_name)
 
     def test_get_dist(self):
@@ -91,7 +94,7 @@ class TestChain1(unittest.TestCase):
             ]:
             self.assertEqual(self.c.get_egg(Req(req_string)), egg)
             if egg is not None:
-                self.assertEqual(self.cr.from_which_repo(egg).name,
+                self.assertEqual(self.r.from_which_repo(egg).name,
                                  repo_name)
 
     def test_reqs_dist(self):
@@ -122,10 +125,11 @@ class TestChain1(unittest.TestCase):
 
 class TestChain2(unittest.TestCase):
 
-    cr = ChainedRepo([
+    r = ChainedRepo([
             DummyRepo(join(this_dir, name, 'index-7.1.txt'), name)
             for name in ('open', 'runner', 'epd')])
-    c = Resolve(cr)
+    r.connect()
+    c = Resolve(r)
 
     def test_flat_recur1(self):
         d1 = self.c.install_sequence(Req('openepd'), mode='flat')
@@ -143,7 +147,7 @@ class TestChain2(unittest.TestCase):
     def test_multiple_reqs(self):
         lst = self.c.install_sequence(Req('ets'))
         self.assert_('numpy-1.5.1-2.egg' in lst)
-        self.assertEqual(self.cr.from_which_repo('numpy-1.5.1-2.egg').name,
+        self.assertEqual(self.r.from_which_repo('numpy-1.5.1-2.egg').name,
                          'epd')
 
 
