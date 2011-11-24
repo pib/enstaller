@@ -1,12 +1,7 @@
-import os
 import sys
-import zipfile
 from collections import defaultdict
-from os.path import basename, isfile, isdir, join
 
-from enstaller.repo.indexed import LocalIndexedRepo, RemoteHTTPIndexedRepo
-
-from enstaller.utils import comparable_version, md5_file, stream_to_file
+from enstaller.utils import comparable_version
 from indexed_repo import dist_naming
 from indexed_repo.requirement import Req, add_Reqs_to_spec
 
@@ -45,6 +40,8 @@ class Resolve(object):
         for egg in self.groups[req.name]:
             if req.matches(self.index[egg]):
                 matches.append(egg)
+        if not matches:
+            return None
         return max(matches, key=self.get_version_build)
 
     def reqs_egg(self, egg):
@@ -111,8 +108,7 @@ class Resolve(object):
 
             if len(result) == n:
                 # nothing was added
-                raise Exception("Loop in dependency graph\n%r" %
-                                [dist_naming.filename_dist(d) for d in eggs])
+                raise Exception("Loop in dependency graph\n%r" % eggs)
         return result
 
     def _sequence_flat(self, root):
@@ -225,8 +221,9 @@ if __name__ == '__main__':
     from repo.indexed import LocalIndexedRepo
     from repo.chained import ChainedRepo
 
-    res = Resolve(ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
-                               LocalIndexedRepo('/Users/ischnell/repo2'),
-                               ]))
+    res = Resolve(ChainedRepo([
+                LocalIndexedRepo('/Users/ischnell/repo'),
+                LocalIndexedRepo('/Users/ischnell/repo2'),
+                ]))
     print res.get_egg(Req('pyside'))
     print res.install_sequence(Req('pyside'))
