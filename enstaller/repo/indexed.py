@@ -14,24 +14,24 @@ class IndexedRepo(AbstractRepo):
         fp = self.get('index.json')
         if fp is None:
             raise Exception("Could not connect")
-        self._index = json.load(fp)
+        self.index = json.load(fp)
         fp.close()
 
     def get_metadata(self, key, default=None):
         try:
-            return self._index[key]
+            return self.index[key]
         except KeyError:
             return default
 
     def exists(self, key):
-        return key in self._index
+        return key in self.index
 
     def query(self, **kwargs):
         for key in self.query_keys(**kwargs):
-            yield key, self._index[key]
+            yield key, self.index[key]
 
     def query_keys(self, **kwargs):
-        for key, info in self._index.iteritems():
+        for key, info in self.index.iteritems():
             if all(info.get(k) in (v, None) for k, v in kwargs.iteritems()):
                 yield key
 

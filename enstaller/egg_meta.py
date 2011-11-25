@@ -31,7 +31,9 @@ def update_index(dir_path, force=False, verbose=False):
     if isfile(patches_index_path):
         patch_index = json.load(open(patches_index_path))
         for patch_info in patch_index.itervalues():
-            new_index[patch_info['dst']]['patchable'] = True
+            dst_fn = patch_info['dst']
+            if isfile(join(dir_path, 'patches', dst_fn)):
+                new_index[patch_info['dst']]['patchable'] = True
 
     with open(index_path, 'w') as f:
         json.dump(new_index, f, indent=2, sort_keys=True)
