@@ -39,7 +39,7 @@ class Resolve(object):
 
     def cname_egg(self, egg):
         """
-        return the canonical project name for a given egg name
+        return the project name for a given egg (from it's meta data)
         """
         return self.repo.get_metadata(egg)['name']
 
@@ -190,6 +190,6 @@ if __name__ == '__main__':
                      ])
     r.connect()
     res = Resolve(r)
-    print res.get_egg(Req('nose'))
-    #print list(r.query_keys(name='nose'))
-    #print res.install_sequence(Req('nose'))
+    print res.get_egg(Req('pyside'))
+    print list(r.query_keys(name='nose'))
+    print res.install_sequence(Req('pyside'))

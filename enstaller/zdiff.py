@@ -126,7 +126,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 3:
         src, dst = sys.argv[1:3]
     else:
-        src, dst = 'nose-1.0.0-1.egg',  'nose-1.1.2-1.egg'
+        src, dst = 'nose-1.0.0-1.egg', 'nose-1.1.2-1.egg'
 
     pat = 'test.zdiff'
     diff(src, dst, pat)

@@ -16,40 +16,40 @@ class IndexedRepo(AbstractRepo):
         fp = self.get('index.json')
         if fp is None:
             raise Exception("Could not connect")
-        self.index = json.load(fp)
+        self._index = json.load(fp)
         fp.close()
 
         # maps names to keys
-        self.groups = defaultdict(list)
-        for key, info in self.index.iteritems():
+        self._groups = defaultdict(list)
+        for key, info in self._index.iteritems():
             try:
-                self.groups[info['name']].append(key)
+                self._groups[info['name']].append(key)
             except KeyError:
                 pass
 
     def get_metadata(self, key, default=None):
         try:
-            return self.index[key]
+            return self._index[key]
         except KeyError:
             return default
 
     def exists(self, key):
-        return key in self.index
+        return key in self._index
 
     def query(self, **kwargs):
         for key in self.query_keys(**kwargs):
-            yield key, self.index[key]
+            yield key, self._index[key]
 
     def query_keys(self, **kwargs):
         name = kwargs.get('name')
         if name is None:
-            for key, info in self.index.iteritems():
+            for key, info in self._index.iteritems():
                 if all(info.get(k) in (v, None) for k, v in kwargs.iteritems()):
                     yield key
         else:
             del kwargs['name']
-            for key in self.groups[name]:
-                info = self.index[key]
+            for key in self._groups[name]:
+                info = self._index[key]
                 if all(info.get(k) in (v, None) for k, v in kwargs.iteritems()):
                     yield key
 

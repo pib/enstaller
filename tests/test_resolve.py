@@ -21,12 +21,12 @@ class DummyRepo(IndexedRepo):
 
     def connect(self, auth=None):
         index_data = open(self.index_path).read()
-        self.index = metadata.parse_depend_index(index_data)
-        for spec in self.index.itervalues():
+        self._index = metadata.parse_depend_index(index_data)
+        for spec in self._index.itervalues():
             spec['name'] = spec['name'].lower()
-        self.groups = defaultdict(list)
-        for key, info in self.index.iteritems():
-            self.groups[info['name']].append(key)
+        self._groups = defaultdict(list)
+        for key, info in self._index.iteritems():
+            self._groups[info['name']].append(key)
 
     def get(self, key):
         pass
