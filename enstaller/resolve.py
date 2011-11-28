@@ -1,57 +1,47 @@
 import sys
 from collections import defaultdict
 
-from enstaller.utils import comparable_version
-from indexed_repo import dist_naming
+from repo.indexed import LocalIndexedRepo
+from repo.chained import ChainedRepo
+
+from indexed_repo.dist_naming import comparable_spec
 from indexed_repo.requirement import Req, add_Reqs_to_spec
 
 
 class Resolve(object):
 
     def __init__(self, repo, verbose=False):
+        self.repo = repo
         self.verbose = verbose
-
-        # maps egg names to specs
-        self.index = dict(repo.query())
-
-        # maps cnames to the list of egg names
-        self.groups = defaultdict(list)
-
-        for egg, spec in self.index.iteritems():
-            add_Reqs_to_spec(spec)
-            self.groups[spec['cname']].append(egg)
-
-    def get_version_build(self, egg):
-        """
-        Returns a tuple(version, build) for an egg name, where version is a
-        RationalVersion object (see verlib).  This method is used below
-        for determining the egg with the largest version and build number.
-        """
-        return dist_naming.comparable_spec(self.index[egg])
 
     def get_egg(self, req):
         """
         return the egg with the largest version and build number
         """
+        assert req.strictness >= 1
+        d = dict(self.repo.query(name=req.name))
+        if not d:
+            return None
         matches = []
-        for egg in self.groups[req.name]:
-            if req.matches(self.index[egg]):
-                matches.append(egg)
+        for key, spec in d.iteritems():
+            add_Reqs_to_spec(spec)
+            if req.matches(spec):
+                matches.append(key)
         if not matches:
             return None
-        return max(matches, key=self.get_version_build)
+        return max(matches, key=lambda k: comparable_spec(d[k]))
 
     def reqs_egg(self, egg):
         """
         return the set of requirement objects listed by the given egg
         """
-        return self.index[egg]['Reqs']
+        return set(Req(s) for s in self.repo.get_metadata(egg)['packages'])
 
     def cname_egg(self, egg):
         """
         return the canonical project name for a given egg name
         """
-        return self.index[egg]['cname']
+        return self.repo.get_metadata(egg)['name']
 
     def are_complete(self, eggs):
         """
@@ -98,7 +88,7 @@ class Resolve(object):
                 # see if all required packages were added already
                 if all(bool(name in names_inst) for name in rns[egg]):
                     result.append(egg)
-                    names_inst.add(self.index[egg]['cname'])
+                    names_inst.add(self.cname_egg(egg))
                     assert len(names_inst) == len(result)
 
             if len(result) == n:
@@ -193,34 +183,13 @@ class Resolve(object):
 
         raise Exception('did not expect: mode = %r' % mode)
 
-    def list_versions(self, name):
-        # XXX: this method does not really belong to this class
-        """
-        given the name of a package, returns a sorted list of versions for
-        package `name`
-        """
-        versions = set()
-
-        req = Req(name)
-        for egg in self.groups[req.name]:
-            spec = self.index[egg]
-            if req.matches(spec):
-                versions.add(spec['version'])
-
-        try:
-            return sorted(versions, key=comparable_version)
-        except TypeError:
-            return list(versions)
-
 
 if __name__ == '__main__':
-    from repo.indexed import LocalIndexedRepo
-    from repo.chained import ChainedRepo
-
     r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
                      LocalIndexedRepo('/Users/ischnell/repo2'),
                      ])
     r.connect()
     res = Resolve(r)
-    print res.get_egg(Req('pyside'))
-    print res.install_sequence(Req('pyside'))
+    print res.get_egg(Req('nose'))
+    #print list(r.query_keys(name='nose'))
+    #print res.install_sequence(Req('nose'))

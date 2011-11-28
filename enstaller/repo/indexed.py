@@ -2,7 +2,9 @@ import sys
 import json
 import urlparse
 import urllib2
+from collections import defaultdict
 from os.path import join
+
 from base import AbstractRepo
 
 
@@ -16,6 +18,14 @@ class IndexedRepo(AbstractRepo):
             raise Exception("Could not connect")
         self.index = json.load(fp)
         fp.close()
+
+        # maps names to keys
+        self.groups = defaultdict(list)
+        for key, info in self.index.iteritems():
+            try:
+                self.groups[info['name']].append(key)
+            except KeyError:
+                pass
 
     def get_metadata(self, key, default=None):
         try:
@@ -31,9 +41,17 @@ class IndexedRepo(AbstractRepo):
             yield key, self.index[key]
 
     def query_keys(self, **kwargs):
-        for key, info in self.index.iteritems():
-            if all(info.get(k) in (v, None) for k, v in kwargs.iteritems()):
-                yield key
+        name = kwargs.get('name')
+        if name is None:
+            for key, info in self.index.iteritems():
+                if all(info.get(k) in (v, None) for k, v in kwargs.iteritems()):
+                    yield key
+        else:
+            del kwargs['name']
+            for key in self.groups[name]:
+                info = self.index[key]
+                if all(info.get(k) in (v, None) for k, v in kwargs.iteritems()):
+                    yield key
 
 
 class LocalIndexedRepo(IndexedRepo):

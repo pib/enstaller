@@ -1,4 +1,5 @@
 import unittest
+from collections import defaultdict
 from os.path import abspath, dirname, join
 
 from enstaller.repo.indexed import IndexedRepo
@@ -20,7 +21,12 @@ class DummyRepo(IndexedRepo):
 
     def connect(self, auth=None):
         index_data = open(self.index_path).read()
-        self._index = metadata.parse_depend_index(index_data)
+        self.index = metadata.parse_depend_index(index_data)
+        for spec in self.index.itervalues():
+            spec['name'] = spec['name'].lower()
+        self.groups = defaultdict(list)
+        for key, info in self.index.iteritems():
+            self.groups[info['name']].append(key)
 
     def get(self, key):
         pass

@@ -25,6 +25,7 @@ def update_index(dir_path, force=False, verbose=False):
             continue
         info = info_file(path)
         info.update(spec_from_dist(path))
+        info['name'] = info['name'].lower()
         new_index[fn] = info
 
     patches_index_path = join(dir_path, 'patches', 'index.json')
