@@ -1,16 +1,9 @@
 # Author: Ilan Schnell <ischnell@enthought.com>
 import os
-import sys
-import string
-import subprocess
-from os.path import isdir, isfile, join
+from os.path import isfile, join
 
-import egginst
-from egginst.utils import bin_dir_name, pprint_fn_action, console_progress
-from utils import cname_fn, get_installed_info, stream_to_file, md5_file
-from indexed_repo import Req, dist_naming
-from resolve import Resolve
-
+from egginst.utils import pprint_fn_action, console_progress
+from utils import stream_to_file, md5_file
 
 
 class Fetch(object):
