@@ -1,9 +1,6 @@
 import sys
 from collections import defaultdict
 
-from repo.indexed import LocalIndexedRepo
-from repo.chained import ChainedRepo
-
 from indexed_repo.dist_naming import comparable_spec
 from indexed_repo.requirement import Req, add_Reqs_to_spec
 
@@ -185,6 +182,9 @@ class Resolve(object):
 
 
 if __name__ == '__main__':
+    from repo.indexed import LocalIndexedRepo
+    from repo.chained import ChainedRepo
+
     r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
                      LocalIndexedRepo('/Users/ischnell/repo2'),
                      ])
