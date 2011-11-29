@@ -100,7 +100,7 @@ def update_index(eggs_dir, patches_dir, force=False):
             continue
         info = info_file(patch_path)
         info.update(zdiff.info(patch_path))
-        info['name'] = patch_fn.split('-')[0]
+        info['name'] = patch_fn.split('-')[0].lower()
         new_index[patch_fn] = info
 
     with open(index_path, 'w') as f:
