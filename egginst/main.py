@@ -294,6 +294,9 @@ class EggInst(object):
             n += 1
             self.progress_callback(n, nof)
 
+            if self.hook and not p.startswith(self.pkgs_dir):
+                continue
+
             rm_rf(p)
             if p.endswith('.py'):
                 rm_rf(p + 'c')

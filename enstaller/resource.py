@@ -31,7 +31,7 @@ class Resource(object):
     def install(self, egg, force=False, hook=True):
         if not force and hook and isfile(self.registry_path_egg(egg)):
             if self.verbose:
-                print "Allready installed:", egg
+                print "Already installed:", egg
             return
         egg_path = join(self.fetch_dir, egg)
         if not isfile(egg_path):
@@ -43,8 +43,11 @@ class Resource(object):
         ei.install()
 
     def remove(self, egg, hook=True):
-        if hook:
-            rm_rf(versioned_dir_egg)
+        self.action_callback(egg, 'removing')
+        ei = egginst.EggInst(egg, prefix=self.prefix, hook=hook,
+                             pkgs_dir=self.pkgs_dir, verbose=self.verbose)
+        ei.progress_callback = self.progress_callback
+        ei.remove()
 
     def registry_path_egg(self, egg):
         return join(self.versioned_dir_egg(egg), 'EGG-INFO', 'registry.txt')
@@ -136,3 +139,4 @@ if __name__ == '__main__':
     x = Resource(r, prefix='/Users/ischnell/jpm/Python-2.7.2-1',
                  verbose=1)
     x.install('enstaller-4.5.0-1.egg')
+    x.remove('enstaller-4.5.0-1.egg')
