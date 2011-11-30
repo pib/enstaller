@@ -29,10 +29,6 @@ def canonical(s):
     return s
 
 
-def cname_fn(fn):
-    return canonical(fn.split('-')[0])
-
-
 def comparable_version(version):
     """
     Given a version string (e.g. '1.3.0.dev234'), return an object which

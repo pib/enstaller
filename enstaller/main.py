@@ -23,10 +23,14 @@ from enstaller import __version__
 import config
 from history import History
 from proxy.api import setup_proxy
-from utils import (canonical, cname_fn, comparable_version,
+from utils import (canonical, comparable_version,
                    shorten_repo, get_installed_info, abs_expanduser)
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
+
+
+def cname_fn(fn):
+    return canonical(fn.split('-')[0])
 
 
 class DistributionNotFound(Exception):

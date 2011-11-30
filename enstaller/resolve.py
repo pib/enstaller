@@ -15,7 +15,7 @@ def comparable_spec(spec):
 class Req(object):
     """
     A requirement object is initalized by a requirement string. Attributes:
-    name: the canonical project name
+    name: the lowercase project name
     version: the list of possible versions required
     strictness: the level of strictness
         0   nothing matters, anything matches
@@ -43,8 +43,8 @@ class Req(object):
     def matches(self, spec):
         """
         Returns True if the spec of a distribution matches the requirement
-        (self).  That is, the canonical name must match, and the version
-        must be in the list of required versions.
+        (self).  That is, the name must match, and the version must be in
+        the list of required versions.
         """
         assert spec['metadata_version'] >= '1.1', spec
         if spec['python'] not in (None, PY_VER):
