@@ -89,14 +89,11 @@ class EggInst(object):
 
         if on_win:
             scripts.create_proxies(self)
-
         else:
             import links
             import object_code
-
             if self.verbose:
                 links.verbose = object_code.verbose = True
-
             links.create(self)
             object_code.fix_files(self)
 

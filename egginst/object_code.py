@@ -103,7 +103,7 @@ def fix_files(egg):
     global _targets
 
     prefixes = [sys.prefix]
-    if egg.prefix != sys.prefix:
+    if egg.prefix != abspath(sys.prefix):
         prefixes.insert(0, egg.prefix)
 
     _targets = []

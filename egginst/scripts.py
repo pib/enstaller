@@ -14,13 +14,16 @@ hashbang_pat = re.compile(r'#!.+$', re.M)
 def set_executable(prefix):
     global executable
     if on_win:
-        executable = join(prefix, 'python.exe')
+        path = join(prefix, 'python.exe')
+        if isfile(path):
+            executable = path
     else:
-        from subprocess import Popen, PIPE
-        cmd = [join(prefix, bin_dir_name, 'python'), '-c',
-               'import sys;print sys.executable']
-        p = Popen(cmd, stdout=PIPE)
-        executable = p.communicate()[0].strip()
+        path = join(prefix, bin_dir_name, 'python')
+        if isfile(path):
+            from subprocess import Popen, PIPE
+            cmd = [path, '-c', 'import sys;print sys.executable']
+            p = Popen(cmd, stdout=PIPE)
+            executable = p.communicate()[0].strip()
 
 
 def write_exe(dst, script_type='console_scripts'):
