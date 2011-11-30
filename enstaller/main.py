@@ -23,7 +23,7 @@ from enstaller import __version__
 import config
 from history import History
 from proxy.api import setup_proxy
-from utils import (canonical, cname_fn, get_info, comparable_version,
+from utils import (canonical, cname_fn, comparable_version,
                    shorten_repo, get_installed_info, abs_expanduser)
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
@@ -666,7 +666,7 @@ def main():
     elif args.prefix:
         prefix = args.prefix
     else:
-        prefix = config.get('prefix')
+        prefix = config.get('prefix', sys.prefix)
 
     if prefix == sys.prefix:
         prefixes = [prefix]

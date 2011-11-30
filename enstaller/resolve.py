@@ -1,8 +1,93 @@
 import sys
 from collections import defaultdict
 
-from indexed_repo.dist_naming import comparable_spec
-from indexed_repo.requirement import Req, add_Reqs_to_spec
+from enstaller.utils import PY_VER, comparable_version
+
+
+def comparable_spec(spec):
+    """
+    Returns a tuple(version, build) for a distribution, version is a
+    RationalVersion object.  The result may be used for as a sort key.
+    """
+    return comparable_version(spec['version']), spec['build']
+
+
+class Req(object):
+    """
+    A requirement object is initalized by a requirement string. Attributes:
+    name: the canonical project name
+    version: the list of possible versions required
+    strictness: the level of strictness
+        0   nothing matters, anything matches
+        1   only the name must match
+        2   name and version must match
+        3   name, version and build must match
+    """
+    def __init__(self, req_string):
+        for c in '<>=,':
+            assert c not in req_string, req_string
+        lst = req_string.split()
+        assert len(lst) <= 2, req_string
+        self.strictness = 0
+        self.name = self.version = self.build = None
+        if lst:
+            self.name = lst[0].lower()
+            self.strictness = 1
+        if len(lst) == 2:
+            tmp = lst[1]
+            self.version = tmp.split('-')[0]
+            self.strictness = 2 + bool('-' in tmp)
+            if self.strictness ==  3:
+                self.build = int(tmp.split('-')[1])
+
+    def matches(self, spec):
+        """
+        Returns True if the spec of a distribution matches the requirement
+        (self).  That is, the canonical name must match, and the version
+        must be in the list of required versions.
+        """
+        assert spec['metadata_version'] >= '1.1', spec
+        if spec['python'] not in (None, PY_VER):
+            return False
+        if self.strictness == 0:
+            return True
+        if spec['name'] != self.name:
+            return False
+        if self.strictness == 1:
+            return True
+        if spec['version'] != self.version:
+            return False
+        if self.strictness == 2:
+            return True
+        assert self.strictness == 3
+        return spec['build'] == self.build
+
+    def __str__(self):
+        if self.strictness == 0:
+            return ''
+        res = self.name
+        if self.version:
+            res += ' %s' % self.version
+        if self.build:
+            res += '-%i' % self.build
+        return res
+
+    def __repr__(self):
+        """
+        return a canonical representation of the object
+        """
+        return 'Req(%r)' % str(self)
+
+    def __eq__(self, other):
+        return (self.name == other.name  and
+                self.version == other.version  and
+                self.build == other.build  and
+                self.strictness == other.strictness)
+
+    def __hash__(self):
+        return (hash(self.strictness) ^ hash(self.name) ^
+                hash(self.version) ^ hash(self.build))
+
 
 
 class Resolve(object):
@@ -21,7 +106,6 @@ class Resolve(object):
             return None
         matches = []
         for key, spec in d.iteritems():
-            add_Reqs_to_spec(spec)
             if req.matches(spec):
                 matches.append(key)
         if not matches:

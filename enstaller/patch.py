@@ -5,7 +5,7 @@ import string
 from os.path import abspath, getsize, getmtime, isdir, isfile, join
 
 from utils import comparable_version, info_file
-from enstaller.indexed_repo import dist_naming
+from egg_meta import is_valid_eggname, split_eggname
 try:
     import zdiff
 except ImportError:
@@ -24,13 +24,13 @@ def update_patches(eggs_dir, patches_dir, verbose=False):
 
     def calculate_all_patches():
         egg_names = [fn for fn in os.listdir(eggs_dir)
-                     if dist_naming.is_valid_eggname(fn)]
-        names = set(dist_naming.split_eggname(egg_name)[0]
+                     if is_valid_eggname(fn)]
+        names = set(split_eggname(egg_name)[0]
                     for egg_name in egg_names)
         for name in sorted(names, key=string.lower):
             versions = []
             for egg_name in egg_names:
-                n, v, b = dist_naming.split_eggname(egg_name)
+                n, v, b = split_eggname(egg_name)
                 if n != name:
                     continue
                 versions.append((v, b))

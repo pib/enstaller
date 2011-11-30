@@ -5,10 +5,10 @@ from os.path import abspath, dirname, join
 from enstaller.repo.indexed import IndexedRepo
 from enstaller.repo.chained import ChainedRepo
 
-from enstaller.resolve import Resolve
-import enstaller.indexed_repo.metadata as metadata
-import enstaller.indexed_repo.requirement as requirement
-from enstaller.indexed_repo.requirement import Req
+from enstaller import resolve
+from enstaller.resolve import Resolve, Req
+from enstaller.indexed_repo.metadata import parse_depend_index
+
 
 this_dir = abspath(dirname(__file__))
 
@@ -21,7 +21,7 @@ class DummyRepo(IndexedRepo):
 
     def connect(self, auth=None):
         index_data = open(self.index_path).read()
-        self._index = metadata.parse_depend_index(index_data)
+        self._index = parse_depend_index(index_data)
         for spec in self._index.itervalues():
             spec['name'] = spec['name'].lower()
         self._groups = defaultdict(list)
@@ -45,7 +45,7 @@ class TestChain0(unittest.TestCase):
     c = Resolve(r)
 
     def test_25(self):
-        requirement.PY_VER = '2.5'
+        resolve.PY_VER = '2.5'
         self.assertEqual(eggs_rs(self.c, 'SciPy 0.8.0.dev5698'),
                          ['freetype-2.3.7-1.egg', 'libjpeg-7.0-1.egg',
                           'numpy-1.3.0-1.egg', 'PIL-1.1.6-4.egg',
@@ -59,7 +59,7 @@ class TestChain0(unittest.TestCase):
                           'scipy-0.8.0-1.egg', 'EPDCore-1.2.5-1.egg'])
 
     def test_26(self):
-        requirement.PY_VER = '2.6'
+        resolve.PY_VER = '2.6'
 
         self.assertEqual(eggs_rs(self.c, 'SciPy'),
                          ['numpy-1.3.0-2.egg', 'scipy-0.8.0-2.egg'])
@@ -88,7 +88,7 @@ class TestChain1(unittest.TestCase):
                                  repo_name)
 
     def test_get_dist(self):
-        requirement.PY_VER = '2.7'
+        resolve.PY_VER = '2.7'
         for req_string, repo_name, egg in [
             ('MySQL_python',  'gpl', 'MySQL_python-1.2.3-2.egg'),
             ('numpy',         'epd', 'numpy-1.6.0-3.egg'),

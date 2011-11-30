@@ -164,33 +164,3 @@ def get_installed_info(prefix, cname):
         execfile(meta2_txt, d)
         res['repo'] = shorten_repo(d['repo'])
     return res
-
-
-def get_info():
-    """
-    returns a dict mapping canonical project names to spec structures
-    containing additional meta-data of the project which is not contained
-    in the index-depend data
-    """
-    from indexed_repo.metadata import parse_index
-    import config
-
-    url = config.get('info_url')
-    faux = StringIO()
-    #write_data_from_url(faux, url)
-    index_data = faux.getvalue()
-    faux.close()
-
-    if url.endswith('.bz2'):
-        index_data = bz2.decompress(index_data)
-
-    res = {}
-    for name, data in parse_index(index_data).iteritems():
-        d = {}
-        exec data.replace('\r', '') in d
-        cname = canonical(name)
-        res[cname] = {}
-        for var_name in ('name', 'homepage', 'doclink', 'license',
-                         'summary', 'description'):
-            res[cname][var_name] = d[var_name]
-    return res

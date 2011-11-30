@@ -1,10 +1,41 @@
+import re
 import os
 import json
+import zipfile
 from os.path import getmtime, isfile, join
 
-from enstaller.indexed_repo.dist_naming import is_valid_eggname
-from enstaller.indexed_repo.metadata import spec_from_dist
 from utils import info_file
+
+
+egg_pat = re.compile(r'([\w.]+)-([\w.]+)-(\d+)?\.egg$')
+
+def is_valid_eggname(eggname):
+    return bool(egg_pat.match(eggname))
+
+def split_eggname(eggname):
+    m = egg_pat.match(eggname)
+    assert m, eggname
+    return m.group(1), m.group(2), int(m.group(3))
+
+
+def info_from_egg(path):
+    arcname = 'EGG-INFO/spec/depend'
+    z = zipfile.ZipFile(path)
+    if arcname not in z.namelist():
+        z.close()
+        raise KeyError("arcname=%r not in zip-file %s" % (arcname, path))
+    data = z.read(arcname)
+    z.close()
+
+    spec = {}
+    exec data.replace('\r', '') in spec
+    spec['name'] = spec['name'].lower()
+    var_names = ['name', 'version', 'build',
+                 'arch', 'platform', 'osdist', 'python', 'packages']
+    res = dict(type='egg')
+    for name in var_names:
+        res[name] = spec[name]
+    return res
 
 
 def update_index(dir_path, force=False, verbose=False):
@@ -24,9 +55,7 @@ def update_index(dir_path, force=False, verbose=False):
             new_index[fn] = info
             continue
         info = info_file(path)
-        info.update(spec_from_dist(path))
-        info['name'] = info['name'].lower()
-        info['type'] = 'egg'
+        info.update(info_from_egg(path))
         new_index[fn] = info
 
     patches_index_path = join(dir_path, 'patches', 'index.json')

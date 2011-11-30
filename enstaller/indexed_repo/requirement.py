@@ -37,7 +37,7 @@ class Req(object):
         (self).  That is, the canonical name must match, and the version
         must be in the list of required versions.
         """
-        assert spec['metadata_version'] >= '1.1', spec
+        #assert spec['metadata_version'] >= '1.1', spec
         if spec['python'] not in (None, PY_VER):
             return False
         if self.strictness == 0:
