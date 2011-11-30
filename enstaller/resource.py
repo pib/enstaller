@@ -31,7 +31,8 @@ class Resource(object):
         Try to create 'egg' by patching an already existing egg, returns
         True on success and False on failure, i.e. when either:
             - bsdiff4 is not installed
-            - no patches can be applied (because the source is missing)
+            - no patches can be applied because: (i) there are no relevant
+              patches in the repo (ii) a source egg is missing
         """
         try:
             import enstaller.zdiff as zdiff
@@ -101,7 +102,7 @@ if __name__ == '__main__':
     from repo.chained import ChainedRepo
 
     r1 = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
-                     LocalIndexedRepo('/Users/ischnell/repo2')])
+                      LocalIndexedRepo('/Users/ischnell/repo2')])
 #    r1 = LocalIndexedRepo('/Users/ischnell/repo/')
     r1.connect()
     x = Resource(r1, verbose=1)
