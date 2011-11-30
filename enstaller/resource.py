@@ -1,11 +1,11 @@
 import os
 import sys
-from os.path import dirname, isdir, isfile, join
-
-from plat import custom_plat
+from os.path import isdir, isfile, join
 
 import egginst
-from egginst.utils import pprint_fn_action, console_progress, rm_rf
+from egginst.utils import pprint_fn_action, console_progress
+
+from plat import custom_plat
 from utils import stream_to_file, md5_file
 
 

@@ -1,17 +1,13 @@
-import bz2
 import os
 import re
 import sys
 import time
 import hashlib
-import logging
-from cStringIO import StringIO
 from os.path import abspath, expanduser, getmtime, getsize, isfile, join
 
 from egginst import name_version_fn
 from enstaller.verlib import NormalizedVersion, IrrationalVersionError
 
-logger = logging.getLogger(__name__)
 
 PY_VER = '%i.%i' % sys.version_info[:2]
 
