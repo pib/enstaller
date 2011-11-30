@@ -26,7 +26,15 @@ def update_index(dir_path, force=False, verbose=False):
         info = info_file(path)
         info.update(spec_from_dist(path))
         info['name'] = info['name'].lower()
+        info['type'] = 'egg'
         new_index[fn] = info
+
+    patches_index_path = join(dir_path, 'patches', 'index.json')
+    if isfile(patches_index_path):
+        patch_index = json.load(open(patches_index_path))
+        for info in patch_index.itervalues():
+            info['type'] = 'patch'
+        new_index.update(patch_index)
 
     with open(index_path, 'w') as f:
         json.dump(new_index, f, indent=2, sort_keys=True)

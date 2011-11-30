@@ -16,7 +16,7 @@ class Resolve(object):
         return the egg with the largest version and build number
         """
         assert req.strictness >= 1
-        d = dict(self.repo.query(name=req.name))
+        d = dict(self.repo.query(type='egg', name=req.name))
         if not d:
             return None
         matches = []

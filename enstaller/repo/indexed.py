@@ -27,6 +27,12 @@ class IndexedRepo(AbstractRepo):
             except KeyError:
                 pass
 
+    def _location(self, key):
+        rt = self.root.rstrip('/') + '/'
+        if key.endswith('.zdiff'):
+            return rt + 'patches/' + key
+        return rt + key
+
     def get_metadata(self, key, default=None):
         try:
             return self._index[key]
@@ -57,14 +63,11 @@ class IndexedRepo(AbstractRepo):
 class LocalIndexedRepo(IndexedRepo):
 
     def __init__(self, root_dir):
-        self.root_dir = root_dir
-
-    def info(self):
-        return dict(location=self.root_dir)
+        self.root = root_dir
 
     def get(self, key, default=None):
         try:
-            return open(join(self.root_dir, key), 'rb')
+            return open(self._location(key), 'rb')
         except IOError as e:
             sys.stderr.write("%s\n" % e)
             return default
@@ -73,13 +76,10 @@ class LocalIndexedRepo(IndexedRepo):
 class RemoteHTTPIndexedRepo(IndexedRepo):
 
     def __init__(self, url):
-        self.root_url = url
-
-    def info(self):
-        return dict(location=self.root_url)
+        self.root = url
 
     def get(self, key, default=None):
-        url = self.root_url + key
+        url = self._location(key)
         scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
         auth, host = urllib2.splituser(netloc)
         if auth:

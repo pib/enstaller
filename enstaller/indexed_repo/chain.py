@@ -82,7 +82,7 @@ class Chain(object):
             new_index = metadata.parse_depend_index(index_data)
 
         else:
-            new_index = dict(self.connect(repo).query())
+            new_index = dict(self.connect(repo).query(type='egg'))
 
         for spec in new_index.itervalues():
             add_Reqs_to_spec(spec)
@@ -322,48 +322,6 @@ class Chain(object):
             return list(versions)
 
 
-    def patch_dist(self, dist, fetch_dir):
-        """
-        Try to create 'dist' by patching an already existing egg, returns
-        True on success and False on failure, i.e. when either:
-            - bsdiff4 is not installed
-            - no patches can be applied (because the source is missing)
-        """
-        try:
-            import enstaller.zdiff as zdiff
-        except ImportError:
-            if self.verbose:
-                print "Warning: could not import bsdiff4, cannot patch"
-            return False
-
-        repo, fn = dist_naming.split_dist(dist)
-        r = self.connect(repo + 'patches/')
-        #print dict(r.query(dst=fn))
-
-        possible = []
-        for patch_fn, info in r.query(dst=fn):
-            assert info['dst'] == fn
-            src_path = join(fetch_dir, info['src'])
-            #print '%8d %s %s' % (info['size'], patch_fn, isfile(src_path))
-            if isfile(src_path):
-                possible.append((info['size'], patch_fn, info))
-
-        if not possible:
-            return False
-        size, patch_fn, info = min(possible)
-
-        self.action_callback(patch_fn, 'fetching')
-        patch_path = join(fetch_dir, patch_fn)
-        stream_to_file(r.get(patch_fn), patch_path,
-                       info, self.progress_callback)
-
-        self.action_callback(info['src'], 'patching')
-        zdiff.patch(join(fetch_dir, info['src']),
-                    join(fetch_dir, fn), patch_path,
-                    self.progress_callback)
-        return True
-
-
     def fetch_dist(self, dist, fetch_dir, force=False, dry_run=False):
         """
         Get a distribution, i.e. copy or download the distribution into
@@ -380,10 +338,6 @@ class Chain(object):
         if isfile(path) and (not force or md5_file(path) == info.get('md5')):
             if self.verbose:
                 print "Not forcing refetch, %r already matches MD5" % path
-            return
-
-        if (not force and info.get('patchable') and
-                  self.patch_dist(dist, fetch_dir)):
             return
 
         self.action_callback(fn, 'fetching')
