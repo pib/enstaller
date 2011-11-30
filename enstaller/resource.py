@@ -1,10 +1,11 @@
 import os
 import sys
-from os.path import dirname, isfile, join
+from os.path import dirname, isdir, isfile, join
 
 from plat import custom_plat
 
-from egginst.utils import pprint_fn_action, console_progress
+import egginst
+from egginst.utils import pprint_fn_action, console_progress, rm_rf
 from utils import stream_to_file, md5_file
 
 
@@ -22,9 +23,34 @@ class Resource(object):
         self.action_callback = pprint_fn_action
 
         self.fetch_dir = join(prefix, 'LOCAL-REPO')
+        self.pkgs_dir = join(prefix, 'pkgs')
 
     def launch_app(self, egg):
         pass
+
+    def install(self, egg, force=False, hook=True):
+        if not force and hook and isfile(self.registry_path_egg(egg)):
+            if self.verbose:
+                print "Allready installed:", egg
+            return
+        egg_path = join(self.fetch_dir, egg)
+        if not isfile(egg_path):
+            self.fetch_egg(egg, force)
+        self.action_callback(egg, 'installing')
+        ei = egginst.EggInst(egg_path, prefix=self.prefix, hook=hook,
+                             pkgs_dir=self.pkgs_dir, verbose=self.verbose)
+        ei.progress_callback = self.progress_callback
+        ei.install()
+
+    def remove(self, egg, hook=True):
+        if hook:
+            rm_rf(versioned_dir_egg)
+
+    def registry_path_egg(self, egg):
+        return join(self.versioned_dir_egg(egg), 'EGG-INFO', 'registry.txt')
+
+    def versioned_dir_egg(self, egg):
+        return join(self.pkgs_dir, egg[:-4])
 
     def patch_egg(self, egg):
         """
@@ -73,6 +99,8 @@ class Resource(object):
         self.fetch_dir.
         force: force download or copy if MD5 mismatches
         """
+        if not isdir(self.fetch_dir):
+            os.makedirs(self.fetch_dir)
         info = self.repo.get_metadata(egg)
         path = join(self.fetch_dir, egg)
 
@@ -97,21 +125,14 @@ class Resource(object):
                        self.progress_callback)
 
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
     from repo.indexed import LocalIndexedRepo
     from repo.chained import ChainedRepo
 
-    r1 = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
-                      LocalIndexedRepo('/Users/ischnell/repo2')])
-#    r1 = LocalIndexedRepo('/Users/ischnell/repo/')
-    r1.connect()
-    x = Resource(r1, verbose=1)
-    x.fetch_dir = '/Users/ischnell/foo/z'
-    try:
-        os.unlink(join(x.fetch_dir, 'nose-1.1.2-1.egg'))
-    except OSError:
-        pass
-    x.fetch_egg('nose-1.0.0-1.egg', 0)
-    x.fetch_egg('nose-1.1.2-1.egg', 0)
-    #x.fetch_egg('Qt-4.7.2-2.egg', 1)
-    #x.fetch_egg('Qt-4.7.3-1.egg', 0)
+    r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
+                     LocalIndexedRepo('/Users/ischnell/repo2')])
+    #r = LocalIndexedRepo('/Users/ischnell/repo/')
+    r.connect()
+    x = Resource(r, prefix='/Users/ischnell/jpm/Python-2.7.2-1',
+                 verbose=1)
+    x.install('enstaller-4.5.0-1.egg')

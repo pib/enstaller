@@ -51,6 +51,9 @@ class EggInst(object):
 
         self.bin_dir = join(self.prefix, bin_dir_name)
 
+        if self.prefix != abspath(sys.prefix):
+            scripts.set_executable(self.prefix)
+
         if self.hook:
             if pkgs_dir:
                 self.pkgs_dir = abspath(pkgs_dir)

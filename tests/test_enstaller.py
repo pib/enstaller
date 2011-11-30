@@ -3,7 +3,8 @@ import os
 from os.path import dirname, isfile, join
 from unittest import TestCase
 
-from enstaller import Enstaller, config
+from enstaller.main import Enstaller
+from enstaller import config
 from enstaller.indexed_repo.chain import Chain
 
 

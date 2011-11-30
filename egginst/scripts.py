@@ -3,12 +3,24 @@ import sys
 import re
 from os.path import abspath, basename, join, isdir, isfile, islink
 
-from egginst.utils import on_win, rm_rf
+from egginst.utils import on_win, rm_rf, bin_dir_name
 
 
 verbose = False
 executable = sys.executable
 hashbang_pat = re.compile(r'#!.+$', re.M)
+
+
+def set_executable(prefix):
+    global executable
+    if on_win:
+        executable = join(prefix, 'python.exe')
+    else:
+        from subprocess import Popen, PIPE
+        cmd = [join(prefix, bin_dir_name, 'python'), '-c',
+               'import sys;print sys.executable']
+        p = Popen(cmd, stdout=PIPE)
+        executable = p.communicate()[0].strip()
 
 
 def write_exe(dst, script_type='console_scripts'):
