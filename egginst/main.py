@@ -324,6 +324,13 @@ def get_installed(prefix=sys.prefix):
         meta_json = join(egg_info_dir, cname, '__egginst__.json')
         if isfile(meta_json):
             yield json.load(open(meta_json))['egg_name']
+        else:
+            # for backwards compatibility
+            meta_txt = join(egg_info_dir, cname, '__egginst__.txt')
+            if isfile(meta_txt):
+                d = {}
+                execfile(meta_txt, d)
+                yield d['egg_name']
 
 
 def print_installed(prefix=sys.prefix):
