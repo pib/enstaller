@@ -21,7 +21,9 @@ def info_from_install(meta_dir):
     if isfile(path):
         res['app'] = True
         res.update(json.load(open(path)).iteritems())
-    return res
+
+    path = join(meta_dir, '__egginst__.json')
+    return json.load(open(path))['egg_name'], res
 
 
 class Resource(object):
@@ -41,8 +43,7 @@ class Resource(object):
 
     def get_installed_apps(self):
         for p in glob(join(self.pkgs_dir, '*', 'EGG-INFO', 'app.json')):
-            meta_dir = dirname(p)
-            yield basename(dirname(meta_dir)), info_from_install(meta_dir)
+            yield info_from_install(dirname(p))
 
     def launch_app(self, egg):
         pass

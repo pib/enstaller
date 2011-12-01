@@ -80,7 +80,7 @@ def update_index(eggs_dir, patches_dir, force=False):
     if force or not isfile(index_path):
         index = {}
     else:
-        index = json.load(open(index_path, 'r'))
+        index = json.load(open(index_path))
 
     new_index = {}
     for patch_fn in os.listdir(patches_dir):

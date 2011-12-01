@@ -10,6 +10,7 @@ eggs and it installs/uninstalls them.
 import os
 import sys
 import re
+import json
 import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile
@@ -69,7 +70,7 @@ class EggInst(object):
             self.egginfo_dir = join(self.prefix, 'EGG-INFO')
             self.meta_dir = join(self.egginfo_dir, self.cname)
 
-        self.meta_txt = join(self.meta_dir, '__egginst__.txt')
+        self.meta_json = join(self.meta_dir, '__egginst__.json')
         self.files = []
         self.verbose = verbose
 
@@ -131,26 +132,22 @@ class EggInst(object):
 
 
     def write_meta(self):
-        fo = open(self.meta_txt, 'w')
-        fo.write('# egginst metadata\n')
-        fo.write('egg_name = %r\n' % basename(self.fpath))
-        fo.write('prefix = %r\n' % self.prefix)
-        fo.write('installed_size = %i\n' % self.installed_size)
-        fo.write('rel_files = [\n')
-        for p in self.files + [self.meta_txt]:
-            if abspath(p).startswith(self.prefix):
-                fo.write('  %r,\n' % self.rel_prefix(p))
-            else:
-                fo.write('  %r,\n' % p)
-        fo.write(']\n')
-        fo.close()
+        d = dict(
+            egg_name = basename(self.fpath),
+            prefix = self.prefix,
+            installed_size = self.installed_size,
+            files = [self.rel_prefix(p)
+                           if abspath(p).startswith(self.prefix) else p
+                     for p in self.files + [self.meta_json]]
+        )
+        with open(self.meta_json, 'w') as f:
+            json.dump(d, f, indent=2, sort_keys=True)
 
     def read_meta(self):
-        d = {'installed_size': -1}
-        execfile(self.meta_txt, d)
-        for name in ['egg_name', 'prefix', 'installed_size', 'rel_files']:
+        d = json.load(open(self.meta_json))
+        for name in 'prefix', 'installed_size':
             setattr(self, name, d[name])
-        self.files = [join(self.prefix, f) for f in d['rel_files']]
+        self.files = [join(self.prefix, f) for f in d['files']]
 
 
     def lines_from_arcname(self, arcname,
@@ -324,12 +321,9 @@ def get_installed(prefix=sys.prefix):
     """
     egg_info_dir = join(prefix, 'EGG-INFO')
     for cname in get_installed_cnames(prefix):
-        meta_txt = join(egg_info_dir, cname, '__egginst__.txt')
-        if not isfile(meta_txt):
-            continue
-        d = {}
-        execfile(meta_txt, d)
-        yield d['egg_name']
+        meta_json = join(egg_info_dir, cname, '__egginst__.json')
+        if isfile(meta_json):
+            yield json.load(open(meta_json))['egg_name']
 
 
 def print_installed(prefix=sys.prefix):
