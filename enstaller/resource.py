@@ -47,26 +47,27 @@ class Resource(object):
             yield info_from_install(dirname(p))
 
     def launch_app(self, egg):
-        pass
+        info = info_from_install(join(self.pkgs_dir, egg[:-4], 'EGG-INFO'))
+        print info
 
-    def install_app(self, egg):
-        self.install_recur(egg, hook=True)
+    def install_app(self, egg, force=False):
+        self.install_recur(egg, True, force)
 
-    def install_recur(self, egg, hook):
+    def install_recur(self, egg, hook, force=False):
         info = self.repo.get_metadata(egg)
         # todo handle python version
         resolver = resolve.Resolve(self.repo, self.verbose)
         req = resolve.Req('%(name)s %(version)s-%(build)d' % info)
         for e in resolver.install_sequence(req):
-            self.install(e, hook)
+            self.install(e, hook, force)
 
-    def install(self, egg, force=False, hook=True):
+    def install(self, egg, hook, force=False):
         if not force and hook and isfile(self.registry_path_egg(egg)):
             if self.verbose:
                 print "Already installed:", egg
             return
         egg_path = join(self.fetch_dir, egg)
-        if not isfile(egg_path):
+        if force or not isfile(egg_path):
             self.fetch_egg(egg, force)
         self.action_callback(egg, 'installing')
         ei = egginst.EggInst(egg_path, prefix=self.prefix, hook=hook,
@@ -74,12 +75,28 @@ class Resource(object):
         ei.progress_callback = self.progress_callback
         ei.install()
 
-    def remove(self, egg, hook=True):
+    def remove(self, egg, hook):
         self.action_callback(egg, 'removing')
         ei = egginst.EggInst(egg, prefix=self.prefix, hook=hook,
                              pkgs_dir=self.pkgs_dir, verbose=self.verbose)
         ei.progress_callback = self.progress_callback
         ei.remove()
+
+    def parse_registry_files(self, eggs):
+        pth = []
+        registry = {}
+        for egg in eggs:
+            for line in open(self.registry_path_egg(egg)):
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                k, v = line.split(None, 1)
+                if k == '-pth-':
+                    if v not in pth:
+                        pth.append(v)
+                else:
+                    registry[k] = v
+        return pth, registry
 
     def registry_path_egg(self, egg):
         return join(self.versioned_dir_egg(egg), 'EGG-INFO', 'registry.txt')
@@ -164,15 +181,15 @@ if __name__ == '__main__':
     from repo.indexed import LocalIndexedRepo
     from repo.chained import ChainedRepo
 
-    r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
-                     LocalIndexedRepo('/Users/ischnell/repo2')])
-    #r = LocalIndexedRepo('/home/ischnell/eggs/')
+    #r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
+    #                 LocalIndexedRepo('/Users/ischnell/repo2')])
+    r = LocalIndexedRepo('/home/ischnell/eggs/')
     r.connect()
-    x = Resource(r, prefix='/Users/ischnell/jpm/Python-2.7.2-1', verbose=1)
+    #x = Resource(r, prefix='/Users/ischnell/jpm/Python-2.7.2-1', verbose=1)
+    x = Resource(r, prefix='/home/ischnell/jpm/Python-2.7', verbose=1)
     #x.install('enstaller-4.5.0-1.egg')
     #x.remove('enstaller-4.5.0-1.egg')
-    x.install('nose-1.1.2-1.egg', force=1)
-    #for x in r.query(app=True):
-    #    print x
-    for d in x.get_installed_apps():
-        print d
+    x.install('nose-1.1.2-1.egg', 1, force=1)
+    #for d in x.get_installed_apps():
+    #    print d
+    x.launch_app('nose-1.1.2-1.egg')
