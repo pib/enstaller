@@ -50,13 +50,13 @@ class IndexedRepo(AbstractRepo):
         name = kwargs.get('name')
         if name is None:
             for key, info in self._index.iteritems():
-                if all(info.get(k) in (v, None) for k, v in kwargs.iteritems()):
+                if all(info.get(k) == v for k, v in kwargs.iteritems()):
                     yield key
         else:
             del kwargs['name']
             for key in self._groups[name]:
                 info = self._index[key]
-                if all(info.get(k) in (v, None) for k, v in kwargs.iteritems()):
+                if all(info.get(k) == v for k, v in kwargs.iteritems()):
                     yield key
 
 

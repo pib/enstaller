@@ -24,6 +24,7 @@ class DummyRepo(IndexedRepo):
         self._index = parse_depend_index(index_data)
         for spec in self._index.itervalues():
             spec['name'] = spec['name'].lower()
+            spec['type'] = 'egg'
         self._groups = defaultdict(list)
         for key, info in self._index.iteritems():
             self._groups[info['name']].append(key)

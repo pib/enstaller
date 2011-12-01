@@ -25,6 +25,9 @@ class Resource(object):
         self.fetch_dir = join(prefix, 'LOCAL-REPO')
         self.pkgs_dir = join(prefix, 'pkgs')
 
+    def list_apps(self):
+        pass
+
     def launch_app(self, egg):
         pass
 
@@ -132,11 +135,13 @@ if __name__ == '__main__':
     from repo.indexed import LocalIndexedRepo
     from repo.chained import ChainedRepo
 
-    r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
-                     LocalIndexedRepo('/Users/ischnell/repo2')])
-    #r = LocalIndexedRepo('/Users/ischnell/repo/')
+    #r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
+    #                 LocalIndexedRepo('/Users/ischnell/repo2')])
+    r = LocalIndexedRepo('/home/ischnell/eggs/')
     r.connect()
-    x = Resource(r, prefix='/Users/ischnell/jpm/Python-2.7.2-1',
-                 verbose=1)
-    x.install('enstaller-4.5.0-1.egg')
-    x.remove('enstaller-4.5.0-1.egg')
+    #x = Resource(r, prefix='/Users/ischnell/jpm/Python-2.7.2-1',
+    #             verbose=1)
+    #x.install('enstaller-4.5.0-1.egg')
+    #x.remove('enstaller-4.5.0-1.egg')
+    for x in r.query_keys(app=True):
+        print x
