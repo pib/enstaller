@@ -178,12 +178,12 @@ class Resource(object):
 
 
 if __name__ == '__main__':
-    from repo.indexed import LocalIndexedRepo
-    from repo.chained import ChainedRepo
+    from store.indexed import LocalIndexedStore
+    from store.joined import JoinedStore
 
-    #r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
-    #                 LocalIndexedRepo('/Users/ischnell/repo2')])
-    r = LocalIndexedRepo('/home/ischnell/eggs/')
+    #r = ChainedRepo([LocalIndexedStore('/Users/ischnell/repo'),
+    #                 LocalIndexedStore('/Users/ischnell/repo2')])
+    r = LocalIndexedStore('/home/ischnell/eggs/')
     r.connect()
     #x = Resource(r, prefix='/Users/ischnell/jpm/Python-2.7.2-1', verbose=1)
     x = Resource(r, prefix='/home/ischnell/jpm/Python-2.7', verbose=1)

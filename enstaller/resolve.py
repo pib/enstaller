@@ -265,12 +265,12 @@ class Resolve(object):
 
 
 if __name__ == '__main__':
-    from repo.indexed import LocalIndexedRepo
-    from repo.chained import ChainedRepo
+    from store.indexed import LocalIndexedStore
+    from store.joined import JoinedStore
 
-    #r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
-    #                 LocalIndexedRepo('/Users/ischnell/repo2')])
-    r = LocalIndexedRepo('/home/ischnell/eggs')
+    #r = JoinedStore([LocalIndexedStore('/Users/ischnell/repo'),
+    #                 LocalIndexedStore('/Users/ischnell/repo2')])
+    r = LocalIndexedStore('/home/ischnell/eggs')
     r.connect()
     res = Resolve(r)
     print res.get_egg(Req('pyside'))

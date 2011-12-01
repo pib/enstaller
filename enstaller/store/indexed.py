@@ -8,7 +8,7 @@ from os.path import join
 from base import AbstractStore
 
 
-class IndexedRepo(AbstractStore):
+class IndexedStore(AbstractStore):
 
     def connect(self, userpass=None):
         self.userpass = userpass  # tuple(username, password)
@@ -63,7 +63,7 @@ class IndexedRepo(AbstractStore):
                     yield key
 
 
-class LocalIndexedRepo(IndexedRepo):
+class LocalIndexedStore(IndexedStore):
 
     def __init__(self, root_dir):
         self.root = root_dir
@@ -75,7 +75,7 @@ class LocalIndexedRepo(IndexedRepo):
             raise KeyError("%s\n" % e)
 
 
-class RemoteHTTPIndexedRepo(IndexedRepo):
+class RemoteHTTPIndexedStore(IndexedStore):
 
     def __init__(self, url):
         self.root = url

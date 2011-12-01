@@ -1,7 +1,7 @@
 from base import AbstractStore
 
 
-class ChainedRepo(AbstractStore):
+class JoinedStore(AbstractStore):
 
     def __init__(self, repos):
         self.repos = repos
@@ -54,7 +54,7 @@ class ChainedRepo(AbstractStore):
 if __name__ == '__main__':
     from indexed import LocalIndexedRepo
 
-    r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
+    r = JoinedStore([LocalIndexedRepo('/Users/ischnell/repo'),
                      LocalIndexedRepo('/Users/ischnell/repo2'),
                      ])
     r.connect()

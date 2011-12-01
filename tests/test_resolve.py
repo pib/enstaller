@@ -2,8 +2,8 @@ import unittest
 from collections import defaultdict
 from os.path import abspath, dirname, join
 
-from enstaller.repo.indexed import IndexedRepo
-from enstaller.repo.chained import ChainedRepo
+from enstaller.store.indexed import IndexedStore
+from enstaller.store.joined import JoinedStore
 
 from enstaller import resolve
 from enstaller.resolve import Resolve, Req
@@ -13,7 +13,7 @@ from enstaller.indexed_repo.metadata import parse_depend_index
 this_dir = abspath(dirname(__file__))
 
 
-class DummyRepo(IndexedRepo):
+class DummyStore(IndexedStore):
 
     def __init__(self, index_path, name=None):
         self.index_path = index_path
@@ -39,8 +39,8 @@ def eggs_rs(c, req_string):
 
 class TestChain0(unittest.TestCase):
 
-    r = ChainedRepo([
-           DummyRepo(join(this_dir, fn))
+    r = JoinedStore([
+           DummyStore(join(this_dir, fn))
            for fn in ['index-add.txt', 'index-5.1.txt', 'index-5.0.txt']])
     r.connect()
     c = Resolve(r)
@@ -71,8 +71,8 @@ class TestChain0(unittest.TestCase):
 
 class TestChain1(unittest.TestCase):
 
-    r = ChainedRepo([
-            DummyRepo(join(this_dir, name, 'index-7.1.txt'), name)
+    r = JoinedStore([
+            DummyStore(join(this_dir, name, 'index-7.1.txt'), name)
             for name in ('epd', 'gpl')])
     r.connect()
     c = Resolve(r)
@@ -132,8 +132,8 @@ class TestChain1(unittest.TestCase):
 
 class TestChain2(unittest.TestCase):
 
-    r = ChainedRepo([
-            DummyRepo(join(this_dir, name, 'index-7.1.txt'), name)
+    r = JoinedStore([
+            DummyStore(join(this_dir, name, 'index-7.1.txt'), name)
             for name in ('open', 'runner', 'epd')])
     r.connect()
     c = Resolve(r)

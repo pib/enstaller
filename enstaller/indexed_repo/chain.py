@@ -4,7 +4,7 @@ import zipfile
 from collections import defaultdict
 from os.path import basename, isfile, isdir, join
 
-from enstaller.repo.indexed import LocalIndexedRepo, RemoteHTTPIndexedRepo
+from enstaller.store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
 
 from egginst.utils import pprint_fn_action, console_progress
 from enstaller.utils import comparable_version, md5_file, stream_to_file
@@ -51,11 +51,11 @@ class Chain(object):
             return self.repo_objs[repo]
 
         if repo.startswith('file://'):
-            r = LocalIndexedRepo(repo[7:])
+            r = LocalIndexedStore(repo[7:])
             r.connect()
 
         elif repo.startswith(('http://', 'https://')):
-            r = RemoteHTTPIndexedRepo(repo)
+            r = RemoteHTTPIndexedStore(repo)
             if repo.startswith('https://'):
                 r.connect(userpass=('EPDUser', 'Epd789'))
             else:
