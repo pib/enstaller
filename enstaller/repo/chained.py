@@ -1,7 +1,7 @@
-from base import AbstractRepo
+from base import AbstractStore
 
 
-class ChainedRepo(AbstractRepo):
+class ChainedRepo(AbstractStore):
 
     def __init__(self, repos):
         self.repos = repos
@@ -10,23 +10,32 @@ class ChainedRepo(AbstractRepo):
         for repo in self.repos:
             repo.connect(auth)
 
+    def info(self):
+        pass
+
     def from_which_repo(self, key):
         for repo in self.repos:
             if repo.exists(key):
                 return repo
         return None
 
-    def get(self, key, default=None):
+    def get(self, key):
         for repo in self.repos:
             if repo.exists(key):
                 return repo.get(key)
-        return default
+        raise KeyError
+
+    def get_data(self, key):
+        for repo in self.repos:
+            if repo.exists(key):
+                return repo.get_data(key)
+        raise KeyError
 
     def get_metadata(self, key, default=None):
         for repo in self.repos:
             if repo.exists(key):
                 return repo.get_metadata(key)
-        return default
+        raise KeyError
 
     def exists(self, key):
         for repo in self.repos:

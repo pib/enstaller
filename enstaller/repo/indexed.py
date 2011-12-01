@@ -5,15 +5,15 @@ import urllib2
 from collections import defaultdict
 from os.path import join
 
-from base import AbstractRepo
+from base import AbstractStore
 
 
-class IndexedRepo(AbstractRepo):
+class IndexedRepo(AbstractStore):
 
     def connect(self, userpass=None):
         self.userpass = userpass  # tuple(username, password)
 
-        fp = self.get('index.json')
+        fp = self.get_data('index.json')
         if fp is None:
             raise Exception("Could not connect")
         self._index = json.load(fp)
@@ -27,17 +27,20 @@ class IndexedRepo(AbstractRepo):
             except KeyError:
                 pass
 
+    def info(self):
+        pass
+
     def _location(self, key):
         rt = self.root.rstrip('/') + '/'
         if key.endswith('.zdiff'):
             return rt + 'patches/' + key
         return rt + key
 
-    def get_metadata(self, key, default=None):
-        try:
-            return self._index[key]
-        except KeyError:
-            return default
+    def get(self, key):
+        return self.get_data(key), self.get_metadata(key)
+
+    def get_metadata(self, key):
+        return self._index[key]
 
     def exists(self, key):
         return key in self._index
@@ -65,12 +68,11 @@ class LocalIndexedRepo(IndexedRepo):
     def __init__(self, root_dir):
         self.root = root_dir
 
-    def get(self, key, default=None):
+    def get_data(self, key):
         try:
             return open(self._location(key), 'rb')
         except IOError as e:
-            sys.stderr.write("%s\n" % e)
-            return default
+            raise KeyError("%s\n" % e)
 
 
 class RemoteHTTPIndexedRepo(IndexedRepo):
@@ -78,7 +80,7 @@ class RemoteHTTPIndexedRepo(IndexedRepo):
     def __init__(self, url):
         self.root = url
 
-    def get(self, key, default=None):
+    def get_data(self, key):
         url = self._location(key)
         scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
         auth, host = urllib2.splituser(netloc)
@@ -99,5 +101,4 @@ class RemoteHTTPIndexedRepo(IndexedRepo):
         try:
             return urllib2.urlopen(request)
         except urllib2.HTTPError as e:
-            sys.stderr.write("%s: %r\n" % (e, url))
-            return default
+            raise KeyError("%s: %r\n" % (e, url))

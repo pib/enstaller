@@ -29,7 +29,7 @@ class DummyRepo(IndexedRepo):
         for key, info in self._index.iteritems():
             self._groups[info['name']].append(key)
 
-    def get(self, key):
+    def get_data(self, key):
         pass
 
 

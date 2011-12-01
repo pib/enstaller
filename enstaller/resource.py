@@ -136,7 +136,7 @@ class Resource(object):
 
         self.action_callback(patch_fn, 'fetching')
         patch_path = join(self.fetch_dir, patch_fn)
-        stream_to_file(self.repo.get(patch_fn), patch_path,
+        stream_to_file(self.repo.get_data(patch_fn), patch_path,
                        info, self.progress_callback)
 
         self.action_callback(info['src'], 'patching')
@@ -173,7 +173,7 @@ class Resource(object):
             return
 
         self.action_callback(egg, 'fetching')
-        stream_to_file(self.repo.get(egg), path, info,
+        stream_to_file(self.repo.get_data(egg), path, info,
                        self.progress_callback)
 
 
