@@ -10,6 +10,7 @@ from egginst.utils import pprint_fn_action, console_progress
 from plat import custom_plat
 from utils import stream_to_file, md5_file
 from egg_meta import parse_rawspec
+import resolve
 
 
 def info_from_install(meta_dir):
@@ -47,6 +48,17 @@ class Resource(object):
 
     def launch_app(self, egg):
         pass
+
+    def install_app(self, egg):
+        self.install_recur(egg, hook=True)
+
+    def install_recur(self, egg, hook):
+        info = self.repo.get_metadata(egg)
+        # todo handle python version
+        resolver = resolve.Resolve(self.repo, self.verbose)
+        req = resolve.Req('%(name)s %(version)s-%(build)d' % info)
+        for e in resolver.install_sequence(req):
+            self.install(e, hook)
 
     def install(self, egg, force=False, hook=True):
         if not force and hook and isfile(self.registry_path_egg(egg)):
