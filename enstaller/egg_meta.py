@@ -18,6 +18,16 @@ def split_eggname(eggname):
     return m.group(1), m.group(2), int(m.group(3))
 
 
+def parse_rawspec(data):
+    spec = {}
+    exec data.replace('\r', '') in spec
+    spec['name'] = spec['name'].lower()
+    res = {}
+    for k in ('name', 'version', 'build',
+              'arch', 'platform', 'osdist', 'python', 'packages'):
+        res[k] = spec[k]
+    return res
+
 def info_from_egg(path):
     res = dict(type='egg')
     z = zipfile.ZipFile(path)
@@ -25,19 +35,12 @@ def info_from_egg(path):
     if arcname not in z.namelist():
         z.close()
         raise KeyError("arcname=%r not in zip-file %s" % (arcname, path))
-    spec = {}
-    exec z.read(arcname).replace('\r', '') in spec
-    spec['name'] = spec['name'].lower()
-    for k in ('name', 'version', 'build',
-              'arch', 'platform', 'osdist', 'python', 'packages'):
-        res[k] = spec[k]
+    res.update(parse_rawspec(z.read(arcname)))
 
-    arcname = 'EGG-INFO/spec/app.json'
+    arcname = 'EGG-INFO/app.json'
     if arcname in z.namelist():
         res['app'] = True
-        for k, v in json.loads(z.read(arcname)).iteritems():
-            res['app_' + k] = v
-
+        res.update(json.loads(z.read(arcname)).iteritems())
     z.close()
     return res
 

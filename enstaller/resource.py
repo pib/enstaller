@@ -1,13 +1,27 @@
 import os
 import sys
-from os.path import isdir, isfile, join
+import json
+from glob import glob
+from os.path import basename, dirname, isdir, isfile, join
 
 import egginst
 from egginst.utils import pprint_fn_action, console_progress
 
 from plat import custom_plat
 from utils import stream_to_file, md5_file
+from egg_meta import parse_rawspec
 
+
+def info_from_install(meta_dir):
+    res = dict(type='egg')
+    path = join(meta_dir, 'spec', 'depend')
+    res.update(parse_rawspec(open(path).read()))
+
+    path = join(meta_dir, 'app.json')
+    if isfile(path):
+        res['app'] = True
+        res.update(json.load(open(path)).iteritems())
+    return res
 
 
 class Resource(object):
@@ -25,8 +39,10 @@ class Resource(object):
         self.fetch_dir = join(prefix, 'LOCAL-REPO')
         self.pkgs_dir = join(prefix, 'pkgs')
 
-    def list_apps(self):
-        pass
+    def get_installed_apps(self):
+        for p in glob(join(self.pkgs_dir, '*', 'EGG-INFO', 'app.json')):
+            meta_dir = dirname(p)
+            yield basename(dirname(meta_dir)), info_from_install(meta_dir)
 
     def launch_app(self, egg):
         pass
@@ -135,13 +151,15 @@ if __name__ == '__main__':
     from repo.indexed import LocalIndexedRepo
     from repo.chained import ChainedRepo
 
-    #r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
-    #                 LocalIndexedRepo('/Users/ischnell/repo2')])
-    r = LocalIndexedRepo('/home/ischnell/eggs/')
+    r = ChainedRepo([LocalIndexedRepo('/Users/ischnell/repo'),
+                     LocalIndexedRepo('/Users/ischnell/repo2')])
+    #r = LocalIndexedRepo('/home/ischnell/eggs/')
     r.connect()
-    #x = Resource(r, prefix='/Users/ischnell/jpm/Python-2.7.2-1',
-    #             verbose=1)
+    x = Resource(r, prefix='/Users/ischnell/jpm/Python-2.7.2-1', verbose=1)
     #x.install('enstaller-4.5.0-1.egg')
     #x.remove('enstaller-4.5.0-1.egg')
-    for x in r.query_keys(app=True):
-        print x
+    x.install('nose-1.1.2-1.egg', force=1)
+    #for x in r.query(app=True):
+    #    print x
+    for d in x.get_installed_apps():
+        print d
