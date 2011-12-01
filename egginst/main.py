@@ -144,7 +144,15 @@ class EggInst(object):
             json.dump(d, f, indent=2, sort_keys=True)
 
     def read_meta(self):
-        d = json.load(open(self.meta_json))
+        if isfile(self.meta_json):
+            d = json.load(open(self.meta_json))
+        else:
+            # for backwards compatibility
+            meta_txt = self.meta_json[:-4] + 'txt'
+            d = {}
+            execfile(meta_txt, d)
+            d['files'] = d['rel_files']
+
         for name in 'prefix', 'installed_size':
             setattr(self, name, d[name])
         self.files = [join(self.prefix, f) for f in d['files']]

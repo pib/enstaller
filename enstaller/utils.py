@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import json
 import time
 import hashlib
 from os.path import abspath, expanduser, getmtime, getsize, isfile, join
@@ -138,16 +139,20 @@ def get_installed_info(prefix, cname):
     canonical name found in prefix, or None if the package is not found
     """
     meta_dir = join(prefix, 'EGG-INFO', cname)
+    meta_json = join(meta_dir, '__egginst__.json')
     meta_txt = join(meta_dir, '__egginst__.txt')
-    if not isfile(meta_txt):
+    if isfile(meta_json):
+        d = json.load(open(meta_json))
+    elif isfile(meta_txt):
+        d = {}
+        execfile(meta_txt, d)
+    else:
         return None
 
-    d = {}
-    execfile(meta_txt, d)
     res = {}
     res['egg_name'] = d['egg_name']
     res['name'], res['version'] = name_version_fn(d['egg_name'])
-    res['mtime'] = time.ctime(getmtime(meta_txt))
+    res['mtime'] = time.ctime(getmtime(meta_dir))
     res['meta_dir'] = meta_dir
 
     meta2_txt = join(meta_dir, '__enpkg__.txt')

@@ -48,30 +48,30 @@ We currently make no assumptions about the metadata keys, but we expect
 conventions to evolve for the meanings and format of particular keys.  Given
 that this is generally thought of as a repository for storing eggs, the
 following metadata keys are likely to be available:
-    
+
     type:
         The type of object being stored (package, app, patch, video, etc.).
-    
+
     name:
         The name of the object being stored.
-    
+
     version:
         The version of the object being stored.
-    
+
     arch:
         The architecture that the object being stored is for.
-    
+
     python:
         The version of Python that the object being stored is for.
-    
+
     ctime:
         The creation time of the object in the repository in seconds since
         the Unix Epoch.
-    
+
     mtime:
         The last modification time of the object in the repository in seconds
         since the Unix Epoch.
-    
+
     size:
         The size of the binary data in bytes.
 
@@ -89,7 +89,7 @@ same sort of file-like object.  This allows copying between repositories using
 code like::
 
     repo1.set(key, repo1.get(key))
-        
+
 Since files are likely to be common targets for extracting data from values, or
 sources for data being stored, the key-value store API provides utility methods
 to_file() and from_file().  Simple default implementations of these methods are
@@ -133,61 +133,61 @@ Determine the Single Points of Truth:
 
 from abc import ABCMeta, abstractmethod
 
-  
+
 
 class AbstractStore(object):
     """
-    
-    
+
+
     """
-    __metaclass__ = ABCMeta    
-    
+    __metaclass__ = ABCMeta
+
     @abstractmethod
     def connect(self, authentication=None):
         """ Connect to the key-value store, optionally with authentication
         """
         raise NotImplementedError
-    
+
 
     @abstractmethod
     def info(self):
         """ Get information about the key-value store
-        
+
         Returns
         -------
-        
+
         metadata : dict
             A dictionary of metadata giving information about the key-value store.
         """
         raise NotImplementedError
 
-        
+
     ##########################################################################
     # Basic Create/Read/Update/Delete Methods
     ##########################################################################
-    
+
     @abstractmethod
     def get(self, key):
         """ Retrieve a stream of data and metdata from a given key in the key-value store.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         Returns
         -------
-        
+
         (data, metadata) : tuple of file-like, dict
             A pair of objects, the first being a readable file-like object that
             provides stream of data from the key-value store.  The second is a
             dictionary of metadata for the key.
-        
+
         Raises
         ------
-        
+
         KeyError:
             If the key is not found in the store, a KeyError is raised.
 
@@ -197,44 +197,44 @@ class AbstractStore(object):
 
     def set(self, key, value, buffer_size=1048576):
         """ Store a stream of data into a given key in the key-value store.
-        
+
         This may be left unimplemented by subclasses that represent a read-only
         key-value store.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         value : tuple of file-like, dict
             A pair of objects, the first being a readable file-like object that
             provides stream of data from the key-value store.  The second is a
             dictionary of metadata for the key.
-           
+
         buffer_size : int
             An optional indicator of the number of bytes to read at a time.
             Implementations are free to ignore this hint or use a different
             default if they need to.  The default is 1048576 bytes (1 MiB).
-     
+
         """
         raise NotImplementedError
 
 
     def delete(self, key):
         """ Delete a key from the repsository.
-        
+
         This may be left unimplemented by subclasses that represent a read-only
         key-value store.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         """
         raise NotImplementedError
 
@@ -242,17 +242,17 @@ class AbstractStore(object):
     @abstractmethod
     def get_data(self, key):
         """ Retrieve a stream from a given key in the key-value store.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         Returns
         -------
-        
+
         data : file-like
             A readable file-like object the that provides stream of data from the
             key-value store.
@@ -264,182 +264,182 @@ class AbstractStore(object):
     @abstractmethod
     def get_metadata(self, key, select=None):
         """ Retrieve the metadata for a given key in the key-value store.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         select : iterable of strings or None
             Which metadata keys to populate in the result.  If unspecified, then
             return the entire metadata dictionary.
-        
+
         Returns
         -------
-        
+
         metadata : dict
             A dictionary of metadata associated with the key.  The dictionary
             has keys as specified by the select argument.  If a key specified in
             select is not present in the metadata, then it will not be present
             in the returned value.
-        
+
         Raises
         ------
-        
+
         KeyError:
             This will raise a key error if the key is not present in the store.
 
         """
         raise NotImplementedError
-            
+
 
     def set_data(self, key, data):
         """ Replace the data for a given key in the key-value store.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         data : file-like
             A readable file-like object the that provides stream of data from the
             key-value store.
 
         """
         raise NotImplementedError
-        
+
 
     def set_metadata(self, key, metadata):
         """ Set new metadata for a given key in the key-value store.
-        
+
         This replaces the existing metadata set for the key with a new set of
         metadata.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         metadata : dict
             A dictionary of metadata to associate with the key.  The dictionary
             keys should be strings which are valid Python identifiers.
 
         """
         raise NotImplementedError
-        
+
 
     def update_metadata(self, key, metadata):
         """ Update the metadata for a given key in the key-value store.
-        
+
         This performs a dictionary update on the existing metadata with the
         provided metadata keys and values
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         metadata : dict
             A dictionary of metadata to associate with the key.  The dictionary
             keys should be strings which are valid Python identifiers.
 
         """
         raise NotImplementedError
-            
-            
+
+
     @abstractmethod
     def exists(self, key):
         """ Test whether or not a key exists in the key-value store
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         Returns
         -------
-        
+
         exists : bool
             Whether or not the key exists in the key-value store.
-        
+
         """
         raise NotImplementedError
-        
-        
+
+
     ##########################################################################
     # Transaction Methods
     ##########################################################################
-        
+
     def transaction(self, notes):
         """ Provide a transaction context manager
-        
+
         Implementations which have no native notion of transactions may choose
         not to implement this.
-        
+
         This method provides a context manager which creates a data store
         transaction in its __enter__() method, and commits it in its __exit__()
         method if no errors occur.  Intended usage is::
-        
+
             with repo.transaction("Writing data..."):
                 # everything written in this block is part of the transaction
                 ...
-            
+
         If the block exits without error, the transaction commits, otherwise
         the transaction should roll back the state of the underlying data store
         to the start of the transaction.
-        
+
         Parameters
         ----------
-        
+
         notes : string
             Some information about the transaction, which may or may not be used
             by the implementation.
-        
+
         Returns
         -------
-        
+
         transaction : context manager
             A context manager for the transaction.
         """
         raise NotImplementedError
-        
+
     ##########################################################################
     # Querying Methods
     ##########################################################################
-        
+
     @abstractmethod
     def query(self, select=None, **kwargs):
         """ Query for keys and metadata matching metadata provided as keyword arguments
-        
+
         This provides a very simple querying interface that returns precise
         matches with the metadata.  If no arguments are supplied, the query
         will return the complete set of metadata for the key-value store.
-        
+
         Parameters
         ----------
-        
+
         select : iterable of strings or None
             An optional list of metadata keys to return.  If this is not None,
             then the metadata dictionaries will only have values for the specified
             keys populated.
-        
+
         **kwargs :
             Arguments where the keywords are metadata keys, and values are
             possible values for that metadata item.
 
         Returns
         -------
-        
+
         result : iterable
             An iterable of (key, metadata) tuples where metadata matches
             all the specified values for the specified metadata keywords.
@@ -448,56 +448,56 @@ class AbstractStore(object):
         """
         raise NotImplementedError
 
-        
+
     def query_keys(self, **kwargs):
         """ Query for keys matching metadata provided as keyword arguments
-        
+
         This provides a very simple querying interface that returns precise
         matches with the metadata.  If no arguments are supplied, the query
         will return the complete set of keys for the key-value store.
-        
+
         This is equivalent to self.query(**kwargs).keys(), but potentially
         more efficiently implemented.
-        
+
         Parameters
         ----------
-        
+
         **kwargs :
             Arguments where the keywords are metadata keys, and values are
             possible values for that metadata item.
 
         Returns
         -------
-        
+
         result : iterable
             An iterable of key-value store keys whose metadata matches all the
             specified values for the specified metadata keywords.
-        
+
         """
         return self.query(**kwargs).keys()
 
 
     def glob(self, pattern):
         """ Return keys which match glob-style patterns
-        
+
         Parameters
         ----------
-        
+
         pattern : string
             Glob-style pattern to match keys with.
 
         Returns
         -------
-        
+
         result : iterable
             A iterable of keys which match the glob pattern.
-        
+
         """
         import fnmatch
         for key in self.query_keys():
             if fnmatch.fnmatchcase(key, pattern):
                 yield key
-        
+
 
     ##########################################################################
     # Utility Methods
@@ -505,60 +505,60 @@ class AbstractStore(object):
 
     def to_file(self, key, path, buffer_size=1048576):
         """ Efficiently store the data associated with a key into a file.
-        
+
         This method can be optionally overriden by subclasses to proved a more
         efficient way of copy the data from the underlying data store to a path
         in the filesystem.  The default implementation uses the get() method
         together with chunked reads from the returned data stream to the disk.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         path : string
             A file system path to store the data to.
-        
+
         buffer_size : int
             An optional indicator of the number of bytes to read at a time.
             Implementations are free to ignore this hint or use a different
             default if they need to.  The default is 1048576 bytes (1 MiB).
-        
+
         """
         with open(path, 'wb') as fp:
             data = self.get_data(key)
             for buffer in buffer_iterator(data, buffer_size):
                 fp.write(buffer)
-                        
-        
+
+
     def from_file(self, key, path, buffer_size=1048576):
         """ Efficiently read data from a file into a key in the key-value store.
-        
+
         This method can be optionally overriden by subclasses to proved a more
         efficient way of copy the data from a path in the filesystem to the
         underlying data store.   The default implementation uses the set() method
         together with chunked reads from the disk which are fed into the data
         stream.
-        
+
         This makes no attempt to set metadata.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         path : string
             A file system path to read the data from.
-        
+
         buffer_size : int
             An optional indicator of the number of bytes to read at a time.
             Implementations are free to ignore this hint or use a different
             default if they need to.  The default is 1048576 bytes (1 MiB).
-        
+
         """
         with open(path, 'rb') as fp:
             self.set_data(key, fp, buffer_size=buffer_size)
@@ -566,57 +566,57 @@ class AbstractStore(object):
 
     def to_bytes(self, key, buffer_size=1048576):
         """ Efficiently store the data associated with a key into a bytes object.
-        
+
         This method can be optionally overriden by subclasses to proved a more
         efficient way of copy the data from the underlying data store to a bytes
         object.  The default implementation uses the get() method
         together with chunked reads from the returned data stream and join.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         buffer_size : int
             An optional indicator of the number of bytes to read at a time.
             Implementations are free to ignore this hint or use a different
             default if they need to.  The default is 1048576 bytes (1 MiB).
-        
+
         Returns
         -------
-        
+
         bytes :
             The contents of the file-like object as bytes.
-        
+
         """
         return b''.join(buffer_iterator(self.get_data(key), buffer_size))
 
 
     def from_bytes(self, key, data, buffer_size=1048576):
         """ Efficiently store a bytes object as the data associated with a key.
-        
+
         This method can be optionally overriden by subclasses to proved a more
         efficient way of copy the data from a bytes object to the underlying
         data store.  The default implementation uses the set() method
         together with a cStringIO.
-        
+
         Parameters
         ----------
-        
+
         key : string
             The key for the resource in the key-value store.  They key is a unique
             identifier for the resource within the key-value store.
-        
+
         data : bytes
             The data as a bytes object.
-        
+
         buffer_size : int
             An optional indicator of the number of bytes to read at a time.
             Implementations are free to ignore this hint or use a different
             default if they need to.  The default is 1048576 bytes (1 MiB).
-                
+
         """
         from cStringIO import StringIO
         self.set_data(key, StringIO(data), buffer_size)
