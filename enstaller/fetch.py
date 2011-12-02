@@ -1,5 +1,5 @@
 import os
-from os.path import isdir, isfile, join
+from os.path import isdir, isfile
 
 from egginst.utils import pprint_fn_action, console_progress
 
@@ -8,11 +8,19 @@ from store.local import LocalStore
 from utils import stream_to_file, md5_file
 
 
-class FetchStore(object):
+class MyLocalStore(LocalStore):
+
+    def set(self, key, value):
+        stream, info = value
+        stream_to_file(stream, self.path(key), info, console_progress)
+        self.set_metadata(key, info)
+
+
+class FetchAPI(object):
 
     def __init__(self, remote, local_dir):
         self.remote = remote
-        self.local = LocalStore(local_dir)
+        self.local = MyLocalStore(local_dir)
 
         self.action_callback = pprint_fn_action
         self.progress_callback = console_progress
@@ -49,10 +57,7 @@ class FetchStore(object):
         size, patch_fn, info = min(possible)
 
         self.action_callback(patch_fn, 'fetching')
-        #self.local.set(patch_fn, self.remote.get(patch_fn))
-        stream_to_file(self.remote.get_data(patch_fn),
-                       self.local.path(patch_fn),
-                       info, self.progress_callback)
+        self.local.set(patch_fn, self.remote.get(patch_fn))
 
         self.action_callback(info['src'], 'patching')
         zdiff.patch(self.local.path(info['src']),
@@ -89,10 +94,7 @@ class FetchStore(object):
             return
 
         self.action_callback(egg, 'fetching')
-        #self.local.set(egg, self.remote.get(egg))
-        stream_to_file(self.remote.get_data(egg), path, info,
-                       self.progress_callback)
-        self.local.set_metadata(egg, info)
+        self.local.set(egg, self.remote.get(egg))
 
 
 if __name__ == '__main__':
@@ -102,7 +104,7 @@ if __name__ == '__main__':
     rem = JoinedStore([LocalIndexedStore('/Users/ischnell/repo'),
                        LocalIndexedStore('/Users/ischnell/repo2')])
     rem.connect()
-    x = FetchStore(rem, '/Users/ischnell/jpm/repo')
+    x = FetchAPI(rem, '/Users/ischnell/jpm/repo')
     x.verbose = True
     x.fetch_egg('nose-1.0.0-1.egg')
     x.fetch_egg('nose-1.1.2-1.egg')
