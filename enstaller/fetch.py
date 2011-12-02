@@ -1,31 +1,28 @@
 import os
-from os.path import isdir, isfile
+from os.path import isdir, isfile, join
 
 from egginst.utils import pprint_fn_action, console_progress
 
-from store.local import LocalStore
-
 from utils import stream_to_file, md5_file
-
-
-class MyLocalStore(LocalStore):
-
-    def set(self, key, value):
-        stream, info = value
-        stream_to_file(stream, self.path(key), info, console_progress)
-        self.set_metadata(key, info)
 
 
 class FetchAPI(object):
 
     def __init__(self, remote, local_dir):
         self.remote = remote
-        self.local = MyLocalStore(local_dir)
-        self.local.connect()
+        self.local_dir = local_dir
 
         self.action_callback = pprint_fn_action
         self.progress_callback = console_progress
         self.verbose = False
+
+    def path(self, fn):
+        return join(self.local_dir, fn)
+
+    def fetch(self, key):
+        self.action_callback(key, 'fetching')
+        stream, info = self.remote.get(key)
+        stream_to_file(stream, self.path(key), info, console_progress)
 
     def patch_egg(self, egg):
         """
@@ -47,7 +44,7 @@ class FetchAPI(object):
         for patch_fn, info in self.remote.query(type='patch', name=name,
                                                 dst=egg):
             assert info['dst'] == egg
-            src_path = self.local.path(info['src'])
+            src_path = self.path(info['src'])
             #print '%8d %s %s' % (info['size'], patch_fn, isfile(src_path))
             if isfile(src_path):
                 possible.append((info['size'], patch_fn, info))
@@ -56,15 +53,11 @@ class FetchAPI(object):
             return False
         size, patch_fn, info = min(possible)
 
-        self.action_callback(patch_fn, 'fetching')
-        self.local.set(patch_fn, self.remote.get(patch_fn))
+        self.fetch(patch_fn)
 
         self.action_callback(info['src'], 'patching')
-        zdiff.patch(self.local.path(info['src']),
-                    self.local.path(egg),
-                    self.local.path(patch_fn),
-                    self.progress_callback)
-        self.local.set_metadata(egg, self.remote.get_metadata(egg))
+        zdiff.patch(self.path(info['src']), self.path(egg),
+                    self.path(patch_fn), self.progress_callback)
         return True
 
     def fetch_egg(self, egg, force=False):
@@ -72,10 +65,10 @@ class FetchAPI(object):
         fetch an egg, i.e. copy or download the distribution into local dir
         force: force download or copy if MD5 mismatches
         """
-        if not isdir(self.local.root):
-            os.makedirs(self.local.root)
+        if not isdir(self.local_dir):
+            os.makedirs(self.local_dir)
         info = self.remote.get_metadata(egg)
-        path = self.local.path(egg)
+        path = self.path(egg)
 
         # if force is used, make sure the md5 is the expected, otherwise
         # merely see if the file exists
@@ -93,8 +86,7 @@ class FetchAPI(object):
         if not force and self.patch_egg(egg):
             return
 
-        self.action_callback(egg, 'fetching')
-        self.local.set(egg, self.remote.get(egg))
+        self.fetch(egg)
 
 
 if __name__ == '__main__':

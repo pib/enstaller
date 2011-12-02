@@ -4,8 +4,6 @@ from os.path import isdir, isfile, join
 import egginst
 from egginst.utils import pprint_fn_action, console_progress
 
-from store.local import LocalStore
-
 from plat import custom_plat
 import resolve
 import fetch
@@ -23,14 +21,15 @@ class Resource(object):
         self.progress_callback = console_progress
         self.action_callback = pprint_fn_action
 
-        self.local = LocalStore(join(prefix, 'LOCAL-REPO'))
+        self.local_dir = join(prefix, 'LOCAL-REPO')
         self.pkgs_dir = join(prefix, 'pkgs')
 
     def get_installed_apps(self):
-        return dict(self.local.query(app=True))
+        #return dict(self.local.query(app=True))
+        pass
 
     def launch_app(self, egg):
-        info = self.local.get_metadata(egg)
+        #info = self.local.get_metadata(egg)
         print info
 
     def install_app(self, egg, force=False):
@@ -88,7 +87,7 @@ class Resource(object):
         return join(self.pkgs_dir, egg[:-4])
 
     def fetch_egg(self, egg, force=False):
-        f = fetch.FetchAPI(self.remote, self.local.root)
+        f = fetch.FetchAPI(self.remote, self.local_dir)
         f.action_callback = self.action_callback
         f.progress_callback = self.progress_callback
         f.verbose = self.verbose
@@ -112,7 +111,6 @@ if __name__ == '__main__':
     #    print d
     x.fetch_egg('nose-1.0.0-1.egg')
     x.fetch_egg('nose-1.1.2-1.egg')
-    x.launch_app('nose-1.1.2-1.egg')
 
-    y = Resource(LocalStore(prefix), prefix=prefix, verbose=1)
-    y.launch_app('nose-1.1.2-1.egg')
+#    y = Resource(LocalStore(prefix), prefix=prefix, verbose=1)
+#    y.launch_app('nose-1.1.2-1.egg')
