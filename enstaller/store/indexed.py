@@ -1,4 +1,3 @@
-import sys
 import json
 import urlparse
 import urllib2
@@ -72,7 +71,7 @@ class LocalIndexedStore(IndexedStore):
         try:
             return open(self._location(key), 'rb')
         except IOError as e:
-            raise KeyError("%s\n" % e)
+            raise KeyError(str(e))
 
 
 class RemoteHTTPIndexedStore(IndexedStore):
@@ -101,4 +100,4 @@ class RemoteHTTPIndexedStore(IndexedStore):
         try:
             return urllib2.urlopen(request)
         except urllib2.HTTPError as e:
-            raise KeyError("%s: %r\n" % (e, url))
+            raise KeyError("%s: %s" % (e, url))

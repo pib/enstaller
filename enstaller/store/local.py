@@ -22,7 +22,7 @@ class LocalStore(AbstractStore):
         try:
             return open(self.path(key), 'rb')
         except IOError as e:
-            raise KeyError("%s\n" % e)
+            raise KeyError(str(e))
 
     def get_metadata(self, key):
         self._read_index()
