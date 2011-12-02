@@ -144,15 +144,7 @@ class EggInst(object):
             json.dump(d, f, indent=2, sort_keys=True)
 
     def read_meta(self):
-        if isfile(self.meta_json):
-            d = json.load(open(self.meta_json))
-        else:
-            # for backwards compatibility
-            meta_txt = self.meta_json[:-4] + 'txt'
-            d = {}
-            execfile(meta_txt, d)
-            d['files'] = d['rel_files']
-
+        d = read_meta(self.meta_dir)
         for name in 'prefix', 'installed_size':
             setattr(self, name, d[name])
         self.files = [join(self.prefix, f) for f in d['files']]
@@ -310,6 +302,20 @@ class EggInst(object):
             rm_empty_dir(self.egginfo_dir)
 
 
+def read_meta(meta_dir):
+    meta_json = join(meta_dir, '__egginst__.json')
+    if isfile(meta_json):
+        return json.load(open(meta_json))
+    # for backwards compatibility
+    meta_txt = join(meta_dir, '__egginst__.txt')
+    if isfile(meta_txt):
+        d = {}
+        execfile(meta_txt, d)
+        d['files'] = d['rel_files']
+        return d
+    return None
+
+
 def get_installed_cnames(prefix=sys.prefix):
     """
     returns a sorted list of cnames of all installed packages
@@ -329,16 +335,9 @@ def get_installed(prefix=sys.prefix):
     """
     egg_info_dir = join(prefix, 'EGG-INFO')
     for cname in get_installed_cnames(prefix):
-        meta_json = join(egg_info_dir, cname, '__egginst__.json')
-        if isfile(meta_json):
-            yield json.load(open(meta_json))['egg_name']
-        else:
-            # for backwards compatibility
-            meta_txt = join(egg_info_dir, cname, '__egginst__.txt')
-            if isfile(meta_txt):
-                d = {}
-                execfile(meta_txt, d)
-                yield d['egg_name']
+        d = read_meta(join(egg_info_dir, cname))
+        if d:
+            yield d['egg_name']
 
 
 def print_installed(prefix=sys.prefix):

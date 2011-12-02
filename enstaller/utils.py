@@ -138,26 +138,21 @@ def get_installed_info(prefix, cname):
     return a dictionary with information about the package specified by the
     canonical name found in prefix, or None if the package is not found
     """
-    meta_dir = join(prefix, 'EGG-INFO', cname)
-    meta_json = join(meta_dir, '__egginst__.json')
-    meta_txt = join(meta_dir, '__egginst__.txt')
-    if isfile(meta_json):
-        d = json.load(open(meta_json))
-    elif isfile(meta_txt):
-        d = {}
-        execfile(meta_txt, d)
-    else:
-        return None
+    from egginst.main import read_meta
 
+    meta_dir = join(prefix, 'EGG-INFO', cname)
+    d = read_meta(meta_dir)
+    if d is None:
+        return None
     res = {}
     res['egg_name'] = d['egg_name']
     res['name'], res['version'] = name_version_fn(d['egg_name'])
     res['mtime'] = time.ctime(getmtime(meta_dir))
     res['meta_dir'] = meta_dir
 
-    meta2_txt = join(meta_dir, '__enpkg__.txt')
-    if isfile(meta2_txt):
+    meta_txt = join(meta_dir, '__enpkg__.txt')
+    if isfile(meta_txt):
         d = {}
-        execfile(meta2_txt, d)
+        execfile(meta_txt, d)
         res['repo'] = shorten_repo(d['repo'])
     return res
