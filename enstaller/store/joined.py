@@ -31,7 +31,7 @@ class JoinedStore(AbstractStore):
                 return repo.get_data(key)
         raise KeyError
 
-    def get_metadata(self, key, default=None):
+    def get_metadata(self, key):
         for repo in self.repos:
             if repo.exists(key):
                 return repo.get_metadata(key)

@@ -8,9 +8,9 @@ from base import AbstractStore
 
 class CacheStore(AbstractStore):
 
-    def __init__(self, local, remote):
-        self.local = local
+    def __init__(self, remote, local):
         self.remote = remote
+        self.local = local
 
     def connect(self, auth=None):
         pass

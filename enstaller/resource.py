@@ -44,9 +44,9 @@ class Resource(object):
         self.fetch_dir = join(prefix, 'LOCAL-REPO')
         self.pkgs_dir = join(prefix, 'pkgs')
 
-        self.local = LocalStore(self.fetch_dir)
         self.remote = remote
-        self.repo = CacheStore(self.local, remote)
+        self.local = LocalStore(self.fetch_dir)
+        self.repo = CacheStore(remote, self.local)
 
     def get_installed_apps(self):
         for p in glob(join(self.pkgs_dir, '*', 'EGG-INFO', 'app.json')):
