@@ -1,6 +1,6 @@
 import os
 import json
-from os.path import isfile, join, getmtime, getsize
+from os.path import isfile, join
 
 from base import AbstractStore
 

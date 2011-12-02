@@ -7,6 +7,9 @@ from os.path import basename, dirname, isdir, isfile, join
 import egginst
 from egginst.utils import pprint_fn_action, console_progress
 
+from store.local import LocalStore
+from store.cache import CacheStore
+
 from plat import custom_plat
 from utils import stream_to_file, md5_file
 from egg_meta import parse_rawspec
@@ -29,9 +32,8 @@ def info_from_install(meta_dir):
 
 class Resource(object):
 
-    def __init__(self, repo, prefix=sys.prefix, plat=custom_plat,
+    def __init__(self, remote, prefix=sys.prefix, plat=custom_plat,
                  verbose=False):
-        self.repo = repo
         self.prefix = prefix
         self.plat = custom_plat
         self.verbose = verbose
@@ -41,6 +43,10 @@ class Resource(object):
 
         self.fetch_dir = join(prefix, 'LOCAL-REPO')
         self.pkgs_dir = join(prefix, 'pkgs')
+
+        self.local = LocalStore(self.fetch_dir)
+        self.remote = remote
+        self.repo = CacheStore(self.local, remote)
 
     def get_installed_apps(self):
         for p in glob(join(self.pkgs_dir, '*', 'EGG-INFO', 'app.json')):
@@ -134,15 +140,17 @@ class Resource(object):
             return False
         size, patch_fn, info = min(possible)
 
-        self.action_callback(patch_fn, 'fetching')
         patch_path = join(self.fetch_dir, patch_fn)
-        stream_to_file(self.repo.get_data(patch_fn), patch_path,
-                       info, self.progress_callback)
+        self.action_callback(patch_fn, 'fetching')
+        self.local.set(patch_fn, self.remote.get(patch_fn))
+        #stream_to_file(self.repo.get_data(patch_fn), patch_path,
+        #               info, self.progress_callback)
 
         self.action_callback(info['src'], 'patching')
         zdiff.patch(join(self.fetch_dir, info['src']),
                     join(self.fetch_dir, egg), patch_path,
                     self.progress_callback)
+        self.local.set_metadata(egg, self.remote.get_metadata(egg))
         return True
 
     def fetch_egg(self, egg, force=False):
@@ -173,8 +181,9 @@ class Resource(object):
             return
 
         self.action_callback(egg, 'fetching')
-        stream_to_file(self.repo.get_data(egg), path, info,
-                       self.progress_callback)
+        self.local.set(egg, self.remote.get(egg))
+        #stream_to_file(self.repo.get_data(egg), path, info,
+        #               self.progress_callback)
 
 
 if __name__ == '__main__':
@@ -189,7 +198,9 @@ if __name__ == '__main__':
     x = Resource(r, prefix='/home/ischnell/jpm/Python-2.7', verbose=1)
     #x.install('enstaller-4.5.0-1.egg')
     #x.remove('enstaller-4.5.0-1.egg')
-    x.install('nose-1.1.2-1.egg', 1, force=1)
+    #x.install('nose-1.1.2-1.egg', 1, force=1)
     #for d in x.get_installed_apps():
     #    print d
-    x.launch_app('nose-1.1.2-1.egg')
+    #x.launch_app('nose-1.1.2-1.egg')
+    x.fetch_egg('nose-1.0.0-2.egg')
+    x.fetch_egg('nose-1.1.2-1.egg', 1)

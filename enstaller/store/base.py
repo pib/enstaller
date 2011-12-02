@@ -149,7 +149,6 @@ class AbstractStore(object):
         raise NotImplementedError
 
 
-    @abstractmethod
     def info(self):
         """ Get information about the key-value store
 
