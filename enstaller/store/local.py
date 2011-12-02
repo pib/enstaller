@@ -9,8 +9,8 @@ from base import AbstractStore
 class LocalStore(AbstractStore):
 
     def __init__(self, location):
-        self.root_dir = location
-        self._index_path = join(self.root_dir, 'index.json')
+        self.root = location
+        self._index_path = join(self.root, 'index.json')
 
     def connect(self, auth=None):
         pass
@@ -78,4 +78,4 @@ class LocalStore(AbstractStore):
                 yield key
 
     def path(self, key):
-        return join(self.root_dir, key)
+        return join(self.root, key)
