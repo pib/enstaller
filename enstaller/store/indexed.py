@@ -26,9 +26,6 @@ class IndexedStore(AbstractStore):
             except KeyError:
                 pass
 
-    def info(self):
-        pass
-
     def _location(self, key):
         rt = self.root.rstrip('/') + '/'
         if key.endswith('.zdiff'):

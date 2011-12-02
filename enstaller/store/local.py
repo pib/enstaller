@@ -5,7 +5,6 @@ from os.path import isfile, join
 from base import AbstractStore
 
 
-
 class LocalStore(AbstractStore):
 
     def __init__(self, location):

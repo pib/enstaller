@@ -21,11 +21,11 @@ class FetchAPI(object):
     def __init__(self, remote, local_dir):
         self.remote = remote
         self.local = MyLocalStore(local_dir)
+        self.local.connect()
 
         self.action_callback = pprint_fn_action
         self.progress_callback = console_progress
         self.verbose = False
-        self.force = False
 
     def patch_egg(self, egg):
         """
@@ -67,7 +67,7 @@ class FetchAPI(object):
         self.local.set_metadata(egg, self.remote.get_metadata(egg))
         return True
 
-    def fetch_egg(self, egg):
+    def fetch_egg(self, egg, force=False):
         """
         fetch an egg, i.e. copy or download the distribution into local dir
         force: force download or copy if MD5 mismatches
@@ -80,7 +80,7 @@ class FetchAPI(object):
         # if force is used, make sure the md5 is the expected, otherwise
         # merely see if the file exists
         if isfile(path):
-            if self.force:
+            if force:
                 if md5_file(path) == info.get('md5'):
                     if self.verbose:
                         print "Not refetching, %r MD5 match" % path
@@ -90,7 +90,7 @@ class FetchAPI(object):
                     print "Not forcing refetch, %r exists" % path
                 return
 
-        if not self.force and self.patch_egg(egg):
+        if not force and self.patch_egg(egg):
             return
 
         self.action_callback(egg, 'fetching')
