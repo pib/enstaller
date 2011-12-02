@@ -348,7 +348,7 @@ class Chain(object):
             print "Fetching: %r" % dist
             print "      to: %r" % path
 
-        stream_to_file(self.repo_objs[repo].get(fn), path,
+        stream_to_file(self.repo_objs[repo].get_data(fn), path,
                        info, self.progress_callback)
 
 
