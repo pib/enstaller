@@ -1,6 +1,6 @@
 import os
 from collections import defaultdict
-from os.path import basename, join, isdir, isfile, normpath
+from os.path import basename, join, isdir, isfile, normpath, splitext
 
 
 
@@ -21,7 +21,7 @@ def is_namespace(dir_path):
     for fn in os.listdir(dir_path):
         path = join(dir_path, fn)
         if isfile(path):
-            name, ext = os.path.splitext(basename(path))
+            name, ext = splitext(basename(path))
             if ext in MODULE_EXTENSIONS_SET:
                 modules.add(name)
 
@@ -44,7 +44,7 @@ def create_hooks_dir(dir_path, namespace=''):
                 reg.update(add_reg)
 
         elif isfile(path):
-            name, ext = os.path.splitext(basename(path))
+            name, ext = splitext(basename(path))
             if ext in MODULE_EXTENSIONS_SET:
                 modules[name].add(ext)
 
