@@ -7,7 +7,7 @@ from os.path import getmtime, isfile, join
 from utils import info_file
 
 
-egg_pat = re.compile(r'([\w.]+)-([\w.]+)-(\d+)?\.egg$')
+egg_pat = re.compile(r'([\w.]+)-([\w.]+)-(\d+)\.egg$')
 
 def is_valid_eggname(eggname):
     return bool(egg_pat.match(eggname))
@@ -37,7 +37,7 @@ def info_from_egg(path):
         raise KeyError("arcname=%r not in zip-file %s" % (arcname, path))
     res.update(parse_rawspec(z.read(arcname)))
 
-    arcname = 'EGG-INFO/app.json'
+    arcname = 'EGG-INFO/spec/app.json'
     if arcname in z.namelist():
         res['app'] = True
         res.update(json.loads(z.read(arcname)).iteritems())

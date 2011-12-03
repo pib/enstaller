@@ -44,7 +44,8 @@ class EggInst(object):
     def __init__(self, fpath, prefix=sys.prefix,
                  hook=False, pkgs_dir=None, verbose=False, noapp=False):
         self.fpath = fpath
-        self.cname = name_version_fn(basename(fpath))[0].lower()
+        name, version = name_version_fn(basename(fpath))
+        self.cname = name.lower()
         self.prefix = abspath(prefix)
         self.hook = bool(hook)
         self.noapp = noapp
@@ -60,7 +61,8 @@ class EggInst(object):
                 self.pkgs_dir = abspath(pkgs_dir)
             else:
                 self.pkgs_dir = join(self.prefix, 'pkgs')
-            self.pkg_dir = join(self.pkgs_dir, basename(fpath)[:-4])
+            self.pkg_dir = join(self.pkgs_dir,
+                                '%s-%s' % (self.cname, version))
             self.pyloc = self.pkg_dir
             self.meta_dir = join(self.pkg_dir, 'EGG-INFO')
             self.registry_txt = join(self.meta_dir, 'registry.txt')
@@ -108,6 +110,9 @@ class EggInst(object):
         if self.hook:
             import registry
             registry.create_file(self)
+            if 'EGG-INFO/spec/app.json' in self.arcnames:
+                import appmeta
+                appmeta.create(self)
 
 
     def entry_points(self):
@@ -150,12 +155,14 @@ class EggInst(object):
         self.files = [join(self.prefix, f) for f in d['files']]
 
 
-    def lines_from_arcname(self, arcname):
+    def lines_from_arcname(self, arcname, ignore_empty=True):
         if not arcname in self.arcnames:
             return
         for line in self.z.read(arcname).splitlines():
             line = line.strip()
-            if not line or line.startswith('#'):
+            if ignore_empty and line == '':
+                continue
+            if line.startswith('#'):
                 continue
             yield line
 
