@@ -150,16 +150,12 @@ class EggInst(object):
         self.files = [join(self.prefix, f) for f in d['files']]
 
 
-    def lines_from_arcname(self, arcname,
-                           ignore_empty=True,
-                           ignore_comments=True):
+    def lines_from_arcname(self, arcname):
         if not arcname in self.arcnames:
             return
         for line in self.z.read(arcname).splitlines():
             line = line.strip()
-            if ignore_empty and line == '':
-                continue
-            if ignore_comments and line.startswith('#'):
+            if not line or line.startswith('#'):
                 continue
             yield line
 
