@@ -30,7 +30,7 @@ def registry_lines(pkgs_dir, info):
             yield line.strip()
 
 
-def create_entry(path, entry):
+def create_entry(path, entry, reg_path):
     """
     create entry point Python script at 'path', which sets up registry
     for the packages ... according to app.json
@@ -41,11 +41,12 @@ def create_entry(path, entry):
     fo.write(REGISTRY_CODE)
     fo.write("""
 if __name__ == '__main__':
-    import json
-    from os.path import dirname, join
-
-    info = json.load(open(join(dirname(__file__), 'app.json')))
-    update_registry(info['reg_lines'])
+    from os.path import isfile
+    path = %(reg_path)r
+    if isfile(path):
+        update_registry(path)
+    else:
+        print "Warning: no registry file:", path
     from %(module)s import %(func)s
     sys.exit(%(func)s())
 """ % locals())
@@ -53,16 +54,16 @@ if __name__ == '__main__':
 
 
 def create(egg):
-    info = read_depend(join(egg.meta_dir, 'spec', 'depend'))
+    info = dict(type='egg', app=True)
+    info.update(read_depend(join(egg.meta_dir, 'spec', 'depend')))
     info.update(json.load(open(join(egg.meta_dir, 'spec', 'app.json'))))
+    with open(join(egg.meta_dir, 'app.json'), 'w') as fo:
+        json.dump(info, fo, indent=2, sort_keys=True)
 
+    reg_path = join(egg.meta_dir, 'app_registry.txt')
     if egg.hook:
-        info['reg_lines'] = list(registry_lines(egg.pkgs_dir, info))
-    else:
-        info['reg_lines'] = []
+        with open(reg_path, 'w') as fo:
+            for line in registry_lines(egg.pkgs_dir, info):
+                fo.write('%s\n' % line)
 
-    path = join(egg.meta_dir, 'app.json')
-    with open(path, 'w') as f:
-        json.dump(info, f, indent=2, sort_keys=True)
-
-    create_entry(join(egg.meta_dir, 'run_app.py'), info['entry'])
+    create_entry(join(egg.meta_dir, 'app.py'), info['entry'], reg_path)

@@ -121,10 +121,10 @@ class PackageRegistry(object):
         return mod
 
 
-def update_registry(lines):
+def update_registry(path):
     pth = []
     registry = {}
-    for line in lines:
+    for line in open(path):
         line = line.strip()
         if not line or line.startswith('#'):
             continue
