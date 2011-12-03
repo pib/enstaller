@@ -115,12 +115,13 @@ class EggInst(object):
 
 
     def entry_points(self):
-        path = join(self.meta_dir, 'entry_points.txt')
-        if not isfile(path):
+        lines = list(self.lines_from_arcname('EGG-INFO/entry_points.txt',
+                                             ignore_empty=False))
+        if lines == []:
             return
-        import ConfigParser
+        import ConfigParser, cStringIO
         conf = ConfigParser.ConfigParser()
-        conf.read(path)
+        conf.readfp(cStringIO.StringIO('\n'.join(lines) + '\n'))
         if ('console_scripts' in conf.sections() or
                 'gui_scripts' in conf.sections()):
             if self.verbose:
