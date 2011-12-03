@@ -38,7 +38,7 @@ def create_entry(path):
     fo = open(path, 'w')
     fo.write(REGISTRY_CODE)
     fo.write("""
-if __name__ == '__main__':
+def run_app():
     import json
     from os.path import dirname, join
 
