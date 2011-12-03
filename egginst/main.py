@@ -12,7 +12,6 @@ import sys
 import re
 import json
 import zipfile
-import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from utils import (on_win, bin_dir_name, rel_site_packages,
@@ -116,20 +115,14 @@ class EggInst(object):
 
 
     def entry_points(self):
-        lines = list(self.lines_from_arcname('EGG-INFO/entry_points.txt',
-                                             ignore_empty=False))
-        if lines == []:
+        path = join(self.meta_dir, 'entry_points.txt')
+        if not isfile(path):
             return
-
-        path = join(self.meta_dir, '__entry_points__.txt')
-        fo = open(path, 'w')
-        fo.write('\n'.join(lines) + '\n')
-        fo.close()
-
+        import ConfigParser
         conf = ConfigParser.ConfigParser()
         conf.read(path)
         if ('console_scripts' in conf.sections() or
-            'gui_scripts' in conf.sections()):
+                'gui_scripts' in conf.sections()):
             if self.verbose:
                 print 'creating scripts'
                 scripts.verbose = True
