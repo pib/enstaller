@@ -1,5 +1,4 @@
 import os
-import sys
 from collections import defaultdict
 from os.path import basename, join, isdir, isfile, normpath
 
@@ -76,13 +75,68 @@ def create_file(egg):
     fo.close()
 
 
-def collect(packages, path):
-    """
-    collects the EGG-INFO/registry.txt files for `packages` and writes them
-    to a single registry file at `path`
-    """
-    fo = open(path, 'w')
-    for pkg in packages:
-        path = join(sys.prefix, 'pkgs', pkg, 'EGG-INFO', 'registry.txt')
-        fo.write(open(path).read())
-    fo.close()
+REGISTRY_CODE = """\
+import sys
+import imp
+from os.path import splitext
+
+EXT_INFO_MAP = {
+    '.py': ('.py', 'U', imp.PY_SOURCE),
+    '.pyw': ('.pyw', 'U', imp.PY_SOURCE),
+    '.pyc': ('.pyc', 'rb', imp.PY_COMPILED),
+    '.pyo': ('.pyo', 'rb', imp.PY_COMPILED),
+    '.pyd': ('.pyd', 'rb', imp.C_EXTENSION),
+    '.so': ('.so', 'rb', imp.C_EXTENSION),
+    '': ('', '', imp.PKG_DIRECTORY),
+}
+
+class PackageRegistry(object):
+
+    def __init__(self, registry={}):
+        self.registry = registry
+        self._path = None
+
+    def find_module(self, fullname, path=None):
+        try:
+            self._path = self.registry[fullname]
+            return self
+        except KeyError:
+            return None
+
+    def load_module(self, fullname):
+        mod = sys.modules.get(fullname)
+        if mod:
+            return mod
+        assert self._path, "_path=%r" % self._path
+        info = EXT_INFO_MAP[splitext(self._path)[-1]]
+        if info[1]:
+            f = open(self._path, info[1])
+        else:
+            f = None
+        try:
+            mod = imp.load_module(fullname, f, self._path, info)
+        finally:
+            if f is not None:
+                f.close()
+        return mod
+
+
+def update_registry(lines):
+    pth = []
+    registry = {}
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        k, v = line.split(None, 1)
+        if k == '-pth-':
+            if v not in pth:
+                pth.append(v)
+        else:
+            registry[k] = v
+
+    for p in pth:
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    sys.meta_path.insert(0, PackageRegistry(registry))
+"""

@@ -1,6 +1,7 @@
 import json
 import re
 from os.path import isfile, join
+from registry import REGISTRY_CODE
 
 
 def read_depend(path):
@@ -29,6 +30,32 @@ def registry_lines(pkgs_dir, info):
             yield line.strip()
 
 
+def create_entry(path):
+    """
+    create entry point Python script at 'path', which sets up registry
+    for the packages ... according to app.json
+    """
+    fo = open(path, 'w')
+    fo.write(REGISTRY_CODE)
+    fo.write("""
+if __name__ == '__main__':
+    import json
+    from os.path import dirname, join
+
+    info = json.load(open(join(dirname(__file__), 'app.json')))
+    update_registry(info['reg_lines'])
+    entry = info['entry']
+    assert entry.count(':') == 1
+    module, func = entry.strip().split(':')
+    exec("from %(module)s import %(func)s\\n"
+         "sys.exit(%(func)s())\\n" % locals())
+
+if __name__ == '__main__':
+    run_app()
+""")
+    fo.close()
+
+
 def create(egg):
     info = read_depend(join(egg.meta_dir, 'spec', 'depend'))
     info.update(json.load(open(join(egg.meta_dir, 'spec', 'app.json'))))
@@ -41,3 +68,5 @@ def create(egg):
     path = join(egg.meta_dir, 'app.json')
     with open(path, 'w') as f:
         json.dump(info, f, indent=2, sort_keys=True)
+
+    create_entry(join(egg.meta_dir, 'run_app.py'))
