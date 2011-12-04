@@ -122,7 +122,6 @@ class PackageRegistry(object):
 
 
 def update_registry(path):
-    pth = []
     registry = {}
     for line in open(path):
         line = line.strip()
@@ -130,13 +129,10 @@ def update_registry(path):
             continue
         k, v = line.split(None, 1)
         if k == '-pth-':
-            if v not in pth:
-                pth.append(v)
+            if v not in sys.path:
+                sys.path.insert(0, v)
         else:
             registry[k] = v
 
-    for p in pth:
-        if p not in sys.path:
-            sys.path.insert(0, p)
     sys.meta_path.insert(0, PackageRegistry(registry))
 """
