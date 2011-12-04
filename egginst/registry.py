@@ -1,3 +1,4 @@
+import re
 import os
 from collections import defaultdict
 from os.path import basename, join, isdir, isfile, normpath, splitext
@@ -28,27 +29,28 @@ def is_namespace(dir_path):
     return modules == set(['__init__'])
 
 
+id_pat = re.compile(r'[a-zA-Z_]\w*$')
 def create_hooks_dir(dir_path, namespace=''):
     reg = {}
     modules = defaultdict(set)
     pth = []
     for fn in os.listdir(dir_path):
-        if '-' in fn:
+        name, ext = splitext(fn)
+        if not id_pat.match(name):
             continue
 
         path = join(dir_path, fn)
-        if isdir(path):
+        if isdir(path) and ext == '':
             reg[namespace + fn] = path
             if is_namespace(path):
                 add_reg, dummy = create_hooks_dir(path, namespace + fn + '.')
                 reg.update(add_reg)
 
         elif isfile(path):
-            name, ext = splitext(basename(path))
             if ext in MODULE_EXTENSIONS_SET:
                 modules[name].add(ext)
 
-            if ext == '.pth':
+            elif ext == '.pth':
                 for line in stripped_lines(path):
                     pth.append(normpath(join(dir_path, line)))
 
