@@ -89,14 +89,48 @@ class FetchAPI(object):
         self.fetch(egg)
 
 
-if __name__ == '__main__':
-    from store.indexed import LocalIndexedStore
-    from store.joined import JoinedStore
+def main():
+    from optparse import OptionParser
+    import enstaller.store.indexed as indexed
+    from egg_meta import is_valid_eggname
 
-    rem = JoinedStore([LocalIndexedStore('/Users/ischnell/repo'),
-                       LocalIndexedStore('/Users/ischnell/repo2')])
-    rem.connect()
-    x = FetchAPI(rem, '/Users/ischnell/jpm/repo')
-    x.verbose = True
-    x.fetch_egg('nose-1.0.0-1.egg')
-    x.fetch_egg('nose-1.1.2-1.egg')
+    p = OptionParser(usage="usage: %prog [options] REPO_URL [EGG ...]",
+                     description="simple interface to fetch eggs")
+    p.add_option("--auth",
+                 action="store",
+                 help="username:password")
+    p.add_option("--dst",
+                 action="store",
+                 help="destination directory",
+                 default=os.getcwd(),
+                 metavar='PATH')
+    p.add_option("--force",
+                 action="store_true")
+    p.add_option('-v', "--verbose", action="store_true")
+
+    opts, args = p.parse_args()
+
+    if len(args) < 1:
+        p.error('at least one argument (the repo URL) expected, try -h')
+
+    repo_url = args[0]
+    if repo_url.startswith(('http://', 'https://')):
+        store = indexed.RemoteHTTPIndexedStore(repo)
+        if opts.auth:
+            store.connect(userpass=opts.split(':', 1))
+        else:
+            store.connect()
+    else:
+        store = indexed.LocalIndexedStore(repo_url)
+        store.connect()
+
+    f = FetchAPI(store, opts.dst)
+    f.verbose = opts.verbose
+    for fn in args[1:]:
+        if not is_valid_eggname(fn):
+            sys.exit('Error: invalid egg name: %r' % fn)
+        f.fetch_egg(fn, opts.force)
+
+
+if __name__ == '__main__':
+    main()
