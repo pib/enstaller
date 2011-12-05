@@ -1,15 +1,15 @@
 import json
 import re
-from os.path import isfile, join
+from os.path import basename, isfile, join
 from registry import REGISTRY_CODE
 
 
 def read_depend(path):
     d = {}
     execfile(path, d)
-    res = {}
-    for k in ('name', 'version', 'build',
-              'arch', 'platform', 'osdist', 'python', 'packages'):
+    res = dict(name=d['name'].lower())
+    for k in ('version', 'build', 'arch', 'platform', 'osdist',
+              'python', 'packages'):
         res[k] = d[k]
     return res
 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
 
 def create(egg):
-    info = dict(type='egg', app=True)
+    info = dict(type='egg', app=True, key=basename(egg.fpath))
     info.update(read_depend(join(egg.meta_dir, 'spec', 'depend')))
     info.update(json.load(open(join(egg.meta_dir, 'spec', 'app.json'))))
     with open(join(egg.meta_dir, 'app.json'), 'w') as fo:

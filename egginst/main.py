@@ -60,8 +60,7 @@ class EggInst(object):
                 self.pkgs_dir = abspath(pkgs_dir)
             else:
                 self.pkgs_dir = join(self.prefix, 'pkgs')
-            self.pkg_dir = join(self.pkgs_dir,
-                                '%s-%s' % (self.cname, version))
+            self.pkg_dir = join(self.pkgs_dir, self.cname + '-' + version)
             self.pyloc = self.pkg_dir
             self.meta_dir = join(self.pkg_dir, 'EGG-INFO')
             self.registry_txt = join(self.meta_dir, 'registry.txt')

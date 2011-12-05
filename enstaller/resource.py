@@ -1,9 +1,13 @@
 import sys
+import json
+import subprocess
+from glob import glob
 from os.path import isdir, isfile, join
 
 import egginst
 from egginst.utils import pprint_fn_action, console_progress
 
+from egg_meta import split_eggname
 from plat import custom_plat
 import resolve
 import fetch
@@ -25,12 +29,16 @@ class Resource(object):
         self.pkgs_dir = join(prefix, 'pkgs')
 
     def get_installed_apps(self):
-        #return dict(self.local.query(app=True))
-        pass
+        for p in glob(join(self.pkgs_dir, '*', 'EGG-INFO', 'app.json')):
+            info = json.load(open(p))
+            yield info['key'], info
 
-    def launch_app(self, egg):
-        #info = self.local.get_metadata(egg)
-        print info
+    def launch_app(self, egg, args=None):
+        cmd = [sys.executable,
+               join(self.versioned_dir_egg(egg), 'EGG-INFO', 'app.py')]
+        if args:
+            cmd.extend(args)
+        subprocess.call(cmd)
 
     def install_app(self, egg, force=False):
         self.install_recur(egg, True, force)
@@ -48,7 +56,7 @@ class Resource(object):
             if self.verbose:
                 print "Already installed:", egg
             return
-        egg_path = join(self.fetch_dir, egg)
+        egg_path = join(self.local_dir, egg)
         if force or not isfile(egg_path):
             self.fetch_egg(egg, force)
         self.action_callback(egg, 'installing')
@@ -64,27 +72,12 @@ class Resource(object):
         ei.progress_callback = self.progress_callback
         ei.remove()
 
-    def parse_registry_files(self, eggs):
-        pth = []
-        registry = {}
-        for egg in eggs:
-            for line in open(self.registry_path_egg(egg)):
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    continue
-                k, v = line.split(None, 1)
-                if k == '-pth-':
-                    if v not in pth:
-                        pth.append(v)
-                else:
-                    registry[k] = v
-        return pth, registry
-
     def registry_path_egg(self, egg):
         return join(self.versioned_dir_egg(egg), 'EGG-INFO', 'registry.txt')
 
     def versioned_dir_egg(self, egg):
-        return join(self.pkgs_dir, egg[:-4])
+        n, v, b = split_eggname(egg)
+        return join(self.pkgs_dir, '%s-%s-%d' % (n.lower(), v, b))
 
     def fetch_egg(self, egg, force=False):
         f = fetch.FetchAPI(self.remote, self.local_dir)
@@ -103,14 +96,11 @@ if __name__ == '__main__':
     #rem = LocalIndexedStore('/home/ischnell/eggs/')
     rem.connect()
     prefix = '/Users/ischnell/jpm/Python-2.7.2-1'
-    x = Resource(rem, prefix=prefix, verbose=1)
+    x = Resource(rem, prefix=prefix)#, verbose=1)
+    fn = 'nose-1.1.2-1.egg'
     #x.install('enstaller-4.5.0-1.egg')
     #x.remove('enstaller-4.5.0-1.egg')
-    #x.install('nose-1.1.2-1.egg', 1, force=1)
-    #for d in x.get_installed_apps():
-    #    print d
-    x.fetch_egg('nose-1.0.0-1.egg')
-    x.fetch_egg('nose-1.1.2-1.egg')
-
-#    y = Resource(LocalStore(prefix), prefix=prefix, verbose=1)
-#    y.launch_app('nose-1.1.2-1.egg')
+    x.install_app(fn)#, force=1)
+#    for d in x.get_installed_apps():
+#        print d
+    x.launch_app(fn, ['--version'])
