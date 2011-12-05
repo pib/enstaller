@@ -117,13 +117,10 @@ def main():
     repo_url = args[0]
     if repo_url.startswith(('http://', 'https://')):
         store = indexed.RemoteHTTPIndexedStore(repo_url)
-        if opts.auth:
-            store.connect(userpass=opts.split(':', 1))
-        else:
-            store.connect()
     else:
         store = indexed.LocalIndexedStore(repo_url)
-        store.connect()
+
+    store.connect(tuple(opts.auth.split(':', 1)) if opts.auth else None)
 
     f = FetchAPI(store, opts.dst)
     f.verbose = opts.verbose
