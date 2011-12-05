@@ -95,7 +95,7 @@ if __name__ == '__main__':
                        LocalIndexedStore('/Users/ischnell/repo2')])
     #rem = LocalIndexedStore('/home/ischnell/eggs/')
     rem.connect()
-    prefix = '/Users/ischnell/jpm/Python-2.7.2-1'
+    prefix = '/Users/ischnell/jpm/Python-2.7'#.2-1'
     x = Resource(rem, prefix=prefix)#, verbose=1)
     fn = 'nose-1.1.2-1.egg'
     #x.install('enstaller-4.5.0-1.egg')

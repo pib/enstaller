@@ -98,11 +98,14 @@ class EggInst(object):
             links.create(self)
             object_code.fix_files(self)
 
-        self.entry_points()
+        if not self.hook:
+            self.entry_points()
         self.z.close()
-        scripts.fix_scripts(self)
+        if not self.hook:
+            scripts.fix_scripts(self)
         self.run('post_egginst.py')
-        self.install_app()
+        if not self.hook:
+            self.install_app()
         self.write_meta()
 
         if self.hook:
