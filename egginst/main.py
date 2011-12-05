@@ -15,7 +15,7 @@ import zipfile
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from utils import (on_win, bin_dir_name, rel_site_packages,
-                   pprint_fn_action, rm_empty_dir, rm_rf,
+                   pprint_fn_action, rm_empty_dir, rm_rf, get_executable,
                    console_progress)
 import scripts
 
@@ -53,7 +53,7 @@ class EggInst(object):
         self.bin_dir = join(self.prefix, bin_dir_name)
 
         if self.prefix != abspath(sys.prefix):
-            scripts.set_executable(self.prefix)
+            scripts.executable = get_executable(self.prefix)
 
         if self.hook:
             if pkgs_dir:

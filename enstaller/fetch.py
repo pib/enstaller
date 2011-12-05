@@ -90,11 +90,12 @@ class FetchAPI(object):
 
 
 def main():
+    import sys
     from optparse import OptionParser
     import enstaller.store.indexed as indexed
     from egg_meta import is_valid_eggname
 
-    p = OptionParser(usage="usage: %prog [options] REPO_URL [EGG ...]",
+    p = OptionParser(usage="usage: %prog [options] ROOT_URL [EGG ...]",
                      description="simple interface to fetch eggs")
     p.add_option("--auth",
                  action="store",
@@ -111,11 +112,11 @@ def main():
     opts, args = p.parse_args()
 
     if len(args) < 1:
-        p.error('at least one argument (the repo URL) expected, try -h')
+        p.error('at least one argument (the repo root URL) expected, try -h')
 
     repo_url = args[0]
     if repo_url.startswith(('http://', 'https://')):
-        store = indexed.RemoteHTTPIndexedStore(repo)
+        store = indexed.RemoteHTTPIndexedStore(repo_url)
         if opts.auth:
             store.connect(userpass=opts.split(':', 1))
         else:

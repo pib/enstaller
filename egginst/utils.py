@@ -1,7 +1,7 @@
 import sys
 import os
 import shutil
-from os.path import isdir, isfile, islink
+from os.path import isdir, isfile, islink, join
 
 
 on_win = bool(sys.platform == 'win32')
@@ -79,6 +79,21 @@ def rm_rf(path, verbose=False):
         if verbose:
             print "Removing: %r (directory)" % path
         shutil.rmtree(path)
+
+
+def get_executable(prefix):
+    if on_win:
+        path = join(prefix, 'python.exe')
+        if isfile(path):
+            return path
+    else:
+        path = join(prefix, bin_dir_name, 'python')
+        if isfile(path):
+            from subprocess import Popen, PIPE
+            cmd = [path, '-c', 'import sys;print sys.executable']
+            p = Popen(cmd, stdout=PIPE)
+            return p.communicate()[0].strip()
+    return sys.executable
 
 
 def human_bytes(n):
