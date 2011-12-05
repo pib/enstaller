@@ -44,7 +44,7 @@ if __name__ == '__main__':
     from os.path import isfile
     path = %(reg_path)r
     if isfile(path):
-        update_registry(path)
+        update_registry([path])
     else:
         print "Warning: no registry file:", path
     from %(module)s import %(func)s

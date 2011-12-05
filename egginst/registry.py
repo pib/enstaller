@@ -123,18 +123,18 @@ class PackageRegistry(object):
         return mod
 
 
-def update_registry(path):
+def update_registry(paths):
     registry = {}
-    for line in open(path):
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
-        k, v = line.split(None, 1)
-        if k == '-pth-':
-            if v not in sys.path:
-                sys.path.insert(0, v)
-        else:
-            registry[k] = v
-
+    for path in paths:
+        for line in open(path):
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            k, v = line.split(None, 1)
+            if k == '-pth-':
+                if v not in sys.path:
+                    sys.path.insert(0, v)
+            else:
+                registry[k] = v
     sys.meta_path.insert(0, PackageRegistry(registry))
 """
