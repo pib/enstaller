@@ -29,18 +29,18 @@ class Launch(object):
         self.pkgs_dir = join(prefix, 'pkgs')
 
     def get_installed_apps(self):
-        for p in glob(join(self.pkgs_dir, '*', 'EGG-INFO', 'app.json')):
+        for p in glob(join(self.pkgs_dir, '*', 'EGG-INFO', 'app_meta.json')):
             info = json.load(open(p))
             yield info['key'], info
 
     def launch_app(self, egg):
         info = json.load(open(
-                join(self.egginfo_dir_egg(egg), 'app.json')))
+                join(self.egginfo_dir_egg(egg), 'app_meta.json')))
         if 'app_cmd' in info:
             cmd = info['app_cmd']
         elif 'app_entry' in info:
             cmd = [sys.executable,
-                   join(self.egginfo_dir_egg(egg), 'app.py')]
+                   join(self.egginfo_dir_egg(egg), 'app_entry.py')]
         else:
             raise Exception("Don't know what to launch for egg: %r" % egg)
         if 'app_args' in info:

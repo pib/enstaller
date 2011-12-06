@@ -36,7 +36,7 @@ def registry_lines(pkgs_dir, info):
                 yield '%s  ../../%s/%s' % (k, pkg, v[3:])
 
 
-def create_entry(path, entry, reg_path):
+def create_entry(path, entry):
     """
     create entry point Python script at 'path', which sets up registry
     for the packages ... according to app.json
@@ -48,7 +48,7 @@ def create_entry(path, entry, reg_path):
     fo.write("""
 if __name__ == '__main__':
     from os.path import isfile
-    path = %(reg_path)r
+    path = join(dirname(__file__), 'app_registry.txt')
     if isfile(path):
         update_registry([path])
     else:
@@ -63,7 +63,7 @@ def create(egg):
     info = dict(type='egg', app=True, key=basename(egg.fpath))
     info.update(read_depend(join(egg.meta_dir, 'spec', 'depend')))
     info.update(json.load(open(join(egg.meta_dir, 'spec', 'app.json'))))
-    with open(join(egg.meta_dir, 'app.json'), 'w') as fo:
+    with open(join(egg.meta_dir, 'app_meta.json'), 'w') as fo:
         json.dump(info, fo, indent=2, sort_keys=True)
 
     reg_path = join(egg.meta_dir, 'app_registry.txt')
@@ -73,5 +73,4 @@ def create(egg):
                 fo.write('%s\n' % line)
 
     if 'app_entry' in info:
-        create_entry(join(egg.meta_dir, 'app.py'),
-                     info['app_entry'], reg_path)
+        create_entry(join(egg.meta_dir, 'app_entry.py'), info['app_entry'])
