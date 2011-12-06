@@ -50,6 +50,7 @@ class Launch(object):
     def get_installed_apps(self):
         for p in glob(join(self.pkgs_dir, '*', 'EGG-INFO', 'app_meta.json')):
             info = json.load(open(p))
+            info['installed'] = True
             yield info['key'], info
 
     def get_all_apps(self):
@@ -83,7 +84,9 @@ class Launch(object):
 
     def info_installed_app(self, egg):
         meta_path = join(self.egginfo_dir_egg(egg), 'app_meta.json')
-        return json.load(open(meta_path))
+        info = json.load(open(meta_path))
+        info['installed'] = True
+        return info
 
     # --------------------------------------------------------------
 
