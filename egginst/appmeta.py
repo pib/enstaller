@@ -72,4 +72,6 @@ def create(egg):
             for line in registry_lines(egg.pkgs_dir, info):
                 fo.write('%s\n' % line)
 
-    create_entry(join(egg.meta_dir, 'app.py'), info['entry'], reg_path)
+    if 'app_entry' in info:
+        create_entry(join(egg.meta_dir, 'app.py'),
+                     info['app_entry'], reg_path)

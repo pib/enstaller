@@ -33,16 +33,18 @@ class Launch(object):
             info = json.load(open(p))
             yield info['key'], info
 
-    def launch_app(self, egg, args=None):
+    def launch_app(self, egg):
         info = json.load(open(
                 join(self.egginfo_dir_egg(egg), 'app.json')))
         if 'app_cmd' in info:
             cmd = info['app_cmd']
-        else:
+        elif 'app_entry' in info:
             cmd = [sys.executable,
                    join(self.egginfo_dir_egg(egg), 'app.py')]
-        if args:
-            cmd.extend(args)
+        else:
+            raise Exception("Don't know what to launch for egg: %r" % egg)
+        if 'app_args' in info:
+            cmd.extend(info['app_args'])
         subprocess.call(cmd)
 
     def install_app(self, egg, force=False):
@@ -111,4 +113,4 @@ if __name__ == '__main__':
     x.install_app(fn)#, force=1)
 #    for d in x.get_installed_apps():
 #        print d
-    x.launch_app(fn, ['--version'])
+    x.launch_app(fn)
