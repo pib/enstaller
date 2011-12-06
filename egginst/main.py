@@ -146,8 +146,7 @@ class EggInst(object):
 
     def read_meta(self):
         d = read_meta(self.meta_dir)
-        for name in 'prefix', 'installed_size':
-            setattr(self, name, d[name])
+        self.installed_size = d['installed_size']
         self.files = [join(self.prefix, f) for f in d['files']]
 
 
