@@ -34,8 +34,13 @@ class Launch(object):
             yield info['key'], info
 
     def launch_app(self, egg, args=None):
-        cmd = [sys.executable,
-               join(self.versioned_dir_egg(egg), 'EGG-INFO', 'app.py')]
+        info = json.load(open(
+                join(self.egginfo_dir_egg(egg), 'app.json')))
+        if 'app_cmd' in info:
+            cmd = info['app_cmd']
+        else:
+            cmd = [sys.executable,
+                   join(self.egginfo_dir_egg(egg), 'app.py')]
         if args:
             cmd.extend(args)
         subprocess.call(cmd)
@@ -73,7 +78,10 @@ class Launch(object):
         ei.remove()
 
     def registry_path_egg(self, egg):
-        return join(self.versioned_dir_egg(egg), 'EGG-INFO', 'registry.txt')
+        return join(self.egginfo_dir_egg(egg), 'registry.txt')
+
+    def egginfo_dir_egg(self, egg):
+        return join(self.versioned_dir_egg(egg), 'EGG-INFO')
 
     def versioned_dir_egg(self, egg):
         n, v, b = split_eggname(egg)
