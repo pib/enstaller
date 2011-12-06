@@ -27,7 +27,13 @@ def registry_lines(pkgs_dir, info):
             print "Warning: no registry file:", reg_path
             continue
         for line in open(reg_path):
-            yield line.strip()
+            line = line.strip()
+            if line.startswith('#'):
+                yield line
+            else:
+                k, v = line.split(None, 1)
+                assert v.startswith('../'), v
+                yield '%s  ../../%s/%s' % (k, pkg, v[3:])
 
 
 def create_entry(path, entry, reg_path):

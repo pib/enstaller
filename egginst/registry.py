@@ -25,7 +25,6 @@ def is_namespace(dir_path):
             name, ext = splitext(basename(path))
             if ext in MODULE_EXTENSIONS_SET:
                 modules.add(name)
-
     return modules == set(['__init__'])
 
 
@@ -67,20 +66,22 @@ def create_hooks_dir(dir_path, namespace=''):
 
 def create_file(egg):
     reg, pth = create_hooks_dir(egg.pkg_dir)
+    def mk_rel(p):
+        return p.replace(egg.pkg_dir, '..').replace('\\', '/')
 
     fo = open(egg.registry_txt, 'w')
     fo.write('# pkg: %s\n' % basename(egg.pkg_dir))
-    for kv in reg.iteritems():
-        fo.write('%s  %s\n' % kv)
+    for k, p in reg.iteritems():
+        fo.write('%s  %s\n' % (k, mk_rel(p)))
     for p in pth:
-        fo.write('-pth-  %s\n' % p)
+        fo.write('-pth-  %s\n' % mk_rel(p))
     fo.close()
 
 
 REGISTRY_CODE = """\
 import sys
 import imp
-from os.path import splitext
+from os.path import abspath, dirname, join, splitext
 
 EXT_INFO_MAP = {
     '.py': ('.py', 'U', imp.PY_SOURCE),
@@ -131,10 +132,11 @@ def update_registry(paths):
             if not line or line.startswith('#'):
                 continue
             k, v = line.split(None, 1)
+            p = abspath(join(dirname(path), v))
             if k == '-pth-':
                 if v not in sys.path:
-                    sys.path.insert(0, v)
+                    sys.path.insert(0, p)
             else:
-                registry[k] = v
+                registry[k] = p
     sys.meta_path.insert(0, PackageRegistry(registry))
 """
