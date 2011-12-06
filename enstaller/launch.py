@@ -55,8 +55,9 @@ class Launch(object):
 
     def get_all_apps(self):
         self._connect()
-        d = dict(rem.query(app=True))
-        d.update(get_installed_apps(self))
+        d = dict(self.remote.query(app=True))
+        d.update(self.get_installed_apps())
+        return d
 
     def get_icon_path(self, egg):
         info = self.info_installed_app(egg)
@@ -146,21 +147,14 @@ class Launch(object):
 
 
 if __name__ == '__main__':
-    from store.indexed import LocalIndexedStore
-    from store.joined import JoinedStore
-
-    #rem = JoinedStore([LocalIndexedStore('/Users/ischnell/repo'),
-    #                   LocalIndexedStore('/Users/ischnell/repo2')])
-    #prefix = '/Users/ischnell/jpm/Python-2.7'#.2-1'
     #x = Launch(rem, prefix=prefix)#, verbose=1)
-    x = Launch(['/home/ischnell/eggs/'],
-               verbose=1)
+    x = Launch(['/home/ischnell/eggs/'], verbose=1)
     fn = 'nose-1.1.2-1.egg'
     #x.install('enstaller-4.5.0-1.egg')
     #x.remove('enstaller-4.5.0-1.egg')
-#    x.install_app(fn, force=1)
-#    for d in x.get_installed_apps():
-#        print d
-    x.launch_app(fn)
+    #x.install_app(fn, force=1)
+    for k, info in x.get_all_apps().iteritems():
+        print k, x.get_icon_path(k)
+    #x.launch_app(fn)
     #print dict(rem.query(app=True))
-    print x.get_icon_path(fn)
+    #print x.get_icon_path(fn)
