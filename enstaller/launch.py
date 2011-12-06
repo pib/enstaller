@@ -36,7 +36,7 @@ class Launch(object):
                  prefix=sys.prefix, plat=custom_plat,
                  verbose=False):
         self.remote = create_joined_store(urls)
-        self.userpass = auserpass
+        self.userpass = userpass
         self.prefix = prefix
         self.plat = custom_plat
         self.verbose = verbose
