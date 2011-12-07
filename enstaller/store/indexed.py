@@ -80,7 +80,11 @@ class RemoteHTTPIndexedStore(IndexedStore):
         self.root = url
 
     def info(self):
-        return dict(dispname=self.root)
+        dispname = self.root
+        for rm in 'http://', 'https://', 'www', '.enthought.com', '/repo/':
+            dispname = dispname.replace(rm, '')
+        dispname = dispname.replace('/eggs/', ' ').strip('/')
+        return dict(dispname=dispname)
 
     def get_data(self, key):
         url = self._location(key)

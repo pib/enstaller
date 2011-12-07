@@ -27,7 +27,7 @@ from utils import (canonical, comparable_version,
                    shorten_repo, get_installed_info, abs_expanduser)
 from indexed_repo import (Chain, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
-from enpkg import Enpkg
+from enpkg import Enpkg, EggNotFound, EggVersionMismatch
 from resolve import Req
 
 
@@ -432,10 +432,10 @@ def search(enpkg, pat=None):
     for name in sorted(names, key=string.lower):
         if pat and not pat.search(name):
             continue
-        versions = enpkg.list_versions(name)
         disp_name = name
-        for ir in versions:
-            print fmt % (disp_name, '%(version)s-%(build)d' % ir[0], ir[1])
+        for info in enpkg.info_list_name(name):
+            print fmt % (disp_name, '%(version)s-%(build)d' % info,
+                         info['repo_dispname'])
             disp_name = ''
 
 
@@ -574,20 +574,18 @@ def install_req(enpkg, req, opts):
     try:
         cnt = enpkg.install(req, mode='root' if opts.no_deps else 'recur',
                             force=opts.force, forceall=opts.forceall)
-    except DistributionNotFound, e:
+    except EggNotFound, e:
         print e.message
-        versions = enst.chain.list_versions(req.name)
+        versions = enpkg.list_versions(req.name)
         if versions:
-            print "Versions for package %r are: %s" % (req.name,
-                                                       ', '.join(versions))
-        info = enst.get_installed_info(req.name)[0][1]
-        if info:
-            print "%(egg_name)s was installed on: %(mtime)s" % info
+            print "Versions for package %r are: %s" % (
+                req.name,
+                ', '.join(sorted(set(i['version'] for i, r in versions))))
         sys.exit(1)
 
     if cnt == 0:
         print "No update necessary, %r is up-to-date." % req.name
-        # XXX print_installed_info(enpkg, req.name)
+        print_installed_info(enpkg, req.name)
 
 
 def main():
@@ -673,7 +671,7 @@ def main():
         prefix = config.get('prefix', sys.prefix)
 
     if prefix == sys.prefix:
-        prefixes = [prefix]
+        prefixes = [sys.prefix]
     else:
         prefixes = [prefix, sys.prefix]
 
@@ -719,7 +717,7 @@ def main():
                          prefixes=prefixes, dry_run=dry_run)
 
         enpkg = Enpkg(config.get('IndexedRepos'), config.get_auth(),
-                      prefix=sys.prefix, verbose=args.verbose)
+                      prefixes=prefixes, verbose=args.verbose)
 
 
     if args.verbose:

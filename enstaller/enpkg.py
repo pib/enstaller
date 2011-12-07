@@ -28,28 +28,31 @@ def create_joined_store(urls):
             raise Exception("cannot create store: %r" % url)
     return JoinedStore(stores)
 
-
 def name_egg(egg):
     n, v, b = split_eggname(egg)
     return n.lower()
+
+class EggNotFound(Exception):
+    pass
+
+class EggVersionMismatch(Exception):
+    pass
 
 
 class Enpkg(object):
 
     def __init__(self, urls, userpass=None,
-                 prefix=sys.prefix, plat=custom_plat,
-                 verbose=False):
+                 prefixes=[sys.prefix], verbose=False):
         self.remote = create_joined_store(urls)
         self.userpass = userpass
-        self.prefix = prefix
-        self.plat = custom_plat
+        self.prefixes = prefixes
         self.verbose = verbose
 
         self.progress_callback = console_progress
         self.action_callback = pprint_fn_action
 
-        self.local_dir = join(prefix, 'LOCAL-REPO')
-        self.pkgs_dir = join(prefix, 'pkgs')
+        self.local_dir = join(self.prefixes[0], 'LOCAL-REPO')
+        self.pkgs_dir = join(self.prefixes[0], 'pkgs')
 
     def _connect(self):
         if getattr(self, '_connected', None):
@@ -63,18 +66,19 @@ class Enpkg(object):
         for egg, info in self.remote.query(**kwargs):
             yield egg, info
 
-    def list_versions(self, name):
+    def info_list_name(self, name):
         req = Req(name)
-        info_repo_list = []
+        info_list = []
         for key, info in self.query(name=name):
             if req.matches(info):
                 repo = self.remote.from_which_repo(key)
-                info_repo_list.append((info, repo.info()['dispname']))
-        sortfunc = lambda ir: comparable_version(ir[0]['version'])
+                info['repo_dispname'] = repo.info()['dispname']
+                info_list.append(dict(info))
         try:
-            return sorted(info_repo_list, key=sortfunc)
+            return sorted(info_list,
+                      key=lambda info: comparable_version(info['version']))
         except TypeError:
-            return list(info_repo_list)
+            return info_list
 
     def filter_installed(self, eggs, hook=False):
         res = []
@@ -83,9 +87,11 @@ class Enpkg(object):
                 if self.info_installed_egg(egg):
                     continue
             else: # no hook
-                info = self.info_installed_name(name_egg(egg))
-                if info['key'] == egg:
-                    continue
+                name = name_egg(egg)
+                for prefix in prefixes:
+                    info = self.info_installed_name(name, prefix)
+                    if info and info['key'] == egg:
+                        continue
             res.append(egg)
         return res
 
@@ -101,12 +107,13 @@ class Enpkg(object):
         self._connect()
         resolver = Resolve(self.remote, self.verbose)
         eggs = resolver.install_sequence(req, mode)
+        if eggs is None:
+             raise EggNotFound("No egg found for requirement '%s'." % req)
 
         if not forceall:
             # filter installed eggs
             if force:
-                first_eggs, last_egg = eggs[:-1], eggs[-1]
-                eggs = self.filter_installed(first_eggs, hook) + [last_egg]
+                eggs = self.filter_installed(eggs[:-1], hook) + [eggs[-1]]
             else:
                 eggs = self.filter_installed(eggs, hook)
 
@@ -125,10 +132,10 @@ class Enpkg(object):
             self.install_egg(egg, hook)
         return len(eggs)
 
-    def info_installed_name(self, name): # no hook
+    def info_installed_name(self, name, prefix): # no hook
         assert name == name.lower()
         return self._installed_info_from_path(join(
-                self.prefix, 'EGG-INFO', name, 'info.json'))
+                prefix, 'EGG-INFO', name, 'info.json'))
 
     def info_installed_egg(self, egg): # hook
         n, v, b = split_eggname(egg)
