@@ -433,8 +433,8 @@ def search(enpkg, pat=None):
             continue
         versions = enpkg.list_versions(name)
         disp_name = name
-        for version in versions:
-            print fmt % (disp_name, version, '---')
+        for ir in versions:
+            print fmt % (disp_name, '%(version)s-%(build)d' % ir[0], ir[1])
             disp_name = ''
 
 

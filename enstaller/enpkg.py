@@ -58,14 +58,16 @@ class Enpkg(object):
 
     def list_versions(self, name):
         req = Req(name)
-        versions = []
+        info_repo_list = []
         for key, info in self.query(name=name):
             if req.matches(info):
-                versions.append(info['version'])
+                repo = self.remote.from_which_repo(key)
+                info_repo_list.append((info, repo.info()['dispname']))
+        sortfunc = lambda ir: comparable_version(ir[0]['version'])
         try:
-            return sorted(versions, key=comparable_version)
+            return sorted(info_repo_list, key=sortfunc)
         except TypeError:
-            return list(versions)
+            return list(info_repo_list)
 
     def from_repo(self, rs):
         self._connect()

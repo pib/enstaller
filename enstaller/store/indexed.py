@@ -64,6 +64,9 @@ class LocalIndexedStore(IndexedStore):
     def __init__(self, root_dir):
         self.root = root_dir
 
+    def info(self):
+        return dict(dispname=self.root)
+
     def get_data(self, key):
         try:
             return open(self._location(key), 'rb')
@@ -75,6 +78,9 @@ class RemoteHTTPIndexedStore(IndexedStore):
 
     def __init__(self, url):
         self.root = url
+
+    def info(self):
+        return dict(dispname=self.root)
 
     def get_data(self, key):
         url = self._location(key)
