@@ -7,6 +7,7 @@ from egginst.utils import pprint_fn_action, console_progress
 from store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
 from store.joined import JoinedStore
 
+from utils import comparable_version
 from plat import custom_plat
 from resolve import Req, Resolve
 from fetch import FetchAPI
@@ -48,6 +49,35 @@ class Enpkg(object):
             return
         self.remote.connect(self.userpass)
         self._connected = True
+
+    def query(self, **kwargs):
+        self._connect()
+        kwargs['type'] = 'egg'
+        for egg, info in self.remote.query(**kwargs):
+            yield egg, info
+
+    def list_versions(self, name):
+        req = Req(name)
+        versions = []
+        for key, info in self.query(name=name):
+            if req.matches(info):
+                versions.append(info['version'])
+        try:
+            return sorted(versions, key=comparable_version)
+        except TypeError:
+            return list(versions)
+
+    def from_repo(self, rs):
+        self._connect()
+        req = Req(rs)
+        # XXX
+        for key, info in self.query(name=name):
+            if req.matches(info):
+                versions.append(info['version'])
+        try:
+            return sorted(versions, key=comparable_version)
+        except TypeError:
+            return list(versions)
 
     def install_recur(self, egg, hook=False, force=False):
         self._connect()

@@ -27,6 +27,7 @@ from utils import (canonical, comparable_version,
                    shorten_repo, get_installed_info, abs_expanduser)
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
+from enpkg import Enpkg
 
 
 def cname_fn(fn):
@@ -417,7 +418,7 @@ def whats_new(enst):
         print "no new version of any installed package is available"
 
 
-def search(enst, pat=None):
+def search(enpkg, pat=None):
     """
     Print the distributions available in a repo, i.e. a "virtual" repo made
     of a chain of (indexed) repos.
@@ -426,16 +427,14 @@ def search(enst, pat=None):
     print fmt % ('Project name', 'Versions', 'Repository')
     print 55 * '-'
 
-    for name in sorted(enst.chain.groups.keys(), key=string.lower):
+    names = set(info['name'] for _, info in enpkg.query())
+    for name in sorted(names, key=string.lower):
         if pat and not pat.search(name):
             continue
-        versions = enst.chain.list_versions(name)
+        versions = enpkg.list_versions(name)
         disp_name = name
         for version in versions:
-            req = Req(name + ' ' + version)
-            dist = enst.chain.get_dist(req)
-            repo = dist_naming.repo_dist(dist)
-            print fmt % (disp_name, version,  shorten_repo(repo))
+            print fmt % (disp_name, version, '---')
             disp_name = ''
 
 
@@ -717,10 +716,16 @@ def main():
     else:
         enst = Enstaller(chain=Chain(config.get('IndexedRepos'), verbose),
                          prefixes=prefixes, dry_run=dry_run)
+
+        enpkg = Enpkg(config.get('IndexedRepos'), config.get_auth(),
+                      prefix=sys.prefix, verbose=args.verbose)
+
+
     if args.verbose:
         enst.pre_install_callback = verbose_depend_warn
     else:
         enst.pre_install_callback = depend_warn
+
 
     if args.add_url:                              # --add-url
         add_url(args.add_url, args.verbose)
@@ -735,7 +740,7 @@ def main():
         return
 
     if args.search:                               # --search
-        search(enst, pat)
+        search(enpkg, pat)
         return
 
     if args.info:                                 # --info
