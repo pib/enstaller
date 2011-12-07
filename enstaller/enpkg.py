@@ -51,6 +51,7 @@ class Enpkg(object):
         self.progress_callback = console_progress
         self.action_callback = pprint_fn_action
 
+        self.prefix = self.prefixes[0]
         self.local_dir = join(self.prefixes[0], 'LOCAL-REPO')
         self.pkgs_dir = join(self.prefixes[0], 'pkgs')
 
@@ -132,10 +133,10 @@ class Enpkg(object):
             self.install_egg(egg, hook)
         return len(eggs)
 
-    def info_installed_name(self, name, prefix): # no hook
+    def info_installed_name(self, name): # no hook
         assert name == name.lower()
         return self._installed_info_from_path(join(
-                prefix, 'EGG-INFO', name, 'info.json'))
+                self.prefix, 'EGG-INFO', name, 'info.json'))
 
     def info_installed_egg(self, egg): # hook
         n, v, b = split_eggname(egg)
