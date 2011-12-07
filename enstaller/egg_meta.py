@@ -4,6 +4,8 @@ import json
 import zipfile
 from os.path import getmtime, isfile, join
 
+from egginst.eggmeta import info_from_z
+
 from utils import info_file
 
 
@@ -17,32 +19,9 @@ def split_eggname(eggname):
     assert m, eggname
     return m.group(1), m.group(2), int(m.group(3))
 
-
-def parse_rawspec(data):
-    spec = {}
-    exec data.replace('\r', '') in spec
-    spec['name'] = spec['name'].lower()
-    res = {}
-    for k in ('name', 'version', 'build',
-              'arch', 'platform', 'osdist', 'python', 'packages'):
-        res[k] = spec[k]
-    return res
-
 def info_from_egg(path):
-    res = dict(type='egg')
-    z = zipfile.ZipFile(path)
-    arcname = 'EGG-INFO/spec/depend'
-    if arcname not in z.namelist():
-        z.close()
-        raise KeyError("arcname=%r not in zip-file %s" % (arcname, path))
-    res.update(parse_rawspec(z.read(arcname)))
-
-    arcname = 'EGG-INFO/spec/app.json'
-    if arcname in z.namelist():
-        res['app'] = True
-        res.update(json.loads(z.read(arcname)).iteritems())
-    z.close()
-    return res
+    with zipfile.ZipFile(path) as z:
+        return info_from_z(z)
 
 
 def update_index(dir_path, force=False, verbose=False):

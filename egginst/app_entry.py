@@ -1,17 +1,7 @@
 import json
 import re
-from os.path import basename, isfile, join
+from os.path import isfile, join
 from registry import REGISTRY_CODE
-
-
-def read_depend(path):
-    d = {}
-    execfile(path, d)
-    res = dict(name=d['name'].lower())
-    for k in ('version', 'build', 'arch', 'platform', 'osdist',
-              'python', 'packages'):
-        res[k] = d[k]
-    return res
 
 
 def registry_lines(pkgs_dir, info):
@@ -36,7 +26,7 @@ def registry_lines(pkgs_dir, info):
                 yield '%s  ../../%s/%s' % (k, pkg, v[3:])
 
 
-def create_entry(path, entry):
+def create_entry_script(path, entry):
     """
     create entry point Python script at 'path', which sets up registry
     for the packages ... according to app.json
@@ -59,18 +49,14 @@ if __name__ == '__main__':
     fo.close()
 
 
-def create(egg):
-    info = dict(type='egg', app=True, key=basename(egg.fpath))
-    info.update(read_depend(join(egg.meta_dir, 'spec', 'depend')))
-    info.update(json.load(open(join(egg.meta_dir, 'spec', 'app.json'))))
-    with open(join(egg.meta_dir, 'app_meta.json'), 'w') as fo:
-        json.dump(info, fo, indent=2, sort_keys=True)
+def create_entry(egg):
+    info = json.load(open(join(egg.meta_dir, 'info.json')))
 
-    reg_path = join(egg.meta_dir, 'app_registry.txt')
     if egg.hook:
-        with open(reg_path, 'w') as fo:
+        with open(join(egg.meta_dir, 'app_registry.txt'), 'w') as fo:
             for line in registry_lines(egg.pkgs_dir, info):
                 fo.write('%s\n' % line)
 
     if 'app_entry' in info:
-        create_entry(join(egg.meta_dir, 'app_entry.py'), info['app_entry'])
+        create_entry_script(join(egg.meta_dir, 'app_entry.py'),
+                            info['app_entry'])

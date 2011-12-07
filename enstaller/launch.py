@@ -24,7 +24,7 @@ class Launch(Enpkg):
         return d
 
     def get_icon_path(self, egg):
-        info = self.info_installed_app(egg)
+        info = self.info_installed_egg(egg, hook=True)
         if 'app_icon' in info:
             path = abspath(join(self.egginfo_dir_egg(egg), info['app_icon']))
             if isfile(path):
@@ -32,7 +32,7 @@ class Launch(Enpkg):
         return None
 
     def launch_app(self, egg):
-        info = self.info_installed_app(egg)
+        info = self.info_installed_egg(egg, hook=True)
         if 'app_cmd' in info:
             cmd = info['app_cmd']
         elif 'app_entry' in info:
@@ -47,28 +47,18 @@ class Launch(Enpkg):
     def install_app(self, egg, force=False):
         self.install_recur(egg, True, force)
 
-    def info_installed_app(self, egg):
-        meta_path = join(self.egginfo_dir_egg(egg), 'app_meta.json')
-        info = json.load(open(meta_path))
-        info['installed'] = True
-        return info
-
     # --------------------------------------------------------------
 
-    def registry_path_egg(self, egg):
-        return join(self.egginfo_dir_egg(egg), 'registry.txt')
-
     def egginfo_dir_egg(self, egg):
-        return join(self.versioned_dir_egg(egg), 'EGG-INFO')
-
-    def versioned_dir_egg(self, egg):
         n, v, b = split_eggname(egg)
-        return join(self.pkgs_dir, '%s-%s-%d' % (n.lower(), v, b))
+        return join(self.pkgs_dir, '%s-%s-%d' % (n.lower(), v, b),
+                    'EGG-INFO')
 
 
 if __name__ == '__main__':
-    #x = Launch(rem, prefix=prefix)#, verbose=1)
-    x = Launch(['/home/ischnell/eggs/'], verbose=1)
+    #x = Launch(['/home/ischnell/eggs/'], verbose=1)
+    x = Launch(['/Users/ischnell/repo/'],
+               prefix='/Users/ischnell/jpm/Python-2.7', verbose=1)
     fn = 'nose-1.1.2-1.egg'
     #x.install('enstaller-4.5.0-1.egg')
     #x.remove('enstaller-4.5.0-1.egg')

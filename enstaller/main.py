@@ -25,9 +25,10 @@ from history import History
 from proxy.api import setup_proxy
 from utils import (canonical, comparable_version,
                    shorten_repo, get_installed_info, abs_expanduser)
-from indexed_repo import (Chain, Req, add_Reqs_to_spec, filename_as_req,
+from indexed_repo import (Chain, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
 from enpkg import Enpkg
+from resolve import Req
 
 
 def cname_fn(fn):
@@ -326,8 +327,8 @@ def check_write(enst):
         sys.exit(1)
 
 
-def print_installed_info(enst, cname):
-    for prefix, info in enst.get_installed_info(cname):
+def print_installed_info(enpkg, cname):
+    for prefix, info in enpkg.info_installed(cname):
         if prefix == sys.prefix and len(enst.prefixes) > 1:
             if info is None:
                 print "%s is not installed in sys.prefix" % cname
@@ -569,10 +570,10 @@ def iter_dists_excl(dists, exclude_fn):
         yield dist
 
 
-def install_req(enst, req, opts):
+def install_req(enpkg, req, opts):
     try:
-        installed = enst.install(req, 'root' if opts.no_deps else 'recur',
-                                 opts.force, opts.forceall)
+        cnt = enpkg.install(req, mode='root' if opts.no_deps else 'recur',
+                            force=opts.force, forceall=opts.forceall)
     except DistributionNotFound, e:
         print e.message
         versions = enst.chain.list_versions(req.name)
@@ -584,9 +585,9 @@ def install_req(enst, req, opts):
             print "%(egg_name)s was installed on: %(mtime)s" % info
         sys.exit(1)
 
-    if not installed:
-        print "No update necessary, %s is up-to-date." % req
-        print_installed_info(enst, req.name)
+    if cnt == 0:
+        print "No update necessary, %r is up-to-date." % req.name
+        # XXX print_installed_info(enpkg, req.name)
 
 
 def main():
@@ -782,7 +783,7 @@ def main():
             if args.remove:                           # --remove
                 remove_req(enst, req)
             else:
-                install_req(enst, req, args)
+                install_req(enpkg, req, args)
 
 
 if __name__ == '__main__':
