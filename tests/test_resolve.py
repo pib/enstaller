@@ -37,6 +37,66 @@ def eggs_rs(c, req_string):
     return c.install_sequence(Req(req_string))
 
 
+class TestReq(unittest.TestCase):
+
+    def test_init(self):
+        for req_string, name, version, build, strictness in [
+            ('',          None,  None,  None, 0),
+            (' \t',       None,  None,  None, 0),
+            ('foo',       'foo', None,  None, 1),
+            ('bar 1.9',   'bar', '1.9', None, 2),
+            ('baz 1.8-2', 'baz', '1.8', 2,    3),
+            ]:
+            r = Req(req_string)
+            self.assertEqual(r.name, name)
+            self.assertEqual(r.version, version)
+            self.assertEqual(r.build, build)
+            self.assertEqual(r.strictness, strictness)
+
+    def test_misc_methods(self):
+        for req_string in ['', 'foo', 'bar 1.2', 'baz 2.6.7-5']:
+            r = Req(req_string)
+            self.assertEqual(str(r), req_string)
+            self.assertEqual(r, r)
+            self.assertEqual(eval(repr(r)), r)
+
+        self.assertNotEqual(Req('foo'), Req('bar'))
+        self.assertNotEqual(Req('foo 1.4'), Req('foo 1.4-5'))
+
+    def test_matches(self):
+        spec = dict(name='foo_bar', version='2.4.1', build=3, python=None)
+        for req_string, m in [
+            ('', True),
+            ('foo', False),
+            ('Foo_BAR', True),
+            ('foo_Bar 2.4.1', True),
+            ('FOO_Bar 1.8.7', False),
+            ('FOO_BAR 2.4.1-3', True),
+            ('FOO_Bar 2.4.1-1', False),
+            ]:
+            self.assertEqual(Req(req_string).matches(spec), m, req_string)
+
+    def test_matches_py(self):
+        spec = dict(name='foo', version='2.4.1', build=3, python=None)
+        for py in ['2.4', '2.5', '2.6', '3.1']:
+            resolve.PY_VER = py
+            self.assertEqual(Req('foo').matches(spec), True)
+
+        spec25 = dict(spec)
+        spec25.update(dict(python='2.5'))
+
+        spec26 = dict(spec)
+        spec26.update(dict(python='2.6'))
+
+        resolve.PY_VER = '2.5'
+        self.assertEqual(Req('foo').matches(spec25), True)
+        self.assertEqual(Req('foo').matches(spec26), False)
+
+        resolve.PY_VER = '2.6'
+        self.assertEqual(Req('foo').matches(spec25), False)
+        self.assertEqual(Req('foo').matches(spec26), True)
+
+
 class TestChain0(unittest.TestCase):
 
     r = JoinedStore([
