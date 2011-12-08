@@ -68,7 +68,7 @@ class Enpkg(object):
         info_list = []
         for key, info in self.query_remote(name=name):
             if req.matches(info):
-                repo = self.remote.from_which_repo(key)
+                repo = self.remote.where_from(key)
                 info['repo_dispname'] = repo.info()['dispname']
                 info_list.append(dict(info))
         try:
@@ -112,7 +112,7 @@ class Enpkg(object):
         # install eggs
         for egg in eggs:
             extra_info = {}
-            repo = self.remote.from_which_repo(egg)
+            repo = self.remote.where_from(egg)
             if repo:
                 extra_info['repo_dispname'] = repo.info()['dispname']
             self.ec.install(egg, self.local_dir, extra_info)

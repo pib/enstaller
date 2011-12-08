@@ -85,8 +85,7 @@ class TestChain1(unittest.TestCase):
             ]:
             egg = self.c.get_egg(Req(req_string))
             if egg is not None:
-                self.assertEqual(self.r.from_which_repo(egg).name,
-                                 repo_name)
+                self.assertEqual(self.r.where_from(egg).name, repo_name)
 
     def test_get_dist(self):
         resolve.PY_VER = '2.7'
@@ -101,8 +100,7 @@ class TestChain1(unittest.TestCase):
             ]:
             self.assertEqual(self.c.get_egg(Req(req_string)), egg)
             if egg is not None:
-                self.assertEqual(self.r.from_which_repo(egg).name,
-                                 repo_name)
+                self.assertEqual(self.r.where_from(egg).name, repo_name)
 
     def test_reqs_dist(self):
         self.assertEqual(self.c.reqs_egg('FiPy-2.1-1.egg'),
@@ -154,8 +152,7 @@ class TestChain2(unittest.TestCase):
     def test_multiple_reqs(self):
         lst = self.c.install_sequence(Req('ets'))
         self.assert_('numpy-1.5.1-2.egg' in lst)
-        self.assertEqual(self.r.from_which_repo('numpy-1.5.1-2.egg').name,
-                         'epd')
+        self.assertEqual(self.r.where_from('numpy-1.5.1-2.egg').name, 'epd')
 
 
 if __name__ == '__main__':

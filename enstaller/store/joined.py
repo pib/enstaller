@@ -13,7 +13,7 @@ class JoinedStore(AbstractStore):
     def info(self):
         pass
 
-    def from_which_repo(self, key):
+    def where_from(self, key):
         for repo in self.repos:
             if repo.exists(key):
                 return repo
