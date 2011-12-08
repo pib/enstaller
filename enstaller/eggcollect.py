@@ -58,12 +58,13 @@ class EggCollection(AbstractEggCollection):
             return info_from_path(path)
         else:
             info = self.find_name(n.lower())
-            if info and info['key'] == egg:
+            if info and info['key'].lower() == egg.lower():
                 return info
             else:
                 return None
 
     def find_name(self, name):
+        assert name == name.lower()
         if self.hook:
             index = dict(self.query(name=name))
             if len(index) == 1:
@@ -71,7 +72,6 @@ class EggCollection(AbstractEggCollection):
             else: # found none, or more then one
                 return None
         else:
-            assert name == name.lower()
             path = join(self.prefix, 'EGG-INFO', name, 'info.json')
             return info_from_path(path)
         
