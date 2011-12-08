@@ -79,7 +79,7 @@ class EggInst(object):
         return path[len(self.prefix) + 1:]
 
 
-    def install(self):
+    def install(self, extra_info=None):
         if not isdir(self.meta_dir):
             os.makedirs(self.meta_dir)
 
@@ -102,7 +102,7 @@ class EggInst(object):
             self.entry_points()
         if 'EGG-INFO/spec/depend' in self.arcnames:
             import eggmeta
-            eggmeta.create_info(self)
+            eggmeta.create_info(self, extra_info)
         self.z.close()
 
         if not self.hook:

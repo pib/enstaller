@@ -1,6 +1,6 @@
 import os
 import json
-from os.path import isfile, join
+from os.path import isdir, isfile, join
 from abc import ABCMeta, abstractmethod
 
 import egginst
@@ -71,6 +71,8 @@ class EggCollection(AbstractEggCollection):
 
     def query(self, **kwargs):
         if self.hook:
+            if not isdir(self.pkgs_dir):
+                return
             for fn in os.listdir(self.pkgs_dir):
                 path = join(self.pkgs_dir, fn, 'EGG-INFO', 'info.json')
                 info = info_from_path(path)
@@ -79,6 +81,8 @@ class EggCollection(AbstractEggCollection):
                     yield info['key'], info
         else:
             egginfo_dir = join(self.prefix, 'EGG-INFO')
+            if not isdir(egginfo_dir):
+                return
             for fn in os.listdir(egginfo_dir):
                 path = join(egginfo_dir, fn, 'info.json')
                 info = info_from_path(path)
@@ -86,13 +90,13 @@ class EggCollection(AbstractEggCollection):
                                 for k, v in kwargs.iteritems()):
                     yield info['key'], info
 
-    def install(self, egg, dir_path):
+    def install(self, egg, dir_path, extra_info=None):
         self.action_callback(egg, 'installing')
         ei = egginst.EggInst(join(dir_path, egg),
                              prefix=self.prefix, hook=self.hook,
                              pkgs_dir=self.pkgs_dir, verbose=self.verbose)
         ei.progress_callback = self.progress_callback
-        ei.install()
+        ei.install(extra_info)
 
     def remove(self, egg):
         self.action_callback(egg, 'removing')
@@ -128,8 +132,8 @@ class JoinedEggCollection(AbstractEggCollection):
                 return info
         return None
 
-    def install(self, egg, dir_path):
-        self.collections[0].install(egg, dir_path)
+    def install(self, egg, dir_path, extra_info=None):
+        self.collections[0].install(egg, dir_path, extra_info)
 
     def remove(self, egg):
         self.collections[0].remove(egg)

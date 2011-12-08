@@ -111,7 +111,11 @@ class Enpkg(object):
 
         # install eggs
         for egg in eggs:
-            self.ec.install(egg, self.local_dir)
+            extra_info = {}
+            repo = self.remote.from_which_repo(egg)
+            if repo:
+                extra_info['repo_dispname'] = repo.info()['dispname']
+            self.ec.install(egg, self.local_dir, extra_info)
         return len(eggs)
 
     def remove(self, req):

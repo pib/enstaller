@@ -28,11 +28,14 @@ def info_from_z(z):
     return res
 
 
-def create_info(egg):
+def create_info(egg, extra_info=None):
     info = dict(key=basename(egg.fpath))
     info.update(info_from_z(egg.z))
     info['install_time'] = time.ctime()
     info['meta_dir'] = egg.meta_dir
     info['prefix'] = egg.prefix
+    info['hook'] = egg.hook
+    if extra_info:
+        info.update(extra_info)
     with open(join(egg.meta_dir, 'info.json'), 'w') as fo:
         json.dump(info, fo, indent=2, sort_keys=True)

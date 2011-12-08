@@ -373,25 +373,23 @@ def info_option(enst, cname):
     print_installed_info(enst, cname)
 
 
-def print_installed(prefix, pat=None):
+def print_installed(prefix, hook=False, pat=None):
     fmt = '%-20s %-20s %s'
     print fmt % ('Project name', 'Version', 'Repository')
     print 60 * '='
-    ec = EggCollection(prefix, False)
+    ec = EggCollection(prefix, hook)
     for egg, info in ec.query():
         if pat and not pat.search(info['name']):
             continue
-        print fmt % (info['name'], info['version'], info.get('repo', '-'))
+        print fmt % (info['name'], info['version'],
+                     info.get('repo_dispname', '-'))
 
 
-def list_option(prefix, pat=None):
-    print "sys.prefix:", sys.prefix
-    print_installed(sys.prefix, pat)
-    if prefix == sys.prefix:
-        return
-    print
-    print "prefix:", prefix
-    print_installed(prefix, pat)
+def list_option(prefixes, hook=False, pat=None):
+    for prefix in prefixes:
+        print "prefix:", prefix
+        print_installed(prefix, hook, pat)
+        print
 
 
 def whats_new(enst):
@@ -604,13 +602,15 @@ def main():
     p.add_argument("--forceall", action="store_true",
                    help="force install of all packages "
                         "(i.e. including dependencies)")
+    p.add_argument("--hook", action="store_true",
+                   help="don't install into site-packages (experimental)")
     p.add_argument('-i', "--info", action="store_true",
                    help="show information about a package")
     p.add_argument("--log", action="store_true", help="print revision log")
     p.add_argument('-l', "--list", action="store_true",
                    help="list the packages currently installed on the system")
     p.add_argument('-n', "--dry-run", action="store_true",
-                   help="show what would have been downloaded/removed/installed")
+               help="show what would have been downloaded/removed/installed")
     p.add_argument('-N', "--no-deps", action="store_true",
                    help="neither download nor install dependencies")
     p.add_argument("--path", action="store_true",
@@ -632,7 +632,7 @@ def main():
     p.add_argument("--sys-prefix", action="store_true",
                    help="use sys.prefix as the install prefix")
     p.add_argument("--user", action="store_true",
-                   help="install into user prefix, i.e. --prefix=%r" % user_base)
+               help="install into user prefix, i.e. --prefix=%r" % user_base)
     p.add_argument("--userpass", action="store_true",
                    help="change EPD authentication in configuration file")
     p.add_argument('-v', "--verbose", action="store_true")
@@ -689,7 +689,7 @@ def main():
         return
 
     if args.list:                                 # --list
-        list_option(prefix, pat)
+        list_option(prefixes, args.hook, pat)
         return
 
     if args.proxy:                                # --proxy
@@ -712,9 +712,9 @@ def main():
     else:
         #enst = Enstaller(chain=Chain(config.get('IndexedRepos'), verbose),
         #                 prefixes=prefixes, dry_run=dry_run)
-
         enpkg = Enpkg(config.get('IndexedRepos'), config.get_auth(),
-                      prefixes=prefixes, verbose=args.verbose)
+                      prefixes=prefixes, hook=args.hook,
+                      verbose=args.verbose)
 
 #    if args.verbose:
 #        enst.pre_install_callback = verbose_depend_warn
