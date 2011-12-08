@@ -25,18 +25,26 @@ class EggCollection(object):
         if self.hook:
             path = join(self.pkgs_dir, '%s-%s-%d' % (n.lower(), v, b),
                         'EGG-INFO', 'info.json')
+            return self._info_from_path(path)
         else:
-            path = join(self.prefix, 'EGG-INFO', n.lower(), 'info.json')
-        if not isfile(path):
-            return None
-        info = json.load(open(path))
-        info['installed'] = True
-        if self.hook:
-            assert info['key'] == egg
-        if info['key'] == egg:
+            info = self.get_meta_name(n.lower())
+            if info and info['key'] == egg:
+                return info
+            else:
+                return None
+
+    def get_meta_name(self, name):
+        assert not self.hook
+        assert name == name.lower()
+        path = join(self.prefix, 'EGG-INFO', name, 'info.json')
+        return self._info_from_path(path)
+
+    def _info_from_path(self, path):
+        if isfile(path):
+            info = json.load(open(path))
+            info['installed'] = True
             return info
-        else:
-            return None
+        return None
 
     def install(self, egg, dir_path):
         self.action_callback(egg, 'installing')
@@ -63,6 +71,13 @@ class JoinedEggCollection(object):
     def get_meta(self, egg):
         for collection in self.collections:
             info = collection.get_meta(egg)
+            if info:
+                return info
+        return None
+
+    def get_meta_name(self, name):
+        for collection in self.collections:
+            info = collection.get_meta_name(name)
             if info:
                 return info
         return None

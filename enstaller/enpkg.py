@@ -1,18 +1,17 @@
 import sys
-import json
-from os.path import isdir, isfile, join
+from os.path import isdir, join
 
-import egginst
 from egginst.utils import pprint_fn_action, console_progress
 
 from store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
 from store.joined import JoinedStore
 
+from eggcollect import EggCollection, JoinedEggCollection
+
 from utils import comparable_version
-from plat import custom_plat
 from resolve import Req, Resolve
 from fetch import FetchAPI
-from egg_meta import is_valid_eggname, split_eggname
+from egg_meta import split_eggname
 
 
 def create_joined_store(urls):
@@ -35,25 +34,23 @@ def name_egg(egg):
 class EggNotFound(Exception):
     pass
 
-class EggVersionMismatch(Exception):
-    pass
-
 
 class Enpkg(object):
 
     def __init__(self, urls, userpass=None,
-                 prefixes=[sys.prefix], verbose=False):
+                 prefixes=[sys.prefix], hook=False, verbose=False):
         self.remote = create_joined_store(urls)
         self.userpass = userpass
         self.prefixes = prefixes
+        self.hook = hook
         self.verbose = verbose
 
         self.progress_callback = console_progress
         self.action_callback = pprint_fn_action
 
-        self.prefix = self.prefixes[0]
+        self.ec = JoinedEggCollection([EggCollection(prefix, self.hook)
+                                        for prefix in self.prefixes])
         self.local_dir = join(self.prefixes[0], 'LOCAL-REPO')
-        self.pkgs_dir = join(self.prefixes[0], 'pkgs')
 
     def _connect(self):
         if getattr(self, '_connected', None):
@@ -81,29 +78,10 @@ class Enpkg(object):
         except TypeError:
             return info_list
 
-    def filter_installed(self, eggs, hook=False):
-        res = []
-        for egg in eggs:
-            if hook:
-                if self.info_installed_egg(egg):
-                    continue
-            else: # no hook
-                name = name_egg(egg)
-                for prefix in prefixes:
-                    info = self.info_installed_name(name, prefix)
-                    if info and info['key'] == egg:
-                        continue
-            res.append(egg)
-        return res
+    def filter_installed(self, eggs):
+        return [egg for egg in eggs if self.ec.get_meta(egg) is None]
 
-    def install(self, arg, mode='recur', hook=False,
-                force=False, forceall=False):
-        if isinstance(arg, Req):
-            req = arg
-        elif is_valid_eggname(arg):
-            req = Req('%(name)s %(version)s-%(build)d' % split_eggname(arg))
-        else:
-            req = Req(arg)
+    def install(self, req, mode='recur', force=False, forceall=False):
         # resolve the list of eggs that need to be installed
         self._connect()
         resolver = Resolve(self.remote, self.verbose)
@@ -114,57 +92,36 @@ class Enpkg(object):
         if not forceall:
             # filter installed eggs
             if force:
-                eggs = self.filter_installed(eggs[:-1], hook) + [eggs[-1]]
+                eggs = self.filter_installed(eggs[:-1]) + [eggs[-1]]
             else:
-                eggs = self.filter_installed(eggs, hook)
+                eggs = self.filter_installed(eggs)
 
         # fetch eggs
         for egg in eggs:
             self.fetch(egg, force or forceall)
 
-        if not hook:
+        if not self.hook:
             # remove packages (in reverse install order)
             for egg in reversed(eggs):
-                info = self.info_installed_name(name_egg(egg))
+                info = self.ec.get_meta_name(name_egg(egg))
                 if info:
-                    self.remove_egg(info['key'])
+                    self.ec.remove(info['key'])
+
         # install eggs
         for egg in eggs:
-            self.install_egg(egg, hook)
+            self.ec.install(egg, self.local_dir)
         return len(eggs)
 
-    def info_installed_name(self, name): # no hook
-        assert name == name.lower()
-        return self._installed_info_from_path(join(
-                self.prefix, 'EGG-INFO', name, 'info.json'))
+    def remove(self, req):
+        if self.hook:
+            # XXX
+            return
 
-    def info_installed_egg(self, egg): # hook
-        n, v, b = split_eggname(egg)
-        return self._installed_info_from_path(join(
-                self.pkgs_dir, '%s-%s-%d' % (n.lower(), v, b),
-                'EGG-INFO', 'info.json'))
-
-    def _installed_info_from_path(self, path):
-        if isfile(path):
-            info = json.load(open(path))
-            info['installed'] = True
-            return info
-        return None
-
-    def install_egg(self, egg, hook=False):
-        self.action_callback(egg, 'installing')
-        ei = egginst.EggInst(join(self.local_dir, egg),
-                             prefix=self.prefix, hook=hook,
-                             pkgs_dir=self.pkgs_dir, verbose=self.verbose)
-        ei.progress_callback = self.progress_callback
-        ei.install()
-
-    def remove_egg(self, egg, hook=False):
-        self.action_callback(egg, 'removing')
-        ei = egginst.EggInst(egg, prefix=self.prefix, hook=hook,
-                             pkgs_dir=self.pkgs_dir, verbose=self.verbose)
-        ei.progress_callback = self.progress_callback
-        ei.remove()
+        info  = self.ec.get_meta_name(req.name)
+        if info is None:
+            raise EggNotFound("Package %r does not seem to be installed." %
+                              req.name)
+        self.ec.remove(info['key'])
 
     def fetch(self, egg, force=False):
         self._connect()
@@ -173,9 +130,3 @@ class Enpkg(object):
         f.progress_callback = self.progress_callback
         f.verbose = self.verbose
         f.fetch_egg(egg, force)
-
-
-if __name__ == '__main__':
-    x = Enpkg(['/home/ischnell/eggs/'], verbose=1)
-    fn = 'SimPy-2.2-2.egg'
-    x.install_egg(fn, force=1)

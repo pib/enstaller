@@ -27,7 +27,7 @@ from utils import (canonical, comparable_version,
                    shorten_repo, get_installed_info, abs_expanduser)
 from indexed_repo import (Chain, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
-from enpkg import Enpkg, EggNotFound, EggVersionMismatch
+from enpkg import Enpkg, EggNotFound
 from resolve import Req
 
 
@@ -480,17 +480,14 @@ def verbose_depend_warn(enst, dists, action):
     depend_warn(enst, dists, action)
 
 
-def remove_req(enst, req):
+def remove_req(enpkg, req):
     """
     Tries remove a package from prefix given a requirement object.
     This function is only used for the --remove option.
     """
     try:
-        enst.remove(req)
-    except DistributionNotFound, e:
-        print e.message
-        return
-    except DistributionVersionMismatch, e:
+        enpkg.remove(req)
+    except (EggNotFound, EggVersionMismatch) as e:
         print e.message
         return
 
@@ -585,7 +582,7 @@ def install_req(enpkg, req, opts):
 
     if cnt == 0:
         print "No update necessary, %r is up-to-date." % req.name
-        print_installed_info(enpkg, req.name)
+        #print_installed_info(enpkg, req.name)
 
 
 def main():
@@ -713,18 +710,16 @@ def main():
         enst.dry_run = dry_run
         enst.prefixes = prefixes
     else:
-        enst = Enstaller(chain=Chain(config.get('IndexedRepos'), verbose),
-                         prefixes=prefixes, dry_run=dry_run)
+        #enst = Enstaller(chain=Chain(config.get('IndexedRepos'), verbose),
+        #                 prefixes=prefixes, dry_run=dry_run)
 
         enpkg = Enpkg(config.get('IndexedRepos'), config.get_auth(),
                       prefixes=prefixes, verbose=args.verbose)
 
-
-    if args.verbose:
-        enst.pre_install_callback = verbose_depend_warn
-    else:
-        enst.pre_install_callback = depend_warn
-
+#    if args.verbose:
+#        enst.pre_install_callback = verbose_depend_warn
+#    else:
+#        enst.pre_install_callback = depend_warn
 
     if args.add_url:                              # --add-url
         add_url(args.add_url, args.verbose)
@@ -774,12 +769,12 @@ def main():
         print
 
     print "prefix:", prefix
-    check_write(enst)
+    #check_write(enst)
 
     with History(prefix):
         for req in reqs:
             if args.remove:                           # --remove
-                remove_req(enst, req)
+                remove_req(enpkg, req)
             else:
                 install_req(enpkg, req, args)
 
