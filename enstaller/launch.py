@@ -39,13 +39,15 @@ class Launch(Enpkg):
             if not m:
                 print "Warning: not a full requirement:", rs
                 continue
-            print rs
-            info2 = self.find(m.expand(r'\1-\2-\3.egg'))
-            path = join(info2['meta_dir'], 'registry.txt')
-            if isfile(path):
-                result.append(path)
-            else:
+            d = self.find(m.expand(r'\1-\2-\3.egg'))
+            if not d:
+                print "Warning: cannot find install of requirement:", rs
+                continue
+            path = join(d['meta_dir'], 'registry.txt')
+            if not isfile(path):
                 print "Warning: no registry file:", path
+                continue
+            result.append(path)
         return result
 
 
