@@ -31,9 +31,7 @@ def info_from_z(z):
 def create_info(egg, extra_info=None):
     info = dict(key=basename(egg.fpath))
     info.update(info_from_z(egg.z))
-    info['install_time'] = time.ctime()
-    info['meta_dir'] = egg.meta_dir
-    info['prefix'] = egg.prefix
+    info['ctime'] = time.ctime()
     info['hook'] = egg.hook
     if extra_info:
         info.update(extra_info)
