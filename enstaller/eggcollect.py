@@ -64,10 +64,17 @@ class EggCollection(AbstractEggCollection):
                 return None
 
     def find_name(self, name):
-        assert not self.hook
-        assert name == name.lower()
-        path = join(self.prefix, 'EGG-INFO', name, 'info.json')
-        return info_from_path(path)
+        if self.hook:
+            index = dict(self.query(name=name))
+            if len(index) == 1:
+                return index.values()[0]
+            else: # found none, or more then one
+                return None
+        else:
+            assert name == name.lower()
+            path = join(self.prefix, 'EGG-INFO', name, 'info.json')
+            return info_from_path(path)
+        
 
     def query(self, **kwargs):
         if self.hook:

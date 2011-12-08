@@ -135,15 +135,18 @@ class Enpkg(object):
         return len(eggs)
 
     def remove(self, req):
-        if self.hook:
-            # XXX
-            return
-
         info  = self.find_name(req.name)
         if info is None:
             raise EggNotFound("Package %r does not seem to be installed." %
                               req.name)
         self.ec.remove(info['key'])
+
+    # == methods which relate to both (remote store / local installation ==
+
+    def query(self, **kwargs):
+        index = dict(self.query_remote(**kwargs))
+        index.update(self.query_installed(**kwargs))
+        return index.iteritems()
 
     def fetch(self, egg, force=False):
         self._connect()
