@@ -1,5 +1,6 @@
 import json
 from os.path import isfile, join
+from abc import ABCMeta, abstractmethod
 
 import egginst
 from egginst.utils import pprint_fn_action, console_progress
@@ -7,8 +8,24 @@ from egginst.utils import pprint_fn_action, console_progress
 from egg_meta import split_eggname
 
 
+class AbstractEggCollection(object):
 
-class EggCollection(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def get_meta(self, egg):
+        raise NotImplementedError
+
+    @abstractmethod
+    def install(self, egg, dir_path):
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove(self, egg):
+        raise NotImplementedError
+
+
+class EggCollection(AbstractEggCollection):
 
     def __init__(self, prefix, hook):
         self.prefix = prefix
@@ -63,7 +80,7 @@ class EggCollection(object):
         ei.remove()
 
 
-class JoinedEggCollection(object):
+class JoinedEggCollection(AbstractEggCollection):
 
     def __init__(self, collections):
         self.collections = collections

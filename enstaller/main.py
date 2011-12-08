@@ -487,7 +487,7 @@ def remove_req(enpkg, req):
     """
     try:
         enpkg.remove(req)
-    except (EggNotFound, EggVersionMismatch) as e:
+    except EggNotFound as e:
         print e.message
         return
 
