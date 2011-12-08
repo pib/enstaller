@@ -112,11 +112,11 @@ class JoinedEggCollection(AbstractEggCollection):
     def __init__(self, collections):
         self.collections = collections
 
-    def query(self, **kwargs):
-        index = {}
-        for collection in reversed(self.collections):
-            index.update(collection.query(**kwargs))
-        return index.iteritems()
+    def where_from(self, egg):
+        for collection in self.collections:
+            if collection.get_meta(egg):
+                return collection
+        return None
 
     def get_meta(self, egg):
         for collection in self.collections:
@@ -131,6 +131,12 @@ class JoinedEggCollection(AbstractEggCollection):
             if info:
                 return info
         return None
+
+    def query(self, **kwargs):
+        index = {}
+        for collection in reversed(self.collections):
+            index.update(collection.query(**kwargs))
+        return index.iteritems()
 
     def install(self, egg, dir_path, extra_info=None):
         self.collections[0].install(egg, dir_path, extra_info)
