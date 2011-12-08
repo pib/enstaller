@@ -11,7 +11,7 @@ from eggcollect import EggCollection, JoinedEggCollection
 from utils import comparable_version
 from resolve import Req, Resolve
 from fetch import FetchAPI
-from egg_meta import split_eggname
+from egg_meta import is_valid_eggname, split_eggname
 
 
 def create_joined_store(urls):
@@ -26,6 +26,13 @@ def create_joined_store(urls):
         else:
             raise Exception("cannot create store: %r" % url)
     return JoinedStore(stores)
+
+def req_from_anything(arg):
+    if isinstance(arg, Req):
+        return arg
+    if is_valid_eggname(arg):
+        return Req('%s %s-%d' % split_eggname(arg))
+    return Req(arg)
 
 def name_egg(egg):
     n, v, b = split_eggname(egg)
@@ -90,7 +97,8 @@ class Enpkg(object):
     def find_name(self, egg):
         return self.ec.find_name(egg)
 
-    def install(self, req, mode='recur', force=False, forceall=False):
+    def install(self, arg, mode='recur', force=False, forceall=False):
+        req = req_from_anything(arg)
         # resolve the list of eggs that need to be installed
         self._connect()
         resolver = Resolve(self.remote, self.verbose)
