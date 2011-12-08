@@ -52,6 +52,8 @@ class Enpkg(object):
                                         for prefix in self.prefixes])
         self.local_dir = join(self.prefixes[0], 'LOCAL-REPO')
 
+    # ============= methods which relate to remove store =================
+
     def _connect(self):
         if getattr(self, '_connected', None):
             return
@@ -77,11 +79,16 @@ class Enpkg(object):
         except TypeError:
             return info_list
 
+    # ============= methods which relate to local installation ===========
+
     def query_installed(self, **kwargs):
         return self.ec.query(**kwargs)
 
-    def filter_installed(self, eggs):
-        return [egg for egg in eggs if self.ec.get_meta(egg) is None]
+    def find(self, egg):
+        return self.ec.find(egg)
+
+    def find_name(self, egg):
+        return self.ec.find_name(egg)
 
     def install(self, req, mode='recur', force=False, forceall=False):
         # resolve the list of eggs that need to be installed
@@ -92,11 +99,12 @@ class Enpkg(object):
              raise EggNotFound("No egg found for requirement '%s'." % req)
 
         if not forceall:
-            # filter installed eggs
+            # remove installed eggs from egg list
+            rm = lambda eggs: [e for e in eggs if self.find(e) is None]
             if force:
-                eggs = self.filter_installed(eggs[:-1]) + [eggs[-1]]
+                eggs = rm(eggs[:-1]) + [eggs[-1]]
             else:
-                eggs = self.filter_installed(eggs)
+                eggs = rm(eggs)
 
         # fetch eggs
         for egg in eggs:
@@ -105,7 +113,7 @@ class Enpkg(object):
         if not self.hook:
             # remove packages (in reverse install order)
             for egg in reversed(eggs):
-                info = self.ec.get_meta_name(name_egg(egg))
+                info = self.find_name(name_egg(egg))
                 if info:
                     self.ec.remove(info['key'])
 
@@ -123,7 +131,7 @@ class Enpkg(object):
             # XXX
             return
 
-        info  = self.ec.get_meta_name(req.name)
+        info  = self.find_name(req.name)
         if info is None:
             raise EggNotFound("Package %r does not seem to be installed." %
                               req.name)

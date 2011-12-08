@@ -11,16 +11,14 @@ from enpkg import Enpkg
 
 class Launch(Enpkg):
 
-    def get_installed_apps(self):
-        for p in glob(join(self.pkgs_dir, '*', 'EGG-INFO', 'app_meta.json')):
-            info = json.load(open(p))
-            info['installed'] = True
-            yield info['key'], info
+    def query_installed_apps(self, **kwargs):
+        kwargs['app'] = True
+        return self.query_installed(**kwargs)
 
-    def get_all_apps(self):
-        self._connect()
-        d = dict(self.remote.query(app=True))
-        d.update(self.get_installed_apps())
+    def query_all_apps(self, **kwargs):
+        kwargs['app'] = True
+        d = dict(self.query_remote(**kwargs))
+        d.update(self.query_installed_apps(**kwargs))
         return d
 
     def get_icon_path(self, egg):
@@ -58,12 +56,12 @@ class Launch(Enpkg):
 if __name__ == '__main__':
     #x = Launch(['/home/ischnell/eggs/'], verbose=1)
     x = Launch(['/Users/ischnell/repo/'],
-               prefix='/Users/ischnell/jpm/Python-2.7', verbose=1)
+               prefixes=['/Users/ischnell/jpm/Python-2.7'], verbose=1)
     fn = 'nose-1.1.2-1.egg'
     #x.install('enstaller-4.5.0-1.egg')
     #x.remove('enstaller-4.5.0-1.egg')
     #x.install_app(fn, force=1)
-    for k, info in x.get_all_apps().iteritems():
+    for k, info in x.query_all_apps().iteritems():
         print k, x.get_icon_path(k)
     x.launch_app(fn)
     #print dict(rem.query(app=True))

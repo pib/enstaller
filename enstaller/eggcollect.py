@@ -14,7 +14,7 @@ class AbstractEggCollection(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_meta(self, egg):
+    def find(self, egg):
         raise NotImplementedError
 
     @abstractmethod
@@ -50,20 +50,20 @@ class EggCollection(AbstractEggCollection):
 
         self.pkgs_dir = join(self.prefix, 'pkgs')
 
-    def get_meta(self, egg):
+    def find(self, egg):
         n, v, b = split_eggname(egg)
         if self.hook:
             path = join(self.pkgs_dir, '%s-%s-%d' % (n.lower(), v, b),
                         'EGG-INFO', 'info.json')
             return info_from_path(path)
         else:
-            info = self.get_meta_name(n.lower())
+            info = self.find_name(n.lower())
             if info and info['key'] == egg:
                 return info
             else:
                 return None
 
-    def get_meta_name(self, name):
+    def find_name(self, name):
         assert not self.hook
         assert name == name.lower()
         path = join(self.prefix, 'EGG-INFO', name, 'info.json')
@@ -114,20 +114,20 @@ class JoinedEggCollection(AbstractEggCollection):
 
     def where_from(self, egg):
         for collection in self.collections:
-            if collection.get_meta(egg):
+            if collection.find(egg):
                 return collection
         return None
 
-    def get_meta(self, egg):
+    def find(self, egg):
         for collection in self.collections:
-            info = collection.get_meta(egg)
+            info = collection.find(egg)
             if info:
                 return info
         return None
 
-    def get_meta_name(self, name):
+    def find_name(self, name):
         for collection in self.collections:
-            info = collection.get_meta_name(name)
+            info = collection.find_name(name)
             if info:
                 return info
         return None
