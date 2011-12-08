@@ -58,16 +58,15 @@ class Enpkg(object):
         self.remote.connect(self.userpass)
         self._connected = True
 
-    def query(self, **kwargs):
+    def query_remote(self, **kwargs):
         self._connect()
         kwargs['type'] = 'egg'
-        for egg, info in self.remote.query(**kwargs):
-            yield egg, info
+        return self.remote.query(**kwargs)
 
     def info_list_name(self, name):
         req = Req(name)
         info_list = []
-        for key, info in self.query(name=name):
+        for key, info in self.query_remote(name=name):
             if req.matches(info):
                 repo = self.remote.from_which_repo(key)
                 info['repo_dispname'] = repo.info()['dispname']
@@ -77,6 +76,9 @@ class Enpkg(object):
                       key=lambda info: comparable_version(info['version']))
         except TypeError:
             return info_list
+
+    def query_installed(self, **kwargs):
+        return self.ec.query(**kwargs)
 
     def filter_installed(self, eggs):
         return [egg for egg in eggs if self.ec.get_meta(egg) is None]

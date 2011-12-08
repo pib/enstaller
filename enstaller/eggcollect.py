@@ -1,3 +1,4 @@
+import os
 import json
 from os.path import isfile, join
 from abc import ABCMeta, abstractmethod
@@ -17,12 +18,24 @@ class AbstractEggCollection(object):
         raise NotImplementedError
 
     @abstractmethod
+    def query(self, **kwargs):
+        raise NotImplementedError
+
+    @abstractmethod
     def install(self, egg, dir_path):
         raise NotImplementedError
 
     @abstractmethod
     def remove(self, egg):
         raise NotImplementedError
+
+
+def info_from_path(path):
+    if isfile(path):
+        info = json.load(open(path))
+        info['installed'] = True
+        return info
+    return None
 
 
 class EggCollection(AbstractEggCollection):
@@ -42,7 +55,7 @@ class EggCollection(AbstractEggCollection):
         if self.hook:
             path = join(self.pkgs_dir, '%s-%s-%d' % (n.lower(), v, b),
                         'EGG-INFO', 'info.json')
-            return self._info_from_path(path)
+            return info_from_path(path)
         else:
             info = self.get_meta_name(n.lower())
             if info and info['key'] == egg:
@@ -54,14 +67,24 @@ class EggCollection(AbstractEggCollection):
         assert not self.hook
         assert name == name.lower()
         path = join(self.prefix, 'EGG-INFO', name, 'info.json')
-        return self._info_from_path(path)
+        return info_from_path(path)
 
-    def _info_from_path(self, path):
-        if isfile(path):
-            info = json.load(open(path))
-            info['installed'] = True
-            return info
-        return None
+    def query(self, **kwargs):
+        if self.hook:
+            for fn in os.listdir(self.pkgs_dir):
+                path = join(self.pkgs_dir, fn, 'EGG-INFO', 'info.json')
+                info = info_from_path(path)
+                if info and all(info.get(k) == v
+                                for k, v in kwargs.iteritems()):
+                    yield info['key'], info
+        else:
+            egginfo_dir = join(self.prefix, 'EGG-INFO')
+            for fn in os.listdir(egginfo_dir):
+                path = join(egginfo_dir, fn, 'info.json')
+                info = info_from_path(path)
+                if info and all(info.get(k) == v
+                                for k, v in kwargs.iteritems()):
+                    yield info['key'], info
 
     def install(self, egg, dir_path):
         self.action_callback(egg, 'installing')
@@ -84,6 +107,12 @@ class JoinedEggCollection(AbstractEggCollection):
 
     def __init__(self, collections):
         self.collections = collections
+
+    def query(self, **kwargs):
+        index = {}
+        for collection in reversed(self.collections):
+            index.update(collection.query(**kwargs))
+        return index.iteritems()
 
     def get_meta(self, egg):
         for collection in self.collections:

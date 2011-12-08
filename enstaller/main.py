@@ -27,6 +27,8 @@ from utils import (canonical, comparable_version,
                    shorten_repo, get_installed_info, abs_expanduser)
 from indexed_repo import (Chain, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
+
+from eggcollect import EggCollection
 from enpkg import Enpkg, EggNotFound
 from resolve import Req
 
@@ -375,11 +377,9 @@ def print_installed(prefix, pat=None):
     fmt = '%-20s %-20s %s'
     print fmt % ('Project name', 'Version', 'Repository')
     print 60 * '='
-    for cname in egginst.get_installed_cnames(prefix):
-        if pat and not pat.search(cname):
-            continue
-        info = get_installed_info(prefix, cname)
-        if info is None:
+    ec = EggCollection(prefix, False)
+    for egg, info in ec.query():
+        if pat and not pat.search(info['name']):
             continue
         print fmt % (info['name'], info['version'], info.get('repo', '-'))
 
@@ -428,7 +428,7 @@ def search(enpkg, pat=None):
     print fmt % ('Project name', 'Versions', 'Repository')
     print 55 * '-'
 
-    names = set(info['name'] for _, info in enpkg.query())
+    names = set(info['name'] for _, info in enpkg.query_remote())
     for name in sorted(names, key=string.lower):
         if pat and not pat.search(name):
             continue

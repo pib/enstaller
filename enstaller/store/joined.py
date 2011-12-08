@@ -47,16 +47,4 @@ class JoinedStore(AbstractStore):
         index = {}
         for repo in reversed(self.repos):
             index.update(repo.query(**kwargs))
-        for key, meta in index.iteritems():
-            yield key, meta
-
-
-if __name__ == '__main__':
-    from indexed import LocalIndexedRepo
-
-    r = JoinedStore([LocalIndexedRepo('/Users/ischnell/repo'),
-                     LocalIndexedRepo('/Users/ischnell/repo2'),
-                     ])
-    r.connect()
-    for key in r.query_keys():#name='Cython'):
-        print key
+        return index.iteritems()
