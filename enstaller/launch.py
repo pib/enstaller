@@ -3,7 +3,6 @@ import sys
 import subprocess
 from os.path import abspath, isfile, join
 
-from resolve import Req
 from enpkg import Enpkg
 
 
@@ -59,4 +58,5 @@ if __name__ == '__main__':
     #x.install(fn, force=1)
     #print x.get_icon_path(fn)
     #x.launch_app(fn)
-    print x.registry_path_list(fn)
+    for p in x.registry_path_list(fn):
+        print p

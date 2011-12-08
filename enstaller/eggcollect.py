@@ -58,7 +58,7 @@ class EggCollection(AbstractEggCollection):
             return info_from_path(path)
         else:
             info = self.find_name(n.lower())
-            if info and info['key'].lower() == egg.lower():
+            if info and info['key'] == egg:
                 return info
             else:
                 return None
@@ -74,13 +74,15 @@ class EggCollection(AbstractEggCollection):
         else:
             path = join(self.prefix, 'EGG-INFO', name, 'info.json')
             return info_from_path(path)
-        
 
     def query(self, **kwargs):
+        name = kwargs.get('name')
         if self.hook:
             if not isdir(self.pkgs_dir):
                 return
             for fn in os.listdir(self.pkgs_dir):
+                if name and not fn.startswith(name + '-'):
+                    continue
                 path = join(self.pkgs_dir, fn, 'EGG-INFO', 'info.json')
                 info = info_from_path(path)
                 if info and all(info.get(k) == v
@@ -91,6 +93,8 @@ class EggCollection(AbstractEggCollection):
             if not isdir(egginfo_dir):
                 return
             for fn in os.listdir(egginfo_dir):
+                if name and fn != name:
+                    continue
                 path = join(egginfo_dir, fn, 'info.json')
                 info = info_from_path(path)
                 if info and all(info.get(k) == v
@@ -118,12 +122,6 @@ class JoinedEggCollection(AbstractEggCollection):
 
     def __init__(self, collections):
         self.collections = collections
-
-    def where_from(self, egg):
-        for collection in self.collections:
-            if collection.find(egg):
-                return collection
-        return None
 
     def find(self, egg):
         for collection in self.collections:
