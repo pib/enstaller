@@ -262,17 +262,3 @@ class Resolve(object):
             return self._sequence_recur(root)
 
         raise Exception('did not expect: mode = %r' % mode)
-
-
-if __name__ == '__main__':
-    from store.indexed import LocalIndexedStore
-    from store.joined import JoinedStore
-
-    #r = JoinedStore([LocalIndexedStore('/Users/ischnell/repo'),
-    #                 LocalIndexedStore('/Users/ischnell/repo2')])
-    r = LocalIndexedStore('/home/ischnell/eggs')
-    r.connect()
-    res = Resolve(r)
-    print res.get_egg(Req('pyside'))
-    print list(r.query_keys(name='nose'))
-    print res.install_sequence(Req('pyside'))

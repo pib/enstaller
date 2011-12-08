@@ -1,5 +1,6 @@
 import os
 import json
+import string
 from os.path import isdir, isfile, join
 from abc import ABCMeta, abstractmethod
 
@@ -80,7 +81,7 @@ class EggCollection(AbstractEggCollection):
         if self.hook:
             if not isdir(self.pkgs_dir):
                 return
-            for fn in os.listdir(self.pkgs_dir):
+            for fn in sorted(os.listdir(self.pkgs_dir), key=string.lower):
                 if name and not fn.startswith(name + '-'):
                     continue
                 path = join(self.pkgs_dir, fn, 'EGG-INFO', 'info.json')
@@ -92,7 +93,7 @@ class EggCollection(AbstractEggCollection):
             egginfo_dir = join(self.prefix, 'EGG-INFO')
             if not isdir(egginfo_dir):
                 return
-            for fn in os.listdir(egginfo_dir):
+            for fn in sorted(os.listdir(egginfo_dir), key=string.lower):
                 if name and fn != name:
                     continue
                 path = join(egginfo_dir, fn, 'info.json')

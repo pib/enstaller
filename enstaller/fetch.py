@@ -93,9 +93,10 @@ class FetchAPI(object):
             return False
 
         possible = []
-        name = egg.split('-')[0].lower()
-        for patch_fn, info in self.remote.query(type='patch', name=name,
-                                                dst=egg):
+        for patch_fn, info in self.remote.query(
+                          type='patch',
+                          name=egg.split('-')[0].lower(),
+                          dst=egg):
             assert info['dst'] == egg
             src_path = self.path(info['src'])
             #print '%8d %s %s' % (info['size'], patch_fn, isfile(src_path))

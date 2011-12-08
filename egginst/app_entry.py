@@ -14,7 +14,7 @@ def registry_lines(pkgs_dir, info):
         pkg = '%s-%s' % (m.group(1).lower(), m.group(2))
         reg_path = join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')
         if not isfile(reg_path):
-            print "Warning: no registry file:", reg_path
+            #print "Warning: no registry file:", reg_path
             continue
         for line in open(reg_path):
             line = line.strip()

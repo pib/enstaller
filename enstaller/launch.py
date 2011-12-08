@@ -29,6 +29,8 @@ class Launch(Enpkg):
         subprocess.call(cmd)
 
     def registry_path_list(self, egg):
+        if not self.hook:
+            return []
         info = self.find(egg)
         pat = re.compile(r'([\w.]+)\s+([\w.]+)-(\d+)$')
         result = []
@@ -37,6 +39,7 @@ class Launch(Enpkg):
             if not m:
                 print "Warning: not a full requirement:", rs
                 continue
+            print rs
             info2 = self.find(m.expand(r'\1-\2-\3.egg'))
             path = join(info2['meta_dir'], 'registry.txt')
             if isfile(path):
@@ -47,9 +50,8 @@ class Launch(Enpkg):
 
 
 if __name__ == '__main__':
-    #x = Launch(['/home/ischnell/eggs/'], verbose=1)
-    x = Launch(['/Users/ischnell/repo/'],
-               prefixes=['/Users/ischnell/jpm/Python-2.7', sys.prefix],
+    x = Launch(['/home/ischnell/eggs'],
+               prefixes=['/home/ischnell/jpm/Python-2.7', sys.prefix],
                hook=1,
                verbose=1)
 #    for k, info in x.query():#app=True):
