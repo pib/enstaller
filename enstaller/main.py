@@ -23,8 +23,7 @@ from enstaller import __version__
 import config
 from history import History
 from proxy.api import setup_proxy
-from utils import (canonical, comparable_version,
-                   shorten_repo, get_installed_info, abs_expanduser)
+from utils import canonical, comparable_version, abs_expanduser
 from indexed_repo import (Chain, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
 
@@ -36,18 +35,14 @@ from resolve import Req
 def cname_fn(fn):
     return canonical(fn.split('-')[0])
 
-
 class DistributionNotFound(Exception):
     pass
-
 
 class DistributionVersionMismatch(Exception):
     pass
 
-
 def noop_callback(*args):
     pass
-
 
 class Enstaller(object):
     """ enpkg back-end

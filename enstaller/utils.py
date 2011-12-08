@@ -1,13 +1,9 @@
 import os
-import re
 import sys
-import json
-import time
 import hashlib
-from os.path import abspath, expanduser, getmtime, getsize, isfile, join
+from os.path import abspath, expanduser, getmtime, getsize
 
-from egginst import name_version_fn
-from enstaller.verlib import NormalizedVersion, IrrationalVersionError
+from verlib import NormalizedVersion, IrrationalVersionError
 
 
 PY_VER = '%i.%i' % sys.version_info[:2]
@@ -120,39 +116,3 @@ def stream_to_file(fi, path, info={}, progress_callback=None):
     if md5 and h.hexdigest() != md5:
         sys.exit("Error: received data MD5 sums mismatch")
     os.rename(path + '.part', path)
-
-# -----------------------------------------------------------------
-
-repo_pat = re.compile(r'/repo/([^\s/]+/[^\s/]+)/')
-def shorten_repo(repo):
-    m = repo_pat.search(repo)
-    if m:
-        return m.group(1)
-    else:
-        res = repo.replace('http://', '').replace('https://', '')
-        return res.replace('.enthought.com', '')
-
-
-def get_installed_info(prefix, cname):
-    """
-    return a dictionary with information about the package specified by the
-    canonical name found in prefix, or None if the package is not found
-    """
-    from egginst.main import read_meta
-
-    meta_dir = join(prefix, 'EGG-INFO', cname)
-    d = read_meta(meta_dir)
-    if d is None:
-        return None
-    res = {}
-    res['egg_name'] = d['egg_name']
-    res['name'], res['version'] = name_version_fn(d['egg_name'])
-    res['mtime'] = time.ctime(getmtime(meta_dir))
-    res['meta_dir'] = meta_dir
-
-    meta_txt = join(meta_dir, '__enpkg__.txt')
-    if isfile(meta_txt):
-        d = {}
-        execfile(meta_txt, d)
-        res['repo'] = shorten_repo(d['repo'])
-    return res
