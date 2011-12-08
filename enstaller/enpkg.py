@@ -107,7 +107,7 @@ class Enpkg(object):
              raise EggNotFound("No egg found for requirement '%s'." % req)
 
         if not forceall:
-            # remove installed eggs from egg list
+            # remove already installed eggs from egg list
             rm = lambda eggs: [e for e in eggs if self.find(e) is None]
             if force:
                 eggs = rm(eggs[:-1]) + [eggs[-1]]

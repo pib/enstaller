@@ -1,7 +1,7 @@
 import re
 import sys
 import subprocess
-from os.path import abspath, isfile, join
+from os.path import isfile, join
 
 from enpkg import Enpkg
 
@@ -11,7 +11,7 @@ class Launch(Enpkg):
     def get_icon_path(self, egg):
         info = self.find(egg)
         if 'app_icon' in info:
-            path = abspath(join(info['meta_dir'], info['app_icon']))
+            path = join(info['meta_dir'], info['app_icon'])
             if isfile(path):
                 return path
         return None
@@ -37,11 +37,11 @@ class Launch(Enpkg):
         for rs in ['%(name)s %(version)s-%(build)d' % info] + info['packages']:
             m = pat.match(rs)
             if not m:
-                print "Warning: not a full requirement:", rs
+                print "Warning: not a full requirement: %r" % rs
                 continue
             d = self.find(m.expand(r'\1-\2-\3.egg'))
             if not d:
-                print "Warning: cannot find install of requirement:", rs
+                print "Warning: cannot find install for: %r" % rs
                 continue
             path = join(d['meta_dir'], 'registry.txt')
             if not isfile(path):

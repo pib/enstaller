@@ -31,10 +31,12 @@ class AbstractEggCollection(object):
         raise NotImplementedError
 
 
-def info_from_path(path):
+def info_from_metadir(meta_dir):
+    path = join(meta_dir, 'info.json')
     if isfile(path):
         info = json.load(open(path))
         info['installed'] = True
+        info['meta_dir'] = meta_dir
         return info
     return None
 
@@ -54,9 +56,8 @@ class EggCollection(AbstractEggCollection):
     def find(self, egg):
         n, v, b = split_eggname(egg)
         if self.hook:
-            path = join(self.pkgs_dir, '%s-%s-%d' % (n.lower(), v, b),
-                        'EGG-INFO', 'info.json')
-            return info_from_path(path)
+            return info_from_metadir(join(self.pkgs_dir,
+                             '%s-%s-%d' % (n.lower(), v, b), 'EGG-INFO'))
         else:
             info = self.find_name(n.lower())
             if info and info['key'] == egg:
@@ -73,8 +74,7 @@ class EggCollection(AbstractEggCollection):
             else: # found none, or more then one
                 return None
         else:
-            path = join(self.prefix, 'EGG-INFO', name, 'info.json')
-            return info_from_path(path)
+            return info_from_metadir(join(self.prefix, 'EGG-INFO', name))
 
     def query(self, **kwargs):
         name = kwargs.get('name')
@@ -84,8 +84,7 @@ class EggCollection(AbstractEggCollection):
             for fn in sorted(os.listdir(self.pkgs_dir), key=string.lower):
                 if name and not fn.startswith(name + '-'):
                     continue
-                path = join(self.pkgs_dir, fn, 'EGG-INFO', 'info.json')
-                info = info_from_path(path)
+                info = info_from_metadir(join(self.pkgs_dir, fn, 'EGG-INFO'))
                 if info and all(info.get(k) == v
                                 for k, v in kwargs.iteritems()):
                     yield info['key'], info
@@ -96,8 +95,7 @@ class EggCollection(AbstractEggCollection):
             for fn in sorted(os.listdir(egginfo_dir), key=string.lower):
                 if name and fn != name:
                     continue
-                path = join(egginfo_dir, fn, 'info.json')
-                info = info_from_path(path)
+                info = info_from_metadir(join(egginfo_dir, fn))
                 if info and all(info.get(k) == v
                                 for k, v in kwargs.iteritems()):
                     yield info['key'], info

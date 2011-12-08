@@ -74,10 +74,6 @@ class EggInst(object):
         self.files = []
         self.verbose = verbose
 
-    def rel_prefix(self, path):
-        assert abspath(path).startswith(self.prefix)
-        return path[len(self.prefix) + 1:]
-
 
     def install(self, extra_info=None):
         if not isdir(self.meta_dir):
@@ -134,6 +130,9 @@ class EggInst(object):
                 scripts.verbose = True
             scripts.create(self, conf)
 
+
+    def rel_prefix(self, path):
+        return abspath(path).replace(self.prefix, '.').replace('\\', '/')
 
     def write_meta(self):
         d = dict(
