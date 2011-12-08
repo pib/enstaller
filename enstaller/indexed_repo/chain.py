@@ -7,7 +7,8 @@ from os.path import basename, isfile, isdir, join
 from enstaller.store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
 
 from egginst.utils import pprint_fn_action, console_progress
-from enstaller.utils import comparable_version, md5_file, stream_to_file
+from enstaller.utils import comparable_version, md5_file
+from enstaller.fetch import stream_to_file
 import metadata
 import dist_naming
 from requirement import Req, add_Reqs_to_spec

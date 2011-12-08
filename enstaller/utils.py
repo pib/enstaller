@@ -1,4 +1,3 @@
-import os
 import sys
 import hashlib
 from os.path import abspath, expanduser, getmtime, getsize
@@ -68,51 +67,3 @@ def info_file(path):
         mtime=getmtime(path),
         md5=md5_file(path),
     )
-
-
-def stream_to_file(fi, path, info={}, progress_callback=None):
-    """
-    Read data from the filehandle and write a the file.
-    Optionally check the MD5.  When the size in bytes and
-    progress_callback are provided, the callback is called
-    with progress updates as the download/copy occurs. If no size is
-    provided, the callback will be called with None for the total
-    size.
-
-    The callback will be called with 0% progress at the beginning and
-    100% progress at the end, so these two states can be used for any
-    initial and final display.
-
-    progress_callback signature: callback(so_far, total, state)
-      so_far -- bytes so far
-      total -- bytes total, if known, otherwise None
-    """
-    size = info.get('size')
-    md5 = info.get('md5')
-
-    if progress_callback is not None and size:
-        n = 0
-        progress_callback(0, size)
-
-    h = hashlib.new('md5')
-    if size and size < 16384:
-        buffsize = 1
-    else:
-        buffsize = 256
-
-    with open(path + '.part', 'wb') as fo:
-        while True:
-            chunk = fi.read(buffsize)
-            if not chunk:
-                break
-            fo.write(chunk)
-            if md5:
-                h.update(chunk)
-            if progress_callback is not None and size:
-                n += len(chunk)
-                progress_callback(n, size)
-    fi.close()
-
-    if md5 and h.hexdigest() != md5:
-        sys.exit("Error: received data MD5 sums mismatch")
-    os.rename(path + '.part', path)
