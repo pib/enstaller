@@ -167,47 +167,6 @@ def search(enpkg, pat=None):
             disp_name = ''
 
 
-def depend_warn(enst, dists, action):
-    """
-    Warns the user about packages to be changed (i.e. removed or updated),
-    if other packages depend on the package.
-
-    Warnings are printed when the required name of the package matches.
-    The ignore_version option determines if a version comparison is also
-    desired as well, which it is not for the --remove option, since when
-    a package is removed it does not matter which version is required.
-    Hence, in remove_req() this function is called with ignore_version=True.
-    """
-    if action == 'remove':
-        ignore_version = True
-    else:
-        ignore_version = False
-    pkgs = [dist_naming.filename_dist(d) for d in dists]
-
-    names = {}
-    for pkg in pkgs:
-        names[cname_fn(pkg)] = pkg
-    index = enst.get_dependencies()
-    for spec in index.itervalues():
-        if spec['cname'] in names:
-            continue
-        for req in spec["Reqs"]:
-            if req.name not in names:
-                continue
-            if (ignore_version or
-                     (req.version and
-                      req.version != names[req.name].split('-')[1])):
-                print "Warning: %s depends on %s" % (spec_as_req(spec), req)
-
-
-def verbose_depend_warn(enst, dists, action):
-    if dists:
-        print 'Distributions in install sequence:'
-        for d in dists:
-            print '    ' + d
-    depend_warn(enst, dists, action)
-
-
 def remove_req(enpkg, req):
     """
     Tries remove a package from prefix given a requirement object.
@@ -447,11 +406,6 @@ def main():
         enpkg = Enpkg(config.get('IndexedRepos'), config.get_auth(),
                       prefixes=prefixes, hook=args.hook,
                       verbose=args.verbose)
-
-#    if args.verbose:
-#        enst.pre_install_callback = verbose_depend_warn
-#    else:
-#        enst.pre_install_callback = depend_warn
 
     if args.add_url:                              # --add-url
         add_url(args.add_url, args.verbose)
