@@ -117,14 +117,13 @@ class Enpkg(object):
             self.fetch(egg, force or forceall)
 
         if not self.hook:
-            # remove packages from first egg collection only, in reverse
-            # install order
+            # remove packages with the same name (from first egg collection
+            # only, in reverse install order)
             for egg in reversed(eggs):
-                index = dict(self.ec0.query(name=name_egg(egg)))
-                if index:
-                    assert len(index) == 1
-                    key = index.keys()[0]
-                    self.ec.remove(key)
+                try:
+                    self.remove(Req(name_egg(egg)))
+                except EnpkgError:
+                    pass
 
         # install eggs
         for egg in eggs:
@@ -136,11 +135,13 @@ class Enpkg(object):
         return len(eggs)
 
     def remove(self, req):
+        assert req.name
         index = dict(self.ec0.query(**req.as_dict()))
         if len(index) == 0:
             raise EnpkgError("Package %s not installed in: %r" %
                               (req, self.ec0.prefix))
         if len(index) > 1:
+            assert self.hook
             versions = ['%(version)s-%(build)d' % d
                         for d in index.itervalues()]
             raise EnpkgError("Package %s installed more than once: %s" %
