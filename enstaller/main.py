@@ -23,8 +23,6 @@ import config
 from history import History
 from proxy.api import setup_proxy
 from utils import comparable_version, abs_expanduser
-from indexed_repo import (Chain, filename_as_req,
-                          spec_as_req, dist_naming)
 
 from eggcollect import EggCollection
 from enpkg import Enpkg, EnpkgError
@@ -99,7 +97,7 @@ def info_option(enst, cname):
         reqs = set(r.name for r in enst.chain.reqs_dist(dist))
         print "Requirements: %s" % ', '.join(sorted(reqs))
 
-    print "Available versions: %s" % ', '.join(enst.chain.list_versions(cname))
+    print "Available versions: %s" % ', '.join(chain.list_versions(cname))
     print_installed_info(enst, cname)
 
 
@@ -260,11 +258,11 @@ def install_req(enpkg, req, opts):
                             force=opts.force, forceall=opts.forceall)
     except EnpkgError, e:
         print e.message
-        versions = enpkg.list_versions(req.name)
-        if versions:
+        info_list = enpkg.info_list_name(req.name)
+        if info_list:
             print "Versions for package %r are: %s" % (
                 req.name,
-                ', '.join(sorted(set(i['version'] for i, r in versions))))
+                ', '.join(sorted(set(i['version'] for i in info_list))))
         sys.exit(1)
 
     if cnt == 0:
