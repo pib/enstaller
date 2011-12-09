@@ -57,7 +57,6 @@ class Enpkg(object):
 
         self.ec = JoinedEggCollection([EggCollection(prefix, self.hook)
                                        for prefix in self.prefixes])
-        self.ec0 = self.ec.collections[0]
         self.local_dir = join(self.prefixes[0], 'LOCAL-REPO')
 
     # ============= methods which relate to remove store =================
@@ -136,10 +135,10 @@ class Enpkg(object):
 
     def remove(self, req):
         assert req.name
-        index = dict(self.ec0.query(**req.as_dict()))
+        index = dict(self.ec.collections[0].query(**req.as_dict()))
         if len(index) == 0:
             raise EnpkgError("Package %s not installed in: %r" %
-                              (req, self.ec0.prefix))
+                              (req, self.prefixes[0]))
         if len(index) > 1:
             assert self.hook
             versions = ['%(version)s-%(build)d' % d
