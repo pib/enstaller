@@ -376,7 +376,7 @@ def print_installed(prefix, hook=False, pat=None):
     for egg, info in ec.query():
         if pat and not pat.search(info['name']):
             continue
-        print fmt % (info['name'], info['version'],
+        print fmt % (info['name'], '%(version)s-%(build)d' % info,
                      info.get('repo_dispname', '-'))
 
 

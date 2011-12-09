@@ -59,22 +59,11 @@ class EggCollection(AbstractEggCollection):
             return info_from_metadir(join(self.pkgs_dir,
                              '%s-%s-%d' % (n.lower(), v, b), 'EGG-INFO'))
         else:
-            info = self.find_name(n.lower())
+            info = info_from_metadir(join(self.prefix, 'EGG-INFO', n.lower()))
             if info and info['key'] == egg:
                 return info
             else:
                 return None
-
-    def find_name(self, name):
-        assert name == name.lower()
-        if self.hook:
-            index = dict(self.query(name=name))
-            if len(index) == 1:
-                return index.values()[0]
-            else: # found none, or more then one
-                return None
-        else:
-            return info_from_metadir(join(self.prefix, 'EGG-INFO', name))
 
     def query(self, **kwargs):
         name = kwargs.get('name')
@@ -125,13 +114,6 @@ class JoinedEggCollection(AbstractEggCollection):
     def find(self, egg):
         for collection in self.collections:
             info = collection.find(egg)
-            if info:
-                return info
-        return None
-
-    def find_name(self, name):
-        for collection in self.collections:
-            info = collection.find_name(name)
             if info:
                 return info
         return None

@@ -94,9 +94,6 @@ class Enpkg(object):
     def find(self, egg):
         return self.ec.find(egg)
 
-    def find_name(self, egg):
-        return self.ec.find_name(egg)
-
     def install(self, arg, mode='recur', force=False, forceall=False):
         req = req_from_anything(arg)
         # resolve the list of eggs that need to be installed
@@ -119,11 +116,15 @@ class Enpkg(object):
             self.fetch(egg, force or forceall)
 
         if not self.hook:
-            # remove packages (in reverse install order)
+            # remove packages from first egg collection only, in reverse
+            # install order
+            ec0 = self.ec.collections[0]
             for egg in reversed(eggs):
-                info = self.find_name(name_egg(egg))
-                if info:
-                    self.ec.remove(info['key'])
+                index = dict(ec0.query(name=name_egg(egg)))
+                if index:
+                    assert len(index) == 1
+                    key = index.keys()[0]
+                    self.ec.remove(key)
 
         # install eggs
         for egg in eggs:
@@ -135,6 +136,11 @@ class Enpkg(object):
         return len(eggs)
 
     def remove(self, req):
+        print req
+        #self.ec.
+        
+        return
+
         info  = self.find_name(req.name)
         if info is None:
             raise EggNotFound("Package %r does not seem to be installed." %
