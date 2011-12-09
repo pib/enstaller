@@ -27,6 +27,9 @@ from enpkg import Enpkg, EnpkgError
 from resolve import Req
 
 
+FMT = '%-20s %-15s %s'
+
+
 def print_path(prefixes):
     print "Prefixes:"
     for p in prefixes:
@@ -100,27 +103,61 @@ def info_option(enst, cname):
 
 
 def print_installed(prefix, hook=False, pat=None):
-    fmt = '%-20s %-20s %s'
-    print fmt % ('Project name', 'Version', 'Repository')
+    print FMT % ('Name', 'Version', 'Repository')
     print 60 * '='
     ec = EggCollection(prefix, hook)
     for egg, info in ec.query():
         if pat and not pat.search(info['name']):
             continue
-        print fmt % (info['name'], '%(version)s-%(build)d' % info,
+        print FMT % (info['name'], '%(version)s-%(build)d' % info,
                      info.get('repo_dispname', '-'))
 
 
 def list_option(prefixes, hook=False, pat=None):
-    for prefix in prefixes:
+    for prefix in reversed(prefixes):
         print "prefix:", prefix
         print_installed(prefix, hook, pat)
         print
 
 
+def imports_option(enpkg, pat=None):
+    print FMT % ('Name', 'Version', 'Location')
+    print 60 * "="
+
+    names = set(info['name'] for _, info in enpkg.query_installed())
+    for name in sorted(names, key=string.lower):
+        if pat and not pat.search(name):
+            continue
+        for prefix in reversed(enpkg.prefixes):
+            ec = EggCollection(prefix, hook=False)
+            index = dict(ec.query(name=name))
+            if index:
+                info = index.values()[0]
+                loc = 'sys' if prefix == sys.prefix else 'user'
+        print FMT % (name, '%(version)s-%(build)d' % info, loc)
+
+
+def search(enpkg, pat=None):
+    """
+    Print the distributions available in a repo, i.e. a "virtual" repo made
+    of a chain of (indexed) repos.
+    """
+    print FMT % ('Name', 'Versions', 'Repository')
+    print 60 * '-'
+
+    names = set(info['name'] for _, info in enpkg.query_remote())
+    for name in sorted(names, key=string.lower):
+        if pat and not pat.search(name):
+            continue
+        disp_name = name
+        for info in enpkg.info_list_name(name):
+            print FMT % (disp_name, '%(version)s-%(build)d' % info,
+                         info['repo_dispname'])
+            disp_name = ''
+
+
 def whats_new(enst):
-    fmt = '%-25s %-15s %s'
-    print fmt % ('Name', 'installed', 'available')
+    print FMT % ('Name', 'installed', 'available')
     print 60 * "="
 
     inst = set(enst.get_installed_eggs())
@@ -136,31 +173,11 @@ def whats_new(enst):
         av_v = spec['version']
         if (av_v != in_v and
                     comparable_version(av_v) > comparable_version(in_v)):
-            print fmt % (in_n, in_v, av_v)
+            print FMT % (in_n, in_v, av_v)
             something_new = True
 
     if not something_new:
         print "no new version of any installed package is available"
-
-
-def search(enpkg, pat=None):
-    """
-    Print the distributions available in a repo, i.e. a "virtual" repo made
-    of a chain of (indexed) repos.
-    """
-    fmt = "%-25s %-15s %s"
-    print fmt % ('Project name', 'Versions', 'Repository')
-    print 55 * '-'
-
-    names = set(info['name'] for _, info in enpkg.query_remote())
-    for name in sorted(names, key=string.lower):
-        if pat and not pat.search(name):
-            continue
-        disp_name = name
-        for info in enpkg.info_list_name(name):
-            print fmt % (disp_name, '%(version)s-%(build)d' % info,
-                         info['repo_dispname'])
-            disp_name = ''
 
 
 def remove_req(enpkg, req):
@@ -277,6 +294,8 @@ def main():
                         "(i.e. including dependencies)")
     p.add_argument("--hook", action="store_true",
                    help="don't install into site-packages (experimental)")
+    p.add_argument("--imports", action="store_true",
+                   help="show which packages can be imported")
     p.add_argument('-i', "--info", action="store_true",
                    help="show information about a package")
     p.add_argument("--log", action="store_true", help="print revision log")
@@ -301,7 +320,7 @@ def main():
                         "and display versions available.")
     p.add_argument("--sys-config", action="store_true",
                    help="use <sys.prefix>/.enstaller4rc (even when "
-                        "~/.enstaller4rc exists")
+                        "~/.enstaller4rc exists)")
     p.add_argument("--sys-prefix", action="store_true",
                    help="use sys.prefix as the install prefix")
     p.add_argument("--user", action="store_true",
@@ -390,6 +409,11 @@ def main():
         enpkg = Enpkg(config.get('IndexedRepos'), config.get_auth(),
                       prefixes=prefixes, hook=args.hook,
                       verbose=args.verbose)
+
+    if args.imports:                              # --imports
+        assert not args.hook
+        imports_option(enpkg, pat)
+        return
 
     if args.add_url:                              # --add-url
         add_url(args.add_url, args.verbose)
