@@ -56,7 +56,7 @@ class Enpkg(object):
         self.action_callback = pprint_fn_action
 
         self.ec = JoinedEggCollection([EggCollection(prefix, self.hook)
-                                        for prefix in self.prefixes])
+                                       for prefix in self.prefixes])
         self.ec0 = self.ec.collections[0]
         self.local_dir = join(self.prefixes[0], 'LOCAL-REPO')
 

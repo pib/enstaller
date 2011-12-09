@@ -4,8 +4,6 @@ enstaller is a managing tool for egginst-based installs, and the CLI is
 called enpkg which calls out to egginst to do the actual install.
 enpkg can access distributions from local and HTTP repositories.
 """
-from __future__ import with_statement
-
 import os
 import re
 import sys
@@ -238,18 +236,6 @@ def revert(enst, rev_in, quiet=False):
             ei.install()
 
     history.update()
-
-
-def iter_dists_excl(dists, exclude_fn):
-    """
-    Iterates over all dists, excluding the ones whose filename is an element
-    of exclude_fn.  Yields the distribution.
-    """
-    for dist in dists:
-        fn = dist_naming.filename_dist(dist)
-        if fn in exclude_fn:
-            continue
-        yield dist
 
 
 def install_req(enpkg, req, opts):

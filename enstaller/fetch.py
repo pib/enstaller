@@ -146,7 +146,7 @@ class FetchAPI(object):
 def main():
     import sys
     from optparse import OptionParser
-    import enstaller.store.indexed as indexed
+    import store.indexed as indexed
     from egg_meta import is_valid_eggname
 
     p = OptionParser(usage="usage: %prog [options] ROOT_URL [EGG ...]",
