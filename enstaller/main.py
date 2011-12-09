@@ -11,10 +11,9 @@ import re
 import sys
 import site
 import string
-import subprocess
 import textwrap
 from argparse import ArgumentParser
-from os.path import isdir, isfile, join
+from os.path import isfile, join
 
 import egginst
 from egginst.utils import (bin_dir_name, rel_site_packages, pprint_fn_action,
@@ -23,299 +22,35 @@ from enstaller import __version__
 import config
 from history import History
 from proxy.api import setup_proxy
-from utils import canonical, comparable_version, abs_expanduser
-from indexed_repo import (Chain, add_Reqs_to_spec, filename_as_req,
-                          spec_as_req, parse_data, dist_naming)
+from utils import comparable_version, abs_expanduser
+from indexed_repo import (Chain, filename_as_req,
+                          spec_as_req, dist_naming)
 
 from eggcollect import EggCollection
 from enpkg import Enpkg, EnpkgError
 from resolve import Req
 
 
-def cname_fn(fn):
-    return canonical(fn.split('-')[0])
-
-class DistributionNotFound(Exception):
-    pass
-
-class DistributionVersionMismatch(Exception):
-    pass
-
-def noop_callback(*args):
-    pass
-
-class Enstaller(object):
-    """ enpkg back-end
-
-    Holds the state and includes methods to do all the work of an
-    invocation of enpkg. Can also be used as a programmatic interface
-    to the same functionality as enpkg.
-    """
-    def __init__(self, chain, prefixes=None, dry_run=False):
-        self.chain = chain
-        self.prefixes = prefixes or [sys.prefix]
-        self.dry_run = dry_run
-        self.egg_dir = config.get('local',
-                                  join(self.prefixes[0], 'LOCAL-REPO'))
-
-        # Callback to be called before an install/remove is done
-        #
-        # Signature should be callback(enst, pkgs, action)
-        #   enst: This Enstaller instance
-        #   pkgs: a list of packages to be installed (dists)
-        #   action: 'install' or 'remove'
-        self.pre_install_callback = noop_callback
-
-        # Callback to be called with download / install of eggs
-        self.progress_callback = console_progress
-
-        # Callback to be called immediately before an individual
-        # package is downloaded, copied, installed, removed
-        #
-        # Signature should be callback(egg_name, action)
-        #   egg_name: name of the egg being installed
-        #   action: 'copying', 'downloading', 'installing', 'removing'
-        self.action_callback = pprint_fn_action
-
-    def path_commands(self):
-        commands = []
-        cmd = ('export', 'set')[sys.platform == 'win32']
-        # Set PATH
-        commands.append("%s PATH=%s" % (cmd, os.pathsep.join(
-            join(p, bin_dir_name) for p in self.prefixes)))
-
-        # Set PYTHONPATH, if needed
-        if self.prefixes != [sys.prefix]:
-            commands.append("%s PYTHONPATH=%s" % (cmd, os.pathsep.join(
-                join(prefix, rel_site_packages) for prefix in self.prefixes)))
-
-        # Set *_LIBRARY_PATH, as needed
-        if sys.platform != 'win32':
-            if sys.platform == 'darwin':
-                name = 'DYLD_LIBRARY_PATH'
-            else:
-                name = 'LD_LIBRARY_PATH'
-            commands.append("%s %s=%s" % (cmd, name, os.pathsep.join(
-                join(p, 'lib') for p in self.prefixes)))
-
-        return commands
-
-    def can_write_prefix(self):
-        prefix = self.prefixes[0]
-        path = join(prefix, 'hello.txt')
-        try:
-            if not isdir(prefix):
-                os.makedirs(prefix)
-            open(path, 'w').write('Hello World!\n')
-        except:
-            return False
-        finally:
-            if isfile(path):
-                os.unlink(path)
-
-        return True
-
-    def get_installed_info(self, cname):
-        return [(prefix, get_installed_info(prefix, cname))
-                for prefix in self.prefixes]
-
-    def get_installed_cnames(self):
-        cnames = []
-        for prefix in self.prefixes:
-            cnames.extend(egginst.get_installed_cnames(prefix))
-        return cnames
-
-    def get_installed_eggs(self):
-        eggs = []
-        for cname in self.get_installed_cnames():
-            for prefix, info in self.get_installed_info(cname):
-                if info:
-                    eggs.append(info['egg_name'])
-        return eggs
-
-    def get_install_sequence(self, req, mode='recur',
-                             force=False, force_all=False):
-        """ Return the list of distributions for which action must be taken.
-
-        Compare with 'Chain.install_sequence', which returns the list of
-        distributions that must be installed, regardless of their current
-        installation status.
-        """
-        dists = self.chain.install_sequence(req, mode)
-        if not dists:
-            raise DistributionNotFound(
-                "No distribution found for requirement '%s'" % req)
-
-        # Filter dists that we do not actually need to install.
-        if not force_all:
-            exclude = set(self.get_installed_eggs()) # currently installed
-            if force:
-                exclude.discard(dist_naming.filename_dist(dists[-1]))
-            is_excluded = lambda d: dist_naming.filename_dist(d) not in exclude
-            dists = filter(is_excluded, dists)
-
-        return dists
-
-    def full_install_set(self, reqs):
-        """ Return a set of the cnames of all packages which would be
-        installed if all the requested packages were installed
-        """
-        all_pkgs = set()
-        for req in reqs:
-            all_pkgs |= set([cname_fn(dist_naming.filename_dist(d))
-                              for d in self.get_install_sequence(req)])
-        return all_pkgs
-
-    def full_install_sequence(self, reqs):
-        """ Expand the provided set of reqs to include dependencies.
-
-        The returned list will be sorted by install order.
-        """
-        new_dists = set()
-        for req in reqs:
-            new_dists |= set(self.get_install_sequence(req))
-
-        unfiltered_dists = set()
-        for req in reqs:
-            unfiltered_dists |= set(self.chain.install_sequence(req))
-
-        sorted_dists = self.chain.determine_install_order(unfiltered_dists)
-        return [Req(cname_fn(dist_naming.filename_dist(d)))
-                for d in sorted_dists if d in new_dists]
-
-    def get_dist_meta(self, req):
-        dist = self.chain.get_dist(req)
-        if dist:
-            return self.chain.index[dist]
-        else:
-            return None
-
-    def get_dependencies(self):
-        if not getattr(self, '_dependencies', None):
-            egg_info_dir = join(self.prefixes[0], 'EGG-INFO')
-            if not isdir(egg_info_dir):
-                return {}
-            res = {}
-            for dn in os.listdir(egg_info_dir):
-                path = join(egg_info_dir, dn, 'spec', 'depend')
-                if isfile(path):
-                    spec = parse_data(open(path).read())
-                    add_Reqs_to_spec(spec)
-                    res[spec['cname']] = spec
-            self._dependencies = res
-        return self._dependencies
-
-    def set_chain_callbacks(self):
-        self.chain.action_callback = self.action_callback
-        self.chain.progress_callback = self.progress_callback
-
-    def egginst_subprocess(self, egg_path, action):
-        path = join(sys.prefix, bin_dir_name, 'egginst-script.py')
-        args = [sys.executable, path, '--prefix', self.prefixes[0]]
-        if self.dry_run:
-            args.append('--dry-run')
-        if action == 'remove':
-            args.append('--remove')
-        if config.get('noapp'):
-            args.append('--noapp')
-        args.append(egg_path)
-        subprocess.call(args)
-
-    def install_egg(self, dist):
-        repo, eggname = dist_naming.split_dist(dist)
-        pkg_path = join(self.egg_dir, eggname)
-        if (sys.platform == 'win32' and
-            eggname.lower().startswith(('appinst-', 'pywin32-'))):
-            self.egginst_subprocess(pkg_path, 'install')
-            return
-        self.action_callback(eggname, 'installing')
-        if self.dry_run:
-            return
-        ei = egginst.EggInst(pkg_path, self.prefixes[0],
-                             noapp=config.get('noapp'))
-        ei.progress_callback = self.progress_callback
-        ei.install()
-        info = self.get_installed_info(cname_fn(eggname))[0][1]
-        path = join(info['meta_dir'], '__enpkg__.txt')
-        fo = open(path, 'w')
-        fo.write('repo = %r\n' % repo)
-        fo.close()
-
-    def remove_egg(self, eggname):
-        if (sys.platform == 'win32' and
-            eggname.lower().startswith(('appinst-', 'pywin32-'))):
-            self.egginst_subprocess(eggname, 'remove')
-            return
-        self.action_callback(eggname, 'removing')
-        if self.dry_run:
-            return
-        ei = egginst.EggInst(eggname, self.prefixes[0],
-                             noapp=config.get('noapp'))
-        ei.progress_callback = self.progress_callback
-        ei.remove()
-
-    def install(self, req, mode='recur', force=False, force_all=False):
-        # get distributions that need to be installed
-        dists = self.get_install_sequence(req, mode, force, force_all)
-
-        if self.pre_install_callback:
-            self.pre_install_callback(self, dists, 'install')
-        self.set_chain_callbacks()
-
-        # Get eggname for each dist, since it's used so much
-        dists = [(dist, dist_naming.filename_dist(dist))
-                 for dist in dists]
-
-        # fetch distributions
-        if not isdir(self.egg_dir):
-            os.makedirs(self.egg_dir)
-        for dist, eggname in dists:
-            self.chain.fetch_dist(dist, self.egg_dir,
-                                  force=force or force_all,
-                                  dry_run=self.dry_run)
-
-        # remove packages (in reverse install order)
-        for dist, eggname in reversed(dists):
-            # Get the currently installed version, to remove
-            info = self.get_installed_info(cname_fn(eggname))[0][1]
-            eggname = info and info.get('egg_name')
-            if not eggname:
-                continue
-            self.remove_egg(eggname)
-
-        # install packages
-        installed_count = 0
-        for dist, eggname in dists:
-            self.install_egg(dist)
-            installed_count += 1
-        return installed_count
-
-    def remove(self, req):
-        d = self.get_installed_info(req.name)[0][1]
-        if not d:
-            raise DistributionNotFound(
-                "Package %r does not seem to be installed." % req.name)
-        pkg = d['egg_name'][:-4]
-        if req.version:
-            v_a, b_a = pkg.split('-')[1:3]
-            if req.version != v_a or (req.build and req.build != int(b_a)):
-                raise DistributionVersionMismatch(
-                    "Version mismatch: %s is installed cannot remove %s." %
-                    (pkg, req))
-        if self.pre_install_callback:
-            dist = self.chain.get_dist(req)
-            #self.pre_install_callback(self, [dist], 'remove')
-        self.remove_egg(d['egg_name'])
-
-
-def print_path(enst):
+def print_path(prefixes):
     print "Prefixes:"
-    for p in enst.prefixes:
+    for p in prefixes:
         print '    %s%s' % (p, ['', ' (sys)'][p == sys.prefix])
     print
 
-    for command in enst.path_commands():
-        print command
+    cmd = ('export', 'set')[sys.platform == 'win32']
+    print "%s PATH=%s" % (cmd, os.pathsep.join(
+                                 join(p, bin_dir_name) for p in prefixes))
+    if len(prefixes) > 1:
+        print "%s PYTHONPATH=%s" % (cmd, join(prefixes[0],
+                                              rel_site_packages))
+
+    if sys.platform != 'win32':
+        if sys.platform == 'darwin':
+            name = 'DYLD_LIBRARY_PATH'
+        else:
+            name = 'LD_LIBRARY_PATH'
+        print "%s %s=%s" % (cmd, name, os.pathsep.join(
+                                 join(p, 'lib') for p in prefixes))
 
 
 def check_write(enst):
@@ -667,6 +402,10 @@ def main():
     else:
         prefixes = [prefix, sys.prefix]
 
+    if args.path:                                 # --path
+        print_path(prefixes)
+        return
+
     if args.log:                                  # --log
         History(prefix).print_log()
         return
@@ -705,8 +444,6 @@ def main():
         enst.dry_run = dry_run
         enst.prefixes = prefixes
     else:
-        #enst = Enstaller(chain=Chain(config.get('IndexedRepos'), verbose),
-        #                 prefixes=prefixes, dry_run=dry_run)
         enpkg = Enpkg(config.get('IndexedRepos'), config.get_auth(),
                       prefixes=prefixes, hook=args.hook,
                       verbose=args.verbose)
@@ -718,10 +455,6 @@ def main():
 
     if args.add_url:                              # --add-url
         add_url(args.add_url, args.verbose)
-        return
-
-    if args.path:                                 # --path
-        print_path(enst)
         return
 
     if args.revert:                               # --revert
