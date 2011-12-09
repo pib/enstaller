@@ -41,6 +41,13 @@ class Req(object):
             self.build = int(self.build)
             self.strictness = 3
 
+    def as_dict(self):
+        res = {}
+        for var_name in 'name', 'version', 'build':
+            if getattr(self, var_name):
+                res[var_name] = getattr(self, var_name)
+        return res
+
     def matches(self, spec):
         """
         Returns True if the spec of a distribution matches the requirement
@@ -69,7 +76,7 @@ class Req(object):
         if self.version:
             res += ' %s' % self.version
         if self.build:
-            res += '-%i' % self.build
+            res += '-%d' % self.build
         return res
 
     def __repr__(self):

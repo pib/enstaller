@@ -44,14 +44,25 @@ class TestReq(unittest.TestCase):
             ('',          None,  None,  None, 0),
             (' \t',       None,  None,  None, 0),
             ('foo',       'foo', None,  None, 1),
-            ('bar 1.9',   'bar', '1.9', None, 2),
-            ('baz 1.8-2', 'baz', '1.8', 2,    3),
+            (u'bar 1.9',  'bar', '1.9', None, 2),
+            ('BAZ 1.8-2', 'baz', '1.8', 2,    3),
+            ('qux 1.3-0', 'qux', '1.3', 0,    3),
             ]:
             r = Req(req_string)
             self.assertEqual(r.name, name)
             self.assertEqual(r.version, version)
             self.assertEqual(r.build, build)
             self.assertEqual(r.strictness, strictness)
+
+    def test_as_dict(self):
+        for req_string, d in [
+            ('',          dict()),
+            ('foo',       dict(name='foo')),
+            ('bar 1.9',   dict(name='bar', version='1.9')),
+            ('BAZ 1.8-2', dict(name='baz', version='1.8', build=2)),
+            ]:
+            r = Req(req_string)
+            self.assertEqual(r.as_dict(), d)
 
     def test_misc_methods(self):
         for req_string in ['', 'foo', 'bar 1.2', 'baz 2.6.7-5']:

@@ -137,7 +137,12 @@ class Enpkg(object):
 
     def remove(self, req):
         print req
-        #self.ec.
+        print req.as_dict()
+        ec0 = self.ec.collections[0]
+        kwargs = {}
+#        index = dict(ec0.query(name=req.name, version=req.version,
+#                               build=req.build))
+#        print index.keys()
         
         return
 
