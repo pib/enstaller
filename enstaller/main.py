@@ -128,12 +128,11 @@ def imports_option(enpkg, pat=None):
     for name in sorted(names, key=string.lower):
         if pat and not pat.search(name):
             continue
-        for prefix in reversed(enpkg.prefixes):
-            ec = EggCollection(prefix, hook=False)
-            index = dict(ec.query(name=name))
+        for c in reversed(enpkg.ec.collections):
+            index = dict(c.query(name=name))
             if index:
                 info = index.values()[0]
-                loc = 'sys' if prefix == sys.prefix else 'user'
+                loc = 'sys' if c.prefix == sys.prefix else 'user'
         print FMT % (name, '%(version)s-%(build)d' % info, loc)
 
 
