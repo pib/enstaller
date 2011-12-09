@@ -259,14 +259,10 @@ class Resolve(object):
         root = self.get_egg(req)
         if root is None:
             return None
-
         if mode == 'root':
             return [root]
-
         if mode == 'flat':
             return self._sequence_flat(root)
-
         if mode == 'recur':
             return self._sequence_recur(root)
-
         raise Exception('did not expect: mode = %r' % mode)

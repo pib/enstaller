@@ -124,7 +124,7 @@ class Enpkg(object):
                 if index:
                     assert len(index) == 1
                     key = index.keys()[0]
-                    self.ec0.remove(key)
+                    self.ec.remove(key)
 
         # install eggs
         for egg in eggs:
@@ -136,7 +136,6 @@ class Enpkg(object):
         return len(eggs)
 
     def remove(self, req):
-        kwargs = {}
         index = dict(self.ec0.query(**req.as_dict()))
         if len(index) == 0:
             raise EnpkgError("Package %s not installed in: %r" %
@@ -147,7 +146,7 @@ class Enpkg(object):
             raise EnpkgError("Package %s installed more than once: %s" %
                               (req.name, ', '.join(versions)))
         egg = index.keys()[0]
-        self.ec0.remove(egg)
+        self.ec.remove(egg)
 
     # == methods which relate to both (remote store / local installation ==
 
