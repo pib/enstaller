@@ -28,7 +28,7 @@ from indexed_repo import (Chain, add_Reqs_to_spec, filename_as_req,
                           spec_as_req, parse_data, dist_naming)
 
 from eggcollect import EggCollection
-from enpkg import Enpkg, EggNotFound
+from enpkg import Enpkg, EnpkgError
 from resolve import Req
 
 
@@ -480,7 +480,7 @@ def remove_req(enpkg, req):
     """
     try:
         enpkg.remove(req)
-    except EggNotFound as e:
+    except EnpkgError as e:
         print e.message
         return
 
@@ -564,7 +564,7 @@ def install_req(enpkg, req, opts):
     try:
         cnt = enpkg.install(req, mode='root' if opts.no_deps else 'recur',
                             force=opts.force, forceall=opts.forceall)
-    except EggNotFound, e:
+    except EnpkgError, e:
         print e.message
         versions = enpkg.list_versions(req.name)
         if versions:

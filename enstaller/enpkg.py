@@ -38,7 +38,7 @@ def name_egg(egg):
     n, v, b = split_eggname(egg)
     return n.lower()
 
-class EggNotFound(Exception):
+class EnpkgError(Exception):
     pass
 
 
@@ -57,6 +57,7 @@ class Enpkg(object):
 
         self.ec = JoinedEggCollection([EggCollection(prefix, self.hook)
                                         for prefix in self.prefixes])
+        self.ec0 = self.ec.collections[0]
         self.local_dir = join(self.prefixes[0], 'LOCAL-REPO')
 
     # ============= methods which relate to remove store =================
@@ -101,7 +102,7 @@ class Enpkg(object):
         resolver = Resolve(self.remote, self.verbose)
         eggs = resolver.install_sequence(req, mode)
         if eggs is None:
-             raise EggNotFound("No egg found for requirement '%s'." % req)
+             raise EnpkgError("No egg found for requirement '%s'." % req)
 
         if not forceall:
             # remove already installed eggs from egg list
@@ -118,13 +119,12 @@ class Enpkg(object):
         if not self.hook:
             # remove packages from first egg collection only, in reverse
             # install order
-            ec0 = self.ec.collections[0]
             for egg in reversed(eggs):
-                index = dict(ec0.query(name=name_egg(egg)))
+                index = dict(self.ec0.query(name=name_egg(egg)))
                 if index:
                     assert len(index) == 1
                     key = index.keys()[0]
-                    self.ec.remove(key)
+                    self.ec0.remove(key)
 
         # install eggs
         for egg in eggs:
@@ -136,21 +136,18 @@ class Enpkg(object):
         return len(eggs)
 
     def remove(self, req):
-        print req
-        print req.as_dict()
-        ec0 = self.ec.collections[0]
         kwargs = {}
-#        index = dict(ec0.query(name=req.name, version=req.version,
-#                               build=req.build))
-#        print index.keys()
-        
-        return
-
-        info  = self.find_name(req.name)
-        if info is None:
-            raise EggNotFound("Package %r does not seem to be installed." %
-                              req.name)
-        self.ec.remove(info['key'])
+        index = dict(self.ec0.query(**req.as_dict()))
+        if len(index) == 0:
+            raise EnpkgError("Package %s not installed in: %r" %
+                              (req, self.ec0.prefix))
+        if len(index) > 1:
+            versions = ['%(version)s-%(build)d' % d
+                        for d in index.itervalues()]
+            raise EnpkgError("Package %s installed more than once: %s" %
+                              (req.name, ', '.join(versions)))
+        egg = index.keys()[0]
+        self.ec0.remove(egg)
 
     # == methods which relate to both (remote store / local installation ==
 
