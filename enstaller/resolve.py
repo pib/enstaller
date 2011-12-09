@@ -125,7 +125,7 @@ class Resolve(object):
         """
         return set(Req(s) for s in self.repo.get_metadata(egg)['packages'])
 
-    def cname_egg(self, egg):
+    def name_egg(self, egg):
         """
         return the project name for a given egg (from it's meta data)
         """
@@ -136,10 +136,10 @@ class Resolve(object):
         return True if the 'eggs' are complete, i.e. the for each egg all
         dependencies (by name only) are also included in 'eggs'
         """
-        cnames = set(self.cname_egg(d) for d in eggs)
+        names = set(self.name_egg(d) for d in eggs)
         for egg in eggs:
             for r in self.reqs_egg(egg):
-                if r.name not in cnames:
+                if r.name not in names:
                     return False
         return True
 
@@ -153,11 +153,11 @@ class Resolve(object):
         assert self.are_complete(eggs)
 
         # make sure each project name is listed only once
-        assert len(eggs) == len(set(self.cname_egg(d) for d in eggs))
+        assert len(eggs) == len(set(self.name_egg(d) for d in eggs))
 
         # the eggs corresponding to the requirements must be sorted
         # because the output of this function is otherwise not deterministic
-        eggs.sort(key=self.cname_egg)
+        eggs.sort(key=self.name_egg)
 
         # maps egg -> set of required (project) names
         rns = {}
@@ -176,7 +176,7 @@ class Resolve(object):
                 # see if all required packages were added already
                 if all(bool(name in names_inst) for name in rns[egg]):
                     result.append(egg)
-                    names_inst.add(self.cname_egg(egg))
+                    names_inst.add(self.name_egg(egg))
                     assert len(names_inst) == len(result)
 
             if len(result) == n:
@@ -221,21 +221,21 @@ class Resolve(object):
         eggs = set([root])
         add_dependents(root)
 
-        cnames = set(self.cname_egg(d) for d in eggs)
-        if len(eggs) != len(cnames):
-            for cname in cnames:
-                ds = [d for d in eggs if self.cname_egg(d) == cname]
+        names = set(self.name_egg(d) for d in eggs)
+        if len(eggs) != len(names):
+            for name in names:
+                ds = [d for d in eggs if self.name_egg(d) == name]
                 assert len(ds) != 0
                 if len(ds) == 1:
                     continue
                 if self.verbose:
-                    print 'multiple: %s' % cname
+                    print 'multiple: %s' % name
                     for d in ds:
                         print '    %s' % d
-                r = max(reqs_deep[cname], key=lambda r: r.strictness)
-                assert r.name == cname
-                # remove the eggs with name 'cname'
-                eggs = [d for d in eggs if self.cname_egg(d) != cname]
+                r = max(reqs_deep[name], key=lambda r: r.strictness)
+                assert r.name == name
+                # remove the eggs with name
+                eggs = [d for d in eggs if self.name_egg(d) != name]
                 # add the one
                 eggs.append(self.get_egg(r))
 
