@@ -1,3 +1,4 @@
+import re
 import sys
 from collections import defaultdict
 
@@ -23,22 +24,22 @@ class Req(object):
         2   name and version must match
         3   name, version and build must match
     """
+    pat = re.compile(r'(?:([\w.]+)(?:\s+([\w.]+)(?:-(\d+))?)?)?$')
+
     def __init__(self, req_string):
-        for c in '<>=,':
-            assert c not in req_string, req_string
-        lst = req_string.split()
-        assert len(lst) <= 2, req_string
+        m = self.pat.match(str(req_string.strip()))
+        if m is None:
+            raise Exception("Not a valid requirement: %r" % req_string)
+        self.name, self.version, self.build = m.groups()
         self.strictness = 0
-        self.name = self.version = self.build = None
-        if lst:
-            self.name = lst[0].lower()
+        if self.name is not None:
+            self.name = self.name.lower()
             self.strictness = 1
-        if len(lst) == 2:
-            tmp = lst[1]
-            self.version = tmp.split('-')[0]
-            self.strictness = 2 + bool('-' in tmp)
-            if self.strictness ==  3:
-                self.build = int(tmp.split('-')[1])
+        if self.version is not None:
+            self.strictness = 2
+        if self.build is not None:
+            self.build = int(self.build)
+            self.strictness = 3
 
     def matches(self, spec):
         """
