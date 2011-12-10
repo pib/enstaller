@@ -2,7 +2,6 @@ import sys
 import os
 import shutil
 from os.path import isdir, isfile, islink, join
-import logging
 
 
 on_win = bool(sys.platform == 'win32')
@@ -13,32 +12,6 @@ if on_win:
 else:
     bin_dir_name = 'bin'
     rel_site_packages = 'lib/python%i.%i/site-packages' % sys.version_info[:2]
-
-
-class ProgressHandler(logging.Handler):
-    def emit(self, record):
-        if record.name == 'progress.start':
-            d = record.msg
-            self._tot = d['amount']
-            self._cur = 0
-            sys.stdout.write("%-56s %20s\n" % (d['filename'],
-                                               '[%s]' % d['action']))
-            sys.stdout.write('%9s [' % d['disp_amount'])
-            sys.stdout.flush()
-        elif record.name == 'progress.update':
-            n = record.msg
-            if 0 < n < self._tot and float(n) / self._tot * 64 > self._cur:
-                sys.stdout.write('.')
-                sys.stdout.flush()
-                self._cur += 1
-        elif record.name == 'progress.stop':
-            sys.stdout.write('.' * (65 - self._cur))
-            sys.stdout.write(']\n')
-            sys.stdout.flush()
-
-prog_logger = logging.getLogger('progress')
-prog_logger.setLevel(logging.INFO)
-prog_logger.addHandler(ProgressHandler())
 
 
 def rm_empty_dir(path):

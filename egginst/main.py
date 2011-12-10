@@ -18,6 +18,7 @@ from os.path import abspath, basename, dirname, join, isdir, isfile
 from utils import (on_win, bin_dir_name, rel_site_packages, human_bytes,
                    rm_empty_dir, rm_rf, get_executable)
 import scripts
+from handlers import setup_handlers
 
 
 NS_PKG_PAT = re.compile(
@@ -79,7 +80,6 @@ class EggInst(object):
 
         self.z = zipfile.ZipFile(self.fpath)
         self.arcnames = self.z.namelist()
-
         self.extract()
 
         if on_win:
@@ -166,6 +166,7 @@ class EggInst(object):
     def extract(self):
         n = 0
         size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
+        self.installed_size = size
         getLogger('progress.start').info(dict(
                 amount = size,
                 disp_amount = human_bytes(size),
@@ -175,8 +176,6 @@ class EggInst(object):
             n += self.z.getinfo(name).file_size
             getLogger('progress.update').info(n)
             self.write_arcname(name)
-
-        self.installed_size = size
 
 
     def get_dst(self, arcname):
@@ -354,6 +353,7 @@ def print_installed(prefix=sys.prefix):
 
 def main():
     from optparse import OptionParser
+    setup_handlers()
 
     p = OptionParser(usage="usage: %prog [options] [EGGS ...]",
                      description=__doc__)
