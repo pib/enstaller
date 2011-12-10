@@ -6,7 +6,6 @@ from os.path import basename, isfile, isdir, join
 
 from enstaller.store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
 
-from egginst.utils import pprint_fn_action, console_progress
 from enstaller.utils import comparable_version, md5_file
 from enstaller.fetch import stream_to_file
 import metadata
@@ -18,8 +17,6 @@ class Chain(object):
 
     def __init__(self, repos=[], verbose=False):
         self.verbose = verbose
-        self.action_callback = pprint_fn_action
-        self.progress_callback = console_progress
 
         # maps distributions to specs
         self.index = {}
@@ -341,7 +338,6 @@ class Chain(object):
                 print "Not forcing refetch, %r already matches MD5" % path
             return
 
-        self.action_callback(fn, 'fetching')
         if dry_run:
             return
 
@@ -349,8 +345,7 @@ class Chain(object):
             print "Fetching: %r" % dist
             print "      to: %r" % path
 
-        stream_to_file(self.repo_objs[repo].get_data(fn), path,
-                       info, self.progress_callback)
+        stream_to_file(self.repo_objs[repo].get_data(fn), path, info)
 
 
     def index_file(self, filename, repo):

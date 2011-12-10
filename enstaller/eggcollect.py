@@ -5,7 +5,6 @@ from os.path import isdir, isfile, join
 from abc import ABCMeta, abstractmethod
 
 import egginst
-from egginst.utils import pprint_fn_action, console_progress
 
 from egg_meta import split_eggname
 
@@ -48,8 +47,6 @@ class EggCollection(AbstractEggCollection):
         self.hook = hook
 
         self.verbose = False
-        self.progress_callback = console_progress
-        self.action_callback = pprint_fn_action
 
         self.pkgs_dir = join(self.prefix, 'pkgs')
 
@@ -90,19 +87,15 @@ class EggCollection(AbstractEggCollection):
                     yield info['key'], info
 
     def install(self, egg, dir_path, extra_info=None):
-        self.action_callback(egg, 'installing')
         ei = egginst.EggInst(join(dir_path, egg),
                              prefix=self.prefix, hook=self.hook,
                              pkgs_dir=self.pkgs_dir, verbose=self.verbose)
-        ei.progress_callback = self.progress_callback
         ei.install(extra_info)
 
     def remove(self, egg):
-        self.action_callback(egg, 'removing')
         ei = egginst.EggInst(egg,
                              prefix=self.prefix, hook=self.hook,
                              pkgs_dir=self.pkgs_dir, verbose=self.verbose)
-        ei.progress_callback = self.progress_callback
         ei.remove()
 
 

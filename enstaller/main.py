@@ -14,8 +14,8 @@ from argparse import ArgumentParser
 from os.path import isfile, join
 
 import egginst
-from egginst.utils import (bin_dir_name, rel_site_packages, pprint_fn_action,
-                           console_progress)
+from egginst.utils import bin_dir_name, rel_site_packages
+from egginst.handlers import setup_handlers
 from enstaller import __version__
 import config
 from history import History
@@ -223,11 +223,9 @@ def revert(enst, rev_in, quiet=False):
                 enst.chain.fetch_dist(dist, enst.egg_dir,
                                       dry_run=enst.dry_run)
     for fn in to_install:
-        pprint_fn_action(fn, 'installing')
         egg_path = join(enst.egg_dir, fn)
         if isfile(egg_path):
             ei = egginst.EggInst(egg_path)
-            ei.progress_callback = console_progress
             ei.install()
 
     history.update()
@@ -256,6 +254,7 @@ def main():
         user_base = site.USER_BASE
     except AttributeError:
         user_base = abs_expanduser('~/.local')
+    setup_handlers()
 
     p = ArgumentParser(description=__doc__)
     p.add_argument('cnames', metavar='NAME', nargs='*',

@@ -1,8 +1,6 @@
 import sys
 from os.path import isdir, join
 
-from egginst.utils import pprint_fn_action, console_progress
-
 from store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
 from store.joined import JoinedStore
 
@@ -51,9 +49,6 @@ class Enpkg(object):
         self.prefixes = prefixes
         self.hook = hook
         self.verbose = verbose
-
-        self.progress_callback = console_progress
-        self.action_callback = pprint_fn_action
 
         self.ec = JoinedEggCollection([EggCollection(prefix, self.hook)
                                        for prefix in self.prefixes])
@@ -158,7 +153,5 @@ class Enpkg(object):
     def fetch(self, egg, force=False):
         self._connect()
         f = FetchAPI(self.remote, self.local_dir)
-        f.action_callback = self.action_callback
-        f.progress_callback = self.progress_callback
         f.verbose = self.verbose
         f.fetch_egg(egg, force)

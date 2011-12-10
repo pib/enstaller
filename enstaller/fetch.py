@@ -1,9 +1,9 @@
 import os
 import hashlib
-from os.path import isdir, isfile, join
+from logging import getLogger
+from os.path import basename, isdir, isfile, join
 
-from egginst.utils import pprint_fn_action, console_progress
-
+from egginst.utils import human_bytes
 from utils import md5_file
 
 
@@ -11,30 +11,21 @@ class MD5Mismatch(Exception):
     pass
 
 
-def stream_to_file(fi, path, info={}, progress_callback=None):
+def stream_to_file(fi, path, info={}):
     """
     Read data from the filehandle and write a the file.
-    Optionally check the MD5.  When the size in bytes and
-    progress_callback are provided, the callback is called
-    with progress updates as the download/copy occurs. If no size is
-    provided, the callback will be called with None for the total
-    size.
-
-    The callback will be called with 0% progress at the beginning and
-    100% progress at the end, so these two states can be used for any
-    initial and final display.
-
-    progress_callback signature: callback(so_far, total, state)
-      so_far -- bytes so far
-      total -- bytes total, if known, otherwise None
+    Optionally check the MD5.
     """
-    size = info.get('size')
+    size = info['size']
     md5 = info.get('md5')
 
-    if progress_callback is not None and size:
-        n = 0
-        progress_callback(0, size)
+    getLogger('progress.start').info(dict(
+            amount = size,
+            disp_amount = human_bytes(size),
+            filename = basename(path),
+            action = 'fetching'))
 
+    n = 0
     h = hashlib.new('md5')
     if size and size < 16384:
         buffsize = 1
@@ -49,10 +40,10 @@ def stream_to_file(fi, path, info={}, progress_callback=None):
             fo.write(chunk)
             if md5:
                 h.update(chunk)
-            if progress_callback is not None and size:
-                n += len(chunk)
-                progress_callback(n, size)
+            n += len(chunk)
+            getLogger('progress.update').info(n)
     fi.close()
+    getLogger('progress.stop').info(None)
 
     if md5 and h.hexdigest() != md5:
         raise MD5Mismatch("Error: received data MD5 sums mismatch")
@@ -64,18 +55,14 @@ class FetchAPI(object):
     def __init__(self, remote, local_dir):
         self.remote = remote
         self.local_dir = local_dir
-
-        self.action_callback = pprint_fn_action
-        self.progress_callback = console_progress
         self.verbose = False
 
     def path(self, fn):
         return join(self.local_dir, fn)
 
     def fetch(self, key):
-        self.action_callback(key, 'fetching')
         stream, info = self.remote.get(key)
-        stream_to_file(stream, self.path(key), info, console_progress)
+        stream_to_file(stream, self.path(key), info)
 
     def patch_egg(self, egg):
         """
@@ -108,10 +95,8 @@ class FetchAPI(object):
         size, patch_fn, info = min(possible)
 
         self.fetch(patch_fn)
-
-        self.action_callback(info['src'], 'patching')
         zdiff.patch(self.path(info['src']), self.path(egg),
-                    self.path(patch_fn), self.progress_callback)
+                    self.path(patch_fn))
         return True
 
     def fetch_egg(self, egg, force=False):

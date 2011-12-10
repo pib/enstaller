@@ -12,6 +12,7 @@ with one of the following:
 import bz2
 import json
 import zipfile
+from logging import getLogger
 from os.path import basename, getmtime, getsize
 
 from utils import md5_file
@@ -68,7 +69,7 @@ def diff(src_path, dst_path, patch_path):
     return count
 
 
-def patch(src_path, dst_path, patch_path, progress_callback=None):
+def patch(src_path, dst_path, patch_path):
     x = zipfile.ZipFile(src_path)
     y = zipfile.ZipFile(dst_path, 'w', zipfile.ZIP_DEFLATED)
     z = zipfile.ZipFile(patch_path)
@@ -76,17 +77,19 @@ def patch(src_path, dst_path, patch_path, progress_callback=None):
     xnames = x.namelist()
     znames = set(z.namelist())
 
-    if progress_callback:
-        n = 0
-        tot = len(xnames) + len(znames)
-        progress_callback(0, tot, usebytes=False)
+    n = 0
+    tot = len(xnames) + len(znames)
+    getLogger('progress.start').info(dict(
+            amount = tot,
+            disp_amount = str(tot),
+            filename = basename(patch_path),
+            action = 'patching'))
 
     for name in xnames:
         if name not in znames:
              y.writestr(x.getinfo(name), x.read(name))
-        if progress_callback:
-            n += 1
-            progress_callback(n, tot)
+        n += 1
+        getLogger('progress.update').info(n)
 
     for name in z.namelist():
         if name == '__zdiff_info__.json':
@@ -102,12 +105,9 @@ def patch(src_path, dst_path, patch_path, progress_callback=None):
             raise Exception("Hmm, didn't expect to get here: %r" % zdata)
 
         y.writestr(name, ydata)
-        if progress_callback:
-            n += 1
-            progress_callback(n, tot)
+        getLogger('progress.update').info(n)
 
-    if progress_callback and n < tot:
-        progress_callback(tot, tot)
+    getLogger('progress.stop').info(None)
 
     z.close()
     y.close()
