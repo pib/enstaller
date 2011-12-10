@@ -30,7 +30,7 @@ from resolve import Req
 FMT = '%-20s %-15s %s'
 
 
-def path_option(prefixes):
+def env_option(prefixes):
     print "Prefixes:"
     for p in prefixes:
         print '    %s%s' % (p, ['', ' (sys)'][p == sys.prefix])
@@ -283,9 +283,9 @@ def main():
                help="show what would have been downloaded/removed/installed")
     p.add_argument('-N', "--no-deps", action="store_true",
                    help="neither download nor install dependencies")
-    p.add_argument("--path", action="store_true",
+    p.add_argument("--env", action="store_true",
                    help="based on the configuration, display how to set the "
-                        "PATH and PYTHONPATH environment variables")
+                        "some environment variables")
     p.add_argument("--prefix", metavar='PATH',
                    help="install prefix (disregarding of any settings in "
                         "the config file)")
@@ -313,7 +313,7 @@ def main():
                         "available")
     args = p.parse_args()
 
-    if len(args.cnames) > 0 and (args.config or args.path or args.userpass or
+    if len(args.cnames) > 0 and (args.config or args.env or args.userpass or
                                  args.revert or args.log or args.whats_new):
         p.error("Option takes no arguments")
 
@@ -342,8 +342,8 @@ def main():
     else:
         prefixes = [prefix, sys.prefix]
 
-    if args.path:                                 # --path
-        path_option(prefixes)
+    if args.env:                                  # --env
+        env_option(prefixes)
         return
 
     if args.log:                                  # --log
