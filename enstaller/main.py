@@ -30,7 +30,7 @@ from resolve import Req
 FMT = '%-20s %-15s %s'
 
 
-def print_path(prefixes):
+def path_option(prefixes):
     print "Prefixes:"
     for p in prefixes:
         print '    %s%s' % (p, ['', ' (sys)'][p == sys.prefix])
@@ -50,27 +50,6 @@ def print_path(prefixes):
             name = 'LD_LIBRARY_PATH'
         print "%s %s=%s" % (cmd, name, os.pathsep.join(
                                  join(p, 'lib') for p in prefixes))
-
-
-def check_write(enst):
-    if not enst.can_write_prefix():
-        print "ERROR: Could not write simple file into:", enst.prefixes[0]
-        sys.exit(1)
-
-
-def print_installed_info(enpkg, cname):
-    for prefix, info in enpkg.info_installed(cname):
-        if prefix == sys.prefix and len(enst.prefixes) > 1:
-            if info is None:
-                print "%s is not installed in sys.prefix" % cname
-            else:
-                print "%(egg_name)s was installed in sys.prefix on: %(mtime)s"\
-                    % info
-        else:
-            if info is None:
-                print "%s is not installed" % cname
-            else:
-                print "%(egg_name)s was installed on: %(mtime)s" % info
 
 
 def info_option(enst, cname):
@@ -364,7 +343,7 @@ def main():
         prefixes = [prefix, sys.prefix]
 
     if args.path:                                 # --path
-        print_path(prefixes)
+        path_option(prefixes)
         return
 
     if args.log:                                  # --log
@@ -458,7 +437,6 @@ def main():
         print
 
     print "prefix:", prefix
-    #check_write(enst)
 
     with History(prefix):
         for req in reqs:
