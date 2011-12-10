@@ -12,12 +12,12 @@ import sys
 import re
 import json
 import zipfile
+from logging import getLogger
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
-from utils import (on_win, bin_dir_name, rel_site_packages,
-                   pprint_fn_action, rm_empty_dir, rm_rf, get_executable)
+from utils import (on_win, bin_dir_name, rel_site_packages, human_bytes,
+                   rm_empty_dir, rm_rf, get_executable)
 import scripts
-import logging
 
 
 NS_PKG_PAT = re.compile(
@@ -111,6 +111,7 @@ class EggInst(object):
         if 'EGG-INFO/spec/app.json' in self.arcnames:
             import app_entry
             app_entry.create_entry(self)
+        getLogger('progress.stop').info(None)
 
 
     def entry_points(self):
@@ -165,15 +166,16 @@ class EggInst(object):
     def extract(self):
         n = 0
         size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
-        logging.getLogger('progress.start').info((0, size))
-
+        getLogger('progress.start').info(dict(
+                amount = size,
+                disp_amount = human_bytes(size),
+                filename = basename(self.fpath),
+                action = 'installing'))
         for name in self.arcnames:
             n += self.z.getinfo(name).file_size
-            if 0 < n < size:
-                logging.getLogger('progress.update').info((n, size))
+            getLogger('progress.update').info(n)
             self.write_arcname(name)
 
-        logging.getLogger('progress.stop').info((size, size))
         self.installed_size = size
 
 
@@ -277,15 +279,17 @@ class EggInst(object):
 
         self.read_meta()
         n = 0
-        nof = len(self.files) # number of files
-        self.progress_callback(0, self.installed_size)
-
+        getLogger('progress.start').info(dict(
+                amount = len(self.files), # number of files
+                disp_amount = human_bytes(self.installed_size),
+                filename = basename(self.fpath),
+                action = 'removing'))
         self.install_app(remove=True)
         self.run('pre_egguninst.py')
 
         for p in self.files:
             n += 1
-            self.progress_callback(n, nof)
+            getLogger('progress.update').info(n)
 
             if self.hook and not p.startswith(self.pkgs_dir):
                 continue
@@ -299,6 +303,7 @@ class EggInst(object):
             rm_empty_dir(self.pkg_dir)
         else:
             rm_empty_dir(self.egginfo_dir)
+        getLogger('progress.stop').info(None)
 
 
 def read_meta(meta_dir):
@@ -405,13 +410,11 @@ def main():
                      verbose=opts.verbose, noapp=opts.noapp)
         fn = basename(path)
         if opts.remove:
-            pprint_fn_action(fn, 'removing')
             if opts.dry_run:
                 continue
             ei.remove()
 
         else: # default is always install
-            pprint_fn_action(fn, 'installing')
             if opts.dry_run:
                 continue
             ei.install()

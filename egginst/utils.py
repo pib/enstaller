@@ -17,23 +17,23 @@ else:
 
 class ProgressHandler(logging.Handler):
     usebytes = True
-    _cur = 0
 
     def emit(self, record):
-        so_far, total = record.msg
-
-        if so_far == 0:
-            sys.stdout.write('%9s [' %
-                             (human_bytes(total) if self.usebytes else total))
-            sys.stdout.flush()
+        if record.name == 'progress.start':
+            d = record.msg
+            self._tot = d['amount']
             self._cur = 0
-
-        if float(so_far) / total * 64 >= self._cur:
-            sys.stdout.write('.')
+            sys.stdout.write("%-56s %20s\n" % (d['filename'],
+                                               '[%s]' % d['action']))
+            sys.stdout.write('%9s [' % d['disp_amount'])
             sys.stdout.flush()
-            self._cur += 1
-
-        if so_far == total:
+        elif record.name == 'progress.update':
+            n = record.msg
+            if 0 < n < self._tot and float(n) / self._tot * 64 > self._cur:
+                sys.stdout.write('.')
+                sys.stdout.flush()
+                self._cur += 1
+        elif record.name == 'progress.stop':
             sys.stdout.write('.' * (65 - self._cur))
             sys.stdout.write(']\n')
             sys.stdout.flush()
@@ -41,15 +41,6 @@ class ProgressHandler(logging.Handler):
 prog_logger = logging.getLogger('progress')
 prog_logger.setLevel(logging.INFO)
 prog_logger.addHandler(ProgressHandler())
-
-
-def pprint_fn_action(fn, action):
-    """
-    Pretty print the distribution name (filename) and an action, the width
-    of the output corresponds to the with of the progress bar used by the
-    function below.
-    """
-    print "%-56s %20s" % (fn, '[%s]' % action)
 
 
 def rm_empty_dir(path):
