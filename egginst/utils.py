@@ -2,6 +2,7 @@ import sys
 import os
 import shutil
 from os.path import isdir, isfile, islink, join
+import logging
 
 
 on_win = bool(sys.platform == 'win32')
@@ -14,25 +15,32 @@ else:
     rel_site_packages = 'lib/python%i.%i/site-packages' % sys.version_info[:2]
 
 
-def console_progress(so_far, total, usebytes=True, state={}):
-    """
-    progress callback to be used with as a callback
-    """
-    if so_far == 0:
-        sys.stdout.write('%9s [' %
-                         (human_bytes(total) if usebytes else total))
-        sys.stdout.flush()
-        state['cur'] = 0
+class ProgressHandler(logging.Handler):
+    usebytes = True
+    _cur = 0
 
-    if float(so_far) / total * 64 >= state['cur']:
-        sys.stdout.write('.')
-        sys.stdout.flush()
-        state['cur'] += 1
+    def emit(self, record):
+        so_far, total = record.msg
 
-    if so_far == total:
-        sys.stdout.write('.' * (65 - state['cur']))
-        sys.stdout.write(']\n')
-        sys.stdout.flush()
+        if so_far == 0:
+            sys.stdout.write('%9s [' %
+                             (human_bytes(total) if self.usebytes else total))
+            sys.stdout.flush()
+            self._cur = 0
+
+        if float(so_far) / total * 64 >= self._cur:
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            self._cur += 1
+
+        if so_far == total:
+            sys.stdout.write('.' * (65 - self._cur))
+            sys.stdout.write(']\n')
+            sys.stdout.flush()
+
+prog_logger = logging.getLogger('progress')
+prog_logger.setLevel(logging.INFO)
+prog_logger.addHandler(ProgressHandler())
 
 
 def pprint_fn_action(fn, action):

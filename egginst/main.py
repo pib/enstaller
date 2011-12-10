@@ -15,10 +15,9 @@ import zipfile
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from utils import (on_win, bin_dir_name, rel_site_packages,
-                   pprint_fn_action, rm_empty_dir, rm_rf, get_executable,
-                   console_progress)
+                   pprint_fn_action, rm_empty_dir, rm_rf, get_executable)
 import scripts
-
+import logging
 
 
 NS_PKG_PAT = re.compile(
@@ -48,7 +47,6 @@ class EggInst(object):
         self.prefix = abspath(prefix)
         self.hook = bool(hook)
         self.noapp = noapp
-        self.progress_callback = console_progress
 
         self.bin_dir = join(self.prefix, bin_dir_name)
 
@@ -167,15 +165,15 @@ class EggInst(object):
     def extract(self):
         n = 0
         size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
-        self.progress_callback(0, size)
+        logging.getLogger('progress.start').info((0, size))
 
         for name in self.arcnames:
             n += self.z.getinfo(name).file_size
             if 0 < n < size:
-                self.progress_callback(n, size)
+                logging.getLogger('progress.update').info((n, size))
             self.write_arcname(name)
 
-        self.progress_callback(size, size)
+        logging.getLogger('progress.stop').info((size, size))
         self.installed_size = size
 
 
