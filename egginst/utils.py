@@ -16,8 +16,6 @@ else:
 
 
 class ProgressHandler(logging.Handler):
-    usebytes = True
-
     def emit(self, record):
         if record.name == 'progress.start':
             d = record.msg
