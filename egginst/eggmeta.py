@@ -1,6 +1,6 @@
 import json
 import time
-from os.path import basename, join
+from os.path import join
 
 
 def parse_rawspec(data):
@@ -29,7 +29,7 @@ def info_from_z(z):
 
 
 def create_info(egg, extra_info=None):
-    info = dict(key=basename(egg.fpath))
+    info = dict(key=egg.fn)
     info.update(info_from_z(egg.z))
     info['ctime'] = time.ctime()
     info['hook'] = egg.hook

@@ -157,7 +157,7 @@ def create(egg, conf):
                 if script_type == 'gui_scripts':
                     fname += 'w'
             path = join(egg.bin_dir, fname)
-            write_script(path, entry_pt, basename(egg.fpath))
+            write_script(path, entry_pt, egg.fn)
             egg.files.append(path)
 
 

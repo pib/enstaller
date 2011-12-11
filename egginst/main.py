@@ -40,10 +40,11 @@ def name_version_fn(fn):
 
 class EggInst(object):
 
-    def __init__(self, fpath, prefix=sys.prefix,
+    def __init__(self, path, prefix=sys.prefix,
                  hook=False, pkgs_dir=None, verbose=False, noapp=False):
-        self.fpath = fpath
-        name, version = name_version_fn(basename(fpath))
+        self.path = path
+        self.fn = basename(path)
+        name, version = name_version_fn(self.fn)
         self.cname = name.lower()
         self.prefix = abspath(prefix)
         self.hook = bool(hook)
@@ -78,7 +79,7 @@ class EggInst(object):
         if not isdir(self.meta_dir):
             os.makedirs(self.meta_dir)
 
-        self.z = zipfile.ZipFile(self.fpath)
+        self.z = zipfile.ZipFile(self.path)
         self.arcnames = self.z.namelist()
         self.extract()
 
@@ -135,7 +136,7 @@ class EggInst(object):
 
     def write_meta(self):
         d = dict(
-            egg_name = basename(self.fpath),
+            egg_name = self.fn,
             prefix = self.prefix,
             installed_size = self.installed_size,
             files = [self.rel_prefix(p)
@@ -170,7 +171,7 @@ class EggInst(object):
         getLogger('progress.start').info(dict(
                 amount = size,
                 disp_amount = human_bytes(size),
-                filename = basename(self.fpath),
+                filename = self.fn,
                 action = 'installing'))
         for name in self.arcnames:
             n += self.z.getinfo(name).file_size
@@ -180,8 +181,8 @@ class EggInst(object):
 
     def get_dst(self, arcname):
         if (not self.hook and arcname == 'EGG-INFO/PKG-INFO' and
-                      self.fpath.endswith('.egg')):
-            return join(self.site_packages, basename(self.fpath) + '-info')
+                      self.path.endswith('.egg')):
+            return join(self.site_packages, self.fn + '-info')
 
         for start, cond, dst_dir in [
             ('EGG-INFO/prefix/',  True,       self.prefix),
@@ -281,7 +282,7 @@ class EggInst(object):
         getLogger('progress.start').info(dict(
                 amount = len(self.files), # number of files
                 disp_amount = human_bytes(self.installed_size),
-                filename = basename(self.fpath),
+                filename = self.fn,
                 action = 'removing'))
         self.install_app(remove=True)
         self.run('pre_egguninst.py')
@@ -319,17 +320,6 @@ def read_meta(meta_dir):
     return None
 
 
-def get_installed_cnames(prefix=sys.prefix):
-    """
-    returns a sorted list of cnames of all installed packages
-    """
-    egg_info_dir = join(prefix, 'EGG-INFO')
-    if not isdir(egg_info_dir):
-        return []
-    pat = re.compile(r'([a-z0-9_.]+)$')
-    return sorted(fn for fn in os.listdir(egg_info_dir) if pat.match(fn))
-
-
 def get_installed(prefix=sys.prefix):
     """
     Generator returns a sorted list of all installed packages.
@@ -337,8 +327,13 @@ def get_installed(prefix=sys.prefix):
     package.
     """
     egg_info_dir = join(prefix, 'EGG-INFO')
-    for cname in get_installed_cnames(prefix):
-        d = read_meta(join(egg_info_dir, cname))
+    if not isdir(egg_info_dir):
+        return
+    pat = re.compile(r'([a-z0-9_.]+)$')
+    for fn in sorted(os.listdir(egg_info_dir)):
+        if not pat.match(fn):
+            continue
+        d = read_meta(join(egg_info_dir, fn))
         if d:
             yield d['egg_name']
 
