@@ -15,7 +15,7 @@ from os.path import isfile, join
 
 import egginst
 from egginst.utils import bin_dir_name, rel_site_packages
-from egginst.handlers import setup_console_handlers
+from egginst.console import setup_handlers
 from enstaller import __version__
 import config
 from history import History
@@ -254,7 +254,7 @@ def main():
         user_base = site.USER_BASE
     except AttributeError:
         user_base = abs_expanduser('~/.local')
-    setup_console_handlers()
+    setup_handlers()
 
     p = ArgumentParser(description=__doc__)
     p.add_argument('cnames', metavar='NAME', nargs='*',

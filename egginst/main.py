@@ -18,7 +18,7 @@ from os.path import abspath, basename, dirname, join, isdir, isfile
 from utils import (on_win, bin_dir_name, rel_site_packages, human_bytes,
                    rm_empty_dir, rm_rf, get_executable)
 import scripts
-from handlers import setup_console_handlers
+from console import setup_handlers
 
 
 NS_PKG_PAT = re.compile(
@@ -353,7 +353,7 @@ def print_installed(prefix=sys.prefix):
 
 def main():
     from optparse import OptionParser
-    setup_console_handlers()
+    setup_handlers()
 
     p = OptionParser(usage="usage: %prog [options] [EGGS ...]",
                      description=__doc__)

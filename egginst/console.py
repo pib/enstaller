@@ -27,7 +27,7 @@ class ConsoleProgressHandler(logging.Handler):
             sys.stdout.flush()
 
 
-def setup_console_handlers():
+def setup_handlers():
     prog_logger = logging.getLogger('progress')
     prog_logger.setLevel(logging.INFO)
     prog_logger.addHandler(ConsoleProgressHandler())
