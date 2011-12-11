@@ -6,7 +6,7 @@ from os.path import join
 def parse_rawspec(data):
     spec = {}
     exec data.replace('\r', '') in spec
-    spec['name'] = spec['name'].lower()
+    spec['name'] = spec['name'].lower().replace('-', '_')
     res = {}
     for k in ('name', 'version', 'build',
               'arch', 'platform', 'osdist', 'python', 'packages'):
