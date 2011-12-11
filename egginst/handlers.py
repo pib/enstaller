@@ -2,7 +2,7 @@ import sys
 import logging
 
 
-class ProgressHandler(logging.Handler):
+class ConsoleProgressHandler(logging.Handler):
 
     def emit(self, record):
         if record.name == 'progress.start':
@@ -27,7 +27,7 @@ class ProgressHandler(logging.Handler):
             sys.stdout.flush()
 
 
-def setup_handlers():
+def setup_console_handlers():
     prog_logger = logging.getLogger('progress')
     prog_logger.setLevel(logging.INFO)
-    prog_logger.addHandler(ProgressHandler())
+    prog_logger.addHandler(ConsoleProgressHandler())

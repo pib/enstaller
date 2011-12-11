@@ -18,7 +18,7 @@ from os.path import abspath, basename, dirname, join, isdir, isfile
 from utils import (on_win, bin_dir_name, rel_site_packages, human_bytes,
                    rm_empty_dir, rm_rf, get_executable)
 import scripts
-from handlers import setup_handlers
+from handlers import setup_console_handlers
 
 
 NS_PKG_PAT = re.compile(
@@ -353,7 +353,7 @@ def print_installed(prefix=sys.prefix):
 
 def main():
     from optparse import OptionParser
-    setup_handlers()
+    setup_console_handlers()
 
     p = OptionParser(usage="usage: %prog [options] [EGGS ...]",
                      description=__doc__)
@@ -387,7 +387,6 @@ def main():
                  help="remove package(s), requires the egg or project name(s)")
 
     p.add_option('-v', "--verbose", action="store_true")
-    p.add_option('-n', "--dry-run", action="store_true")
     p.add_option('--version', action="store_true")
 
     opts, args = p.parse_args()
@@ -408,15 +407,9 @@ def main():
     for path in args:
         ei = EggInst(path, prefix, opts.hook, opts.pkgs_dir,
                      verbose=opts.verbose, noapp=opts.noapp)
-        fn = basename(path)
         if opts.remove:
-            if opts.dry_run:
-                continue
             ei.remove()
-
         else: # default is always install
-            if opts.dry_run:
-                continue
             ei.install()
 
 
