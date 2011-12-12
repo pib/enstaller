@@ -3,7 +3,7 @@ import sys
 import re
 from os.path import abspath, basename, join, isdir, isfile, islink
 
-from egginst.utils import on_win, rm_rf
+from egginst.utils import on_win, rm_rf, bin_dir_name
 
 
 verbose = False
@@ -157,7 +157,7 @@ def create(egg, conf):
                 if script_type == 'gui_scripts':
                     fname += 'w'
             path = join(egg.bin_dir, fname)
-            write_script(path, entry_pt, basename(egg.fpath))
+            write_script(path, entry_pt, egg.fn)
             egg.files.append(path)
 
 

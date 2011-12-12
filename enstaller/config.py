@@ -288,8 +288,8 @@ def read():
     return read.cache
 
 
-def get(key, default_val=None):
-    return read().get(key) or default_val or default.get(key)
+def get(key, default=None):
+    return read().get(key, default)
 
 
 def print_config():
