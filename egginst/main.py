@@ -70,7 +70,7 @@ class EggInst(object):
             self.egginfo_dir = join(self.prefix, 'EGG-INFO')
             self.meta_dir = join(self.egginfo_dir, self.cname)
 
-        self.meta_json = join(self.meta_dir, '__egginst__.json')
+        self.meta_json = join(self.meta_dir, 'egginst.json')
         self.files = []
         self.verbose = verbose
 
@@ -307,16 +307,9 @@ class EggInst(object):
 
 
 def read_meta(meta_dir):
-    meta_json = join(meta_dir, '__egginst__.json')
+    meta_json = join(meta_dir, 'egginst.json')
     if isfile(meta_json):
         return json.load(open(meta_json))
-    # for backwards compatibility
-    meta_txt = join(meta_dir, '__egginst__.txt')
-    if isfile(meta_txt):
-        d = {}
-        execfile(meta_txt, d)
-        d['files'] = d['rel_files']
-        return d
     return None
 
 

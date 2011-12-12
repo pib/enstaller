@@ -16,7 +16,7 @@ class ConsoleProgressHandler(logging.Handler):
 
         elif record.name == 'progress.update':
             n = record.msg
-            if 0 < n < self._tot and float(n) / self._tot * 64 > self._cur:
+            if 0 < n < self._tot and 64.0 * n / self._tot > self._cur:
                 sys.stdout.write('.')
                 sys.stdout.flush()
                 self._cur += 1
