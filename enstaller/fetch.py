@@ -11,45 +11,6 @@ class MD5Mismatch(Exception):
     pass
 
 
-def stream_to_file(fi, path, info={}):
-    """
-    Read data from the filehandle and write a the file.
-    Optionally check the MD5.
-    """
-    size = info['size']
-    md5 = info.get('md5')
-
-    getLogger('progress.start').info(dict(
-            amount = size,
-            disp_amount = human_bytes(size),
-            filename = basename(path),
-            action = 'fetching'))
-
-    n = 0
-    h = hashlib.new('md5')
-    if size and size < 16384:
-        buffsize = 1
-    else:
-        buffsize = 256
-
-    with open(path + '.part', 'wb') as fo:
-        while True:
-            chunk = fi.read(buffsize)
-            if not chunk:
-                break
-            fo.write(chunk)
-            if md5:
-                h.update(chunk)
-            n += len(chunk)
-            getLogger('progress.update').info(n)
-    fi.close()
-    getLogger('progress.stop').info(None)
-
-    if md5 and h.hexdigest() != md5:
-        raise MD5Mismatch("Error: received data MD5 sums mismatch")
-    os.rename(path + '.part', path)
-
-
 class FetchAPI(object):
 
     def __init__(self, remote, local_dir):
@@ -61,8 +22,41 @@ class FetchAPI(object):
         return join(self.local_dir, fn)
 
     def fetch(self, key):
-        stream, info = self.remote.get(key)
-        stream_to_file(stream, self.path(key), info)
+        path = self.path(key)
+        fi, info = self.remote.get(key)
+
+        size = info['size']
+        md5 = info.get('md5')
+
+        getLogger('progress.start').info(dict(
+                amount = size,
+                disp_amount = human_bytes(size),
+                filename = basename(path),
+                action = 'fetching'))
+
+        n = 0
+        h = hashlib.new('md5')
+        if size and size < 16384:
+            buffsize = 1
+        else:
+            buffsize = 256
+
+        with open(path + '.part', 'wb') as fo:
+            while True:
+                chunk = fi.read(buffsize)
+                if not chunk:
+                    break
+                fo.write(chunk)
+                if md5:
+                    h.update(chunk)
+                n += len(chunk)
+                getLogger('progress.update').info(n)
+        fi.close()
+        getLogger('progress.stop').info(None)
+
+        if md5 and h.hexdigest() != md5:
+            raise MD5Mismatch("Error: received data MD5 sums mismatch")
+        os.rename(path + '.part', path)
 
     def patch_egg(self, egg):
         """

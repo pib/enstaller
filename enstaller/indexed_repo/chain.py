@@ -1,16 +1,46 @@
 import os
 import sys
+import hashlib
 import zipfile
 from collections import defaultdict
 from os.path import basename, isfile, isdir, join
 
+from egginst.utils import human_bytes
+
 from enstaller.store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
 
 from enstaller.utils import comparable_version, md5_file
-from enstaller.fetch import stream_to_file
 import metadata
 import dist_naming
 from requirement import Req, add_Reqs_to_spec
+
+
+def stream_to_file(fi, path, info={}):
+    """
+    Read data from the filehandle and write a the file.
+    Optionally check the MD5.
+    """
+    size = info['size']
+    md5 = info.get('md5')
+
+    print "Fetching: %s (%s)" % (basename(path), human_bytes(size))
+
+    n = 0
+    h = hashlib.new('md5')
+    with open(path + '.part', 'wb') as fo:
+        while True:
+            chunk = fi.read(16384)
+            if not chunk:
+                break
+            fo.write(chunk)
+            if md5:
+                h.update(chunk)
+            n += len(chunk)
+    fi.close()
+
+    if md5 and h.hexdigest() != md5:
+        raise Exception("Error: received data MD5 sums mismatch")
+    os.rename(path + '.part', path)
 
 
 class Chain(object):
