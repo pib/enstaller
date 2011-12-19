@@ -52,22 +52,19 @@ class Launch(Enpkg):
 
 
 if __name__ == '__main__':
-    if sys.platform == 'linux2':
-        x = Launch(['/home/ischnell/eggs'],
-               prefixes=['/home/ischnell/jpm/Python-2.7', sys.prefix],
-               hook=1, verbose=1)
-        fn = 'nose-1.1.2-1.egg'
-    elif sys.platform == 'win32':
-        x = Launch(['http://www.enthought.com/repo/.jpm/Windows/x86/'],
-                   prefixes=[r'C:\jpm\Python-2.6.6-1'],
-                   hook=1, verbose=1)
-        fn = 'test-1.0-1.egg'
+    from enpkg import create_joined_store
 
+    urls = ['http://www.enthought.com/repo/.jpm/MacOSX/x86/']
+
+    remote = create_joined_store(urls)
+    x = Launch(remote,
+               #prefixes=['/home/ischnell/jpm/Python-2.7', sys.prefix],
+               hook=1, verbose=1)
+
+    fn = 'test-1.0-1.egg'
+
+    x.install(fn)#, forceall=1)
     for k, info in x.query(app=True):
         print k, info.get('installed')
-
-    x.install(fn)#, force=1)
     print x.get_icon_path(fn)
     x.launch_app(fn)
-#    for p in x.registry_path_list(fn):
-#        print p
