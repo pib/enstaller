@@ -42,9 +42,9 @@ class EnpkgError(Exception):
 
 class Enpkg(object):
 
-    def __init__(self, urls, userpass=None,
+    def __init__(self, remote, userpass=None,
                  prefixes=[sys.prefix], hook=False, verbose=False):
-        self.remote = create_joined_store(urls)
+        self.remote = remote
         self.userpass = userpass
         self.prefixes = prefixes
         self.hook = hook

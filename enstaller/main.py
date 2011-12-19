@@ -23,7 +23,7 @@ from proxy.api import setup_proxy
 from utils import comparable_version, abs_expanduser
 
 from eggcollect import EggCollection
-from enpkg import Enpkg, EnpkgError
+from enpkg import Enpkg, EnpkgError, create_joined_store
 from resolve import Req
 
 
@@ -383,9 +383,10 @@ def main():
         enst.dry_run = dry_run
         enst.prefixes = prefixes
     else:
-        enpkg = Enpkg(config.get('IndexedRepos'), config.get_auth(),
-                      prefixes=prefixes, hook=args.hook,
-                      verbose=args.verbose)
+        enpkg = Enpkg(
+            create_joined_store(config.get('IndexedRepos')),
+            config.get_auth(), prefixes=prefixes, hook=args.hook,
+            verbose=args.verbose)
 
     if args.imports:                              # --imports
         assert not args.hook
