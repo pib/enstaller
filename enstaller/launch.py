@@ -53,8 +53,9 @@ class Launch(Enpkg):
 
 if __name__ == '__main__':
     from enpkg import create_joined_store
+    from plat import subdir
 
-    urls = ['http://www.enthought.com/repo/.jpm/MacOSX/x86/']
+    urls = ['http://www.enthought.com/repo/.jpm/%s/' % subdir]
 
     remote = create_joined_store(urls)
     x = Launch(remote,
@@ -65,6 +66,8 @@ if __name__ == '__main__':
 
     x.install(fn)#, forceall=1)
     for k, info in x.query(app=True):
-        print k, info.get('installed')
+        print k
+        if info.get('installed'):
+            print '\t', x.get_icon_path(k)
     print x.get_icon_path(fn)
     x.launch_app(fn)

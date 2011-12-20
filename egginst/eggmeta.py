@@ -21,7 +21,7 @@ def info_from_z(z):
         raise KeyError("arcname=%r not in zip-file %s" % arcname)
     res.update(parse_rawspec(z.read(arcname)))
 
-    arcname = 'EGG-INFO/spec/app.json'
+    arcname = 'EGG-INFO/app.json'
     if arcname in z.namelist():
         res['app'] = True
         res.update(json.loads(z.read(arcname)))

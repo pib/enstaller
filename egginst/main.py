@@ -109,7 +109,7 @@ class EggInst(object):
         if self.hook:
             import registry
             registry.create_file(self)
-        if 'EGG-INFO/spec/app.json' in self.arcnames:
+        if 'EGG-INFO/app.json' in self.arcnames:
             import app_entry
             app_entry.create_entry(self)
         getLogger('progress.stop').info(None)

@@ -69,7 +69,7 @@ def create_file(egg):
     def mk_rel(p):
         p = p.replace(egg.pkg_dir, '..').replace('\\', '/')
         if p == '..':
-            p = '../.'
+            return '../.'
         return p
 
     fo = open(egg.registry_txt, 'w')
