@@ -67,7 +67,10 @@ def create_hooks_dir(dir_path, namespace=''):
 def create_file(egg):
     reg, pth = create_hooks_dir(egg.pkg_dir)
     def mk_rel(p):
-        return p.replace(egg.pkg_dir, '..').replace('\\', '/')
+        p = p.replace(egg.pkg_dir, '..').replace('\\', '/')
+        if p == '..':
+            p = '../.'
+        return p
 
     fo = open(egg.registry_txt, 'w')
     fo.write('# pkg: %s\n' % basename(egg.pkg_dir))
