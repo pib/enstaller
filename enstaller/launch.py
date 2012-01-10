@@ -8,12 +8,15 @@ from enpkg import Enpkg
 
 class Launch(Enpkg):
 
-    def get_icon_path(self, egg):
+    def get_icon(self, egg):
         info = self.find(egg)
-        if 'app_icon' in info:
+        if info and 'app_icon' in info:
             path = join(info['meta_dir'], info['app_icon'])
             if isfile(path):
-                return path
+                return open(path, 'rb').read()
+        else:
+            # Egg not installed, see if there is one in the store
+            return self.remote.get_metadata(egg)['app_icon'].decode('base64')
         return None
 
     def launch_app(self, egg):
@@ -68,6 +71,6 @@ if __name__ == '__main__':
     for k, info in x.query(app=True):
         print k
         if info.get('installed'):
-            print '\t', x.get_icon_path(k)
-    print x.get_icon_path(fn)
+            print '\t', x.get_icon(k)
+    print x.get_icon(fn)
     x.launch_app(fn)
