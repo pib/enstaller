@@ -1,5 +1,6 @@
 import sys
 from os.path import isdir, join
+from logging import getLogger
 
 from store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
 from store.joined import JoinedStore
@@ -106,6 +107,12 @@ class Enpkg(object):
             else:
                 eggs = rm(eggs)
 
+        total_size = sum((self.remote.get_metadata(egg)['size'] for egg in eggs))
+
+        getLogger('progress.start_install').info(dict(
+                  size = total_size,
+                  name = arg,
+                  ))
         # fetch eggs
         for egg in eggs:
             self.fetch(egg, force or forceall)
@@ -126,6 +133,10 @@ class Enpkg(object):
             if repo:
                 extra_info['repo_dispname'] = repo.info()['dispname']
             self.ec.install(egg, self.local_dir, extra_info)
+
+        getLogger('progress.finish_install').info(dict(
+                  name = arg,
+                  ))
         return len(eggs)
 
     def remove(self, req):
