@@ -29,7 +29,11 @@ class Launch(Enpkg):
             raise Exception("Don't know what to launch for egg: %r" % egg)
         if 'app_args' in info:
             cmd.extend(info['app_args'])
-        subprocess.call(cmd)
+        if sys.platform == 'win32':
+            DETACHED_PROCESS = 0x00000008
+            subprocess.Popen(cmd, creationflags=DETACHED_FLAGS)
+        else:
+            subprocess.Popen(cmd)
 
     def registry_path_list(self, egg):
         if not self.hook:
