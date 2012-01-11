@@ -40,7 +40,7 @@ class ResourceCache(object):
         self.authenticate = True
 
     def url_for(self, path):
-        return '{}/{}'.format(self._root_url, path)
+        return '{0}/{1}'.format(self._root_url, path)
 
     def _http_auth(self):
         username, password = config.get_auth()
@@ -50,7 +50,7 @@ class ResourceCache(object):
             return None
 
     def _read_json_from_url(self, url):
-        logger.debug('Reading JSON from URL: {}'.format(url))
+        logger.debug('Reading JSON from URL: {0}'.format(url))
         req = Request(url)
         auth = self._http_auth()
         if auth:
@@ -90,10 +90,10 @@ class ResourceCache(object):
         # Read the file if it seems valid so far
         if cache_file_valid:
             try:
-                logger.debug('Trying to load {}'.format(cache_file_path))
+                logger.debug('Trying to load {0}'.format(cache_file_path))
                 cached_data = json.load(open(cache_file_path))
             except:
-                logger.exception('Error reading cache file "{}"'
+                logger.exception('Error reading cache file "{0}"'
                                  .format(cache_file_path))
                 cache_file_valid = False
 
@@ -104,7 +104,7 @@ class ResourceCache(object):
 
         # Otherwise, try to read from URL
         try:
-            logger.debug('Trying to load {}'.format(full_url))
+            logger.debug('Trying to load {0}'.format(full_url))
             data = self._read_json_from_url(full_url)
         except Exception as e:
             if getattr(e, 'code', None) == 401:
@@ -118,13 +118,13 @@ class ResourceCache(object):
                     http_exc = e
                     data = None
             else:
-                logger.exception('Error reading from URL "{}"'.format(full_url))
+                logger.exception('Error reading from URL "{0}"'.format(full_url))
                 data = None
 
         # If we got valid data JSON data back, write the cache file and return
         if data:
             try:
-                logger.debug('Trying to write out {}'.format(cache_file_path))
+                logger.debug('Trying to write out {0}'.format(cache_file_path))
                 cache_file_dir = dirname(cache_file_path)
                 if not exists(cache_file_dir):
                     makedirs(cache_file_dir)
@@ -132,7 +132,7 @@ class ResourceCache(object):
             except:
                 # Log the exception on error, but we already have the
                 # data, so return that either way
-                logger.exception('Error writing cache file "{}"'
+                logger.exception('Error writing cache file "{0}"'
                                  .format(cache_file_path))
             return data
 
@@ -141,14 +141,14 @@ class ResourceCache(object):
         if cached_data:
             return cached_data
         try:
-            logger.debug('Trying to load {}'.format(cache_file_path))
+            logger.debug('Trying to load {0}'.format(cache_file_path))
             return json.load(open(cache_file_path))
         except:
-            logger.exception('Error reading cache file "{}"'
+            logger.exception('Error reading cache file "{0}"'
                              .format(cache_file_path))
 
         raise EnstallerResourceIndexError(
-            "Couldn't load index file from '{}' or '{}'"
+            "Couldn't load index file from '{0}' or '{1}'"
             .format(cache_file_path, full_url), http_exc)
 
 
@@ -219,7 +219,7 @@ class Resources(object):
 
         if ('platform' in product_metadata and
             product_metadata['platform'] != self.plat):
-            raise Exception('Product metadata file for {}, but running {}'
+            raise Exception('Product metadata file for {0}, but running {1}'
                             .format(product_metadata['platform'], self.plat))
 
         if 'eggs' in product_metadata:
@@ -235,7 +235,7 @@ class Resources(object):
 
         Fills in the product_metadata dict in place.
         """
-        product_path = '{}/{}'.format(self.product_list_path,
+        product_path = '{0}/{1}'.format(self.product_list_path,
                                       product_metadata['product'])
         product_metadata['url'] = self._product_cache.url_for(product_path)
         parts = urlsplit(product_metadata['url'])
@@ -249,8 +249,8 @@ class Resources(object):
         if product_metadata.get('platform_independent', False):
             index_filename = 'index.json'
         else:
-            index_filename = 'index-{}.json'.format(self.plat)
-        product_index_path = '{}/{}'.format(product_path, index_filename)
+            index_filename = 'index-{0}.json'.format(self.plat)
+        product_index_path = '{0}/{1}'.format(product_path, index_filename)
         last_update = datetime.strptime(product_metadata['last_update'],
                                         '%Y-%m-%d %H:%M:%S')
 
@@ -259,7 +259,7 @@ class Resources(object):
 
     def _add_egg_repos(self, url, product_metadata):
         if 'egg_repos' in product_metadata:
-            repos = ['{}/{}/'.format(url, path)
+            repos = ['{0}/{1}/'.format(url, path)
                      for path in product_metadata['egg_repos']]
         else:
             repos = [url]
@@ -353,7 +353,7 @@ class Resources(object):
         regex = re.compile(re.escape(text), re.IGNORECASE)
         results = []
         for product_metadata in self.index:
-            for cname, metadata in product_metadata.get('eggs', {}).iteritems():
+            for cname, metadata in product_metadata.get('eggs', {0}).iteritems():
                 name = metadata.get('name', '')
                 description = metadata.get('description', '')
                 if regex.search(name) or regex.search(description):
