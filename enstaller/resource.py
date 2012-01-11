@@ -103,23 +103,32 @@ class ResourceCache(object):
             return cached_data
 
         # Otherwise, try to read from URL
+        # FIXME: this should be a message box, not a console message.
+        error_msg_read = ('Error reading from URL "{0}":{1}{2}\n'
+                          'Attempting to read from local cache. '
+                          'Please check network connection.\n')
         try:
             logger.debug('Trying to load {0}'.format(full_url))
             data = self._read_json_from_url(full_url)
-        except Exception as e:
+        except IOError as e:
             if getattr(e, 'code', None) == 401:
                 if last_update is None:
                     try:
+                        # FIXME: Explain this
                         data = json.loads(e.read())
                     except:
+                        # FIXME: Useful error msg
                         logger.exception('Dang')
                         data = None
                 else:
                     http_exc = e
                     data = None
             else:
-                logger.exception('Error reading from URL "{0}"'.format(full_url))
+                logger.warning(error_msg_read.format(full_url, '\n    ', e))
                 data = None
+        except Exception as e:
+            logger.exception(error_msg_read.format(full_url, '', ''))
+            data = None
 
         # If we got valid data JSON data back, write the cache file and return
         if data:
