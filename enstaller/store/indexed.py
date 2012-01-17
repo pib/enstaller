@@ -16,6 +16,8 @@ class IndexedStore(AbstractStore):
         if fp is None:
             raise Exception("Could not connect")
         self._index = json.load(fp)
+        for info in self._index.itervalues():
+            info['repo_dispname'] = self.info().get('dispname')
         fp.close()
 
         # maps names to keys

@@ -73,8 +73,6 @@ class Enpkg(object):
         info_list = []
         for key, info in self.query_remote(name=name):
             if req.matches(info):
-                repo = self.remote.where_from(key)
-                info['repo_dispname'] = repo.info()['dispname']
                 info_list.append(dict(info))
         try:
             return sorted(info_list,
@@ -128,10 +126,8 @@ class Enpkg(object):
 
         # install eggs
         for egg in eggs:
-            extra_info = {}
-            repo = self.remote.where_from(egg)
-            if repo:
-                extra_info['repo_dispname'] = repo.info()['dispname']
+            info = self.remote.get_metadata(egg)
+            extra_info = dict(repo_dispname=info.get('repo_dispname'))
             self.ec.install(egg, self.local_dir, extra_info)
 
         getLogger('progress.finish_install').info(dict(

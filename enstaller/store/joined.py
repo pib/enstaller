@@ -13,12 +13,6 @@ class JoinedStore(AbstractStore):
     def info(self):
         pass
 
-    def where_from(self, key):
-        for repo in self.repos:
-            if repo.exists(key):
-                return repo
-        return None
-
     def get(self, key):
         for repo in self.repos:
             if repo.exists(key):
