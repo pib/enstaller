@@ -41,13 +41,15 @@ def name_version_fn(fn):
 class EggInst(object):
 
     def __init__(self, path, prefix=sys.prefix,
-                 hook=False, pkgs_dir=None, verbose=False, noapp=False):
+                 hook=False, pkgs_dir=None, evt_mgr=None,
+                 verbose=False, noapp=False):
         self.path = path
         self.fn = basename(path)
         name, version = name_version_fn(self.fn)
         self.cname = name.lower()
         self.prefix = abspath(prefix)
         self.hook = bool(hook)
+        self.evt_mgr = evt_mgr
         self.noapp = noapp
 
         self.bin_dir = join(self.prefix, bin_dir_name)
@@ -168,15 +170,29 @@ class EggInst(object):
         n = 0
         size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
         self.installed_size = size
-        getLogger('progress.start').info(dict(
-                amount = size,
-                disp_amount = human_bytes(size),
-                filename = self.fn,
-                action = 'installing'))
-        for name in self.arcnames:
-            n += self.z.getinfo(name).file_size
-            getLogger('progress.update').info(n)
-            self.write_arcname(name)
+        if self.evt_mgr:
+            from uuid import uuid4
+            from encore.events.api import ProgressManager
+
+            progress = ProgressManager(self.evt_mgr, source=None,
+                                       operation_id=uuid4(),
+                                       steps=size, message="installing")
+            with progress:
+                for name in self.arcnames:
+                    n += self.z.getinfo(name).file_size
+                    self.write_arcname(name)
+                    progress(step=n, message="working...")
+        else:
+            getLogger('progress.start').info(dict(
+                    amount = size,
+                    disp_amount = human_bytes(size),
+                    filename = self.fn,
+                    action = 'installing'))
+
+            for name in self.arcnames:
+                n += self.z.getinfo(name).file_size
+                getLogger('progress.update').info(n)
+                self.write_arcname(name)
 
 
     def get_dst(self, arcname):
