@@ -4,17 +4,17 @@ import sys
 class ProgressManager(object):
 
     def __init__(self, event_manager, source, operation_id, steps,
-                 message, filename, dispamount):
+                 message, filename, disp_amount):
         self.action = message
         self.filename = filename
-        self.dispamount = dispamount
+        self.disp_amount = disp_amount
         self._tot = steps
         self._cur = 0
 
     def __enter__(self):
         sys.stdout.write("%-56s %20s\n" % (self.filename,
                                            '[%s]' % self.action))
-        sys.stdout.write('%9s [' % self.dispamount)
+        sys.stdout.write('%9s [' % self.disp_amount)
         sys.stdout.flush()
 
     def __call__(self, step=0):

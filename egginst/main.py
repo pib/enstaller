@@ -13,7 +13,6 @@ import re
 import json
 import zipfile
 from uuid import uuid4
-from logging import getLogger
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from utils import (on_win, bin_dir_name, rel_site_packages, human_bytes,
@@ -114,7 +113,6 @@ class EggInst(object):
         if 'EGG-INFO/app.json' in self.arcnames:
             import app_entry
             app_entry.create_entry(self)
-        getLogger('progress.stop').info(None)
 
 
     def entry_points(self):
@@ -167,18 +165,19 @@ class EggInst(object):
 
 
     def extract(self):
-        n = 0
-        size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
-        self.installed_size = size
         if self.evt_mgr:
             from encore.events.api import ProgressManager
         else:
             from console import ProgressManager
-        progress = ProgressManager(self.evt_mgr, source=self,
-                                   operation_id=uuid4(), steps=size,
-                                   message="installing",
-                                   filename=self.fn,
-                                   dispamount=human_bytes(size))
+
+        n = 0
+        size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
+        self.installed_size = size
+        progress = ProgressManager(
+                self.evt_mgr, source=self,
+                operation_id=uuid4(), steps=size,
+                message="installing", filename=self.fn,
+                disp_amount=human_bytes(self.installed_size))
         with progress:
             for name in self.arcnames:
                 n += self.z.getinfo(name).file_size
@@ -284,33 +283,38 @@ class EggInst(object):
             print "Error: Can't find meta data for:", self.cname
             return
 
+        if self.evt_mgr:
+            from encore.events.api import ProgressManager
+        else:
+            from console import ProgressManager
+
         self.read_meta()
         n = 0
-        getLogger('progress.start').info(dict(
-                amount = len(self.files), # number of files
-                disp_amount = human_bytes(self.installed_size),
-                filename = self.fn,
-                action = 'removing'))
+        progress = ProgressManager(
+                self.evt_mgr, source=self,
+                operation_id=uuid4(), steps=len(self.files),
+                message="removing", filename=self.fn,
+                disp_amount=human_bytes(self.installed_size))
         self.install_app(remove=True)
         self.run('pre_egguninst.py')
 
-        for p in self.files:
-            n += 1
-            getLogger('progress.update').info(n)
+        with progress:
+            for p in self.files:
+                n += 1
+                progress(step=n)
 
-            if self.hook and not p.startswith(self.pkgs_dir):
-                continue
+                if self.hook and not p.startswith(self.pkgs_dir):
+                    continue
 
-            rm_rf(p)
-            if p.endswith('.py'):
-                rm_rf(p + 'c')
-        self.rm_dirs()
-        rm_rf(self.meta_dir)
-        if self.hook:
-            rm_empty_dir(self.pkg_dir)
-        else:
-            rm_empty_dir(self.egginfo_dir)
-        getLogger('progress.stop').info(None)
+                rm_rf(p)
+                if p.endswith('.py'):
+                    rm_rf(p + 'c')
+            self.rm_dirs()
+            rm_rf(self.meta_dir)
+            if self.hook:
+                rm_empty_dir(self.pkg_dir)
+            else:
+                rm_empty_dir(self.egginfo_dir)
 
 
 def read_meta(meta_dir):
@@ -399,7 +403,7 @@ def main():
 
     if 0:
         from encore.events.api import EventManager
-        from _display import ProgressDisplay
+        from encore.terminal.api import ProgressDisplay
         evt_mgr = EventManager()
         display = ProgressDisplay(evt_mgr)
     else:
