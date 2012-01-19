@@ -12,13 +12,13 @@ import sys
 import re
 import json
 import zipfile
+from uuid import uuid4
 from logging import getLogger
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from utils import (on_win, bin_dir_name, rel_site_packages, human_bytes,
                    rm_empty_dir, rm_rf, get_executable)
 import scripts
-from console import setup_handlers
 
 
 NS_PKG_PAT = re.compile(
@@ -171,28 +171,19 @@ class EggInst(object):
         size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
         self.installed_size = size
         if self.evt_mgr:
-            from uuid import uuid4
             from encore.events.api import ProgressManager
-
-            progress = ProgressManager(self.evt_mgr, source=None,
-                                       operation_id=uuid4(),
-                                       steps=size, message="installing")
-            with progress:
-                for name in self.arcnames:
-                    n += self.z.getinfo(name).file_size
-                    self.write_arcname(name)
-                    progress(step=n, message="working...")
         else:
-            getLogger('progress.start').info(dict(
-                    amount = size,
-                    disp_amount = human_bytes(size),
-                    filename = self.fn,
-                    action = 'installing'))
-
+            from console import ProgressManager
+        progress = ProgressManager(self.evt_mgr, source=self,
+                                   operation_id=uuid4(), steps=size,
+                                   message="installing",
+                                   filename=self.fn,
+                                   dispamount=human_bytes(size))
+        with progress:
             for name in self.arcnames:
                 n += self.z.getinfo(name).file_size
-                getLogger('progress.update').info(n)
                 self.write_arcname(name)
+                progress(step=n)
 
 
     def get_dst(self, arcname):
@@ -357,7 +348,6 @@ def print_installed(prefix=sys.prefix):
 
 def main():
     from optparse import OptionParser
-    setup_handlers()
 
     p = OptionParser(usage="usage: %prog [options] [EGGS ...]",
                      description=__doc__)
@@ -394,7 +384,6 @@ def main():
     p.add_option('--version', action="store_true")
 
     opts, args = p.parse_args()
-
     if opts.version:
         from enstaller import __version__
         print "enstaller version:", __version__
@@ -408,8 +397,16 @@ def main():
         print_installed(prefix)
         return
 
+    if 0:
+        from encore.events.api import EventManager
+        from _display import ProgressDisplay
+        evt_mgr = EventManager()
+        display = ProgressDisplay(evt_mgr)
+    else:
+        evt_mgr = None
+
     for path in args:
-        ei = EggInst(path, prefix, opts.hook, opts.pkgs_dir,
+        ei = EggInst(path, prefix, opts.hook, opts.pkgs_dir, evt_mgr,
                      verbose=opts.verbose, noapp=opts.noapp)
         if opts.remove:
             ei.remove()
