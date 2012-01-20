@@ -96,7 +96,7 @@ class FetchAPI(object):
 
         self.fetch(patch_fn)
         zdiff.patch(self.path(info['src']), self.path(egg),
-                    self.path(patch_fn))
+                    self.path(patch_fn), self.evt_mgr)
         return True
 
     def fetch_egg(self, egg, force=False):

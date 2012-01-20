@@ -12,7 +12,7 @@ with one of the following:
 import bz2
 import json
 import zipfile
-from logging import getLogger
+from uuid import uuid4
 from os.path import basename, getmtime, getsize
 
 from utils import md5_file
@@ -69,7 +69,12 @@ def diff(src_path, dst_path, patch_path):
     return count
 
 
-def patch(src_path, dst_path, patch_path):
+def patch(src_path, dst_path, patch_path, evt_mgr=None):
+    if evt_mgr:
+        from encore.events.api import ProgressManager
+    else:
+        from egginst.console import ProgressManager
+
     x = zipfile.ZipFile(src_path)
     y = zipfile.ZipFile(dst_path, 'w', zipfile.ZIP_DEFLATED)
     z = zipfile.ZipFile(patch_path)
@@ -79,35 +84,35 @@ def patch(src_path, dst_path, patch_path):
 
     n = 0
     tot = len(xnames) + len(znames)
-    getLogger('progress.start').info(dict(
-            amount = tot,
-            disp_amount = str(tot),
-            filename = basename(patch_path),
-            action = 'patching'))
 
-    for name in xnames:
-        if name not in znames:
-             y.writestr(x.getinfo(name), x.read(name))
-        n += 1
-        getLogger('progress.update').info(n)
+    progress = ProgressManager(
+                evt_mgr, source=patch,
+                operation_id=uuid4(), steps=tot,
+                message="patching", filename=basename(patch_path),
+                disp_amount=str(tot))
 
-    for name in z.namelist():
-        if name == '__zdiff_info__.json':
-            continue
-        zdata = z.read(name)
-        if zdata.startswith('BSDIFF4'):
-            ydata = bsdiff4.patch(x.read(name), zdata)
-        elif zdata.startswith('BZ'):
-            ydata = bz2.decompress(zdata)
-        elif zdata.startswith('RM'):
-            continue
-        else:
-            raise Exception("Hmm, didn't expect to get here: %r" % zdata)
+    with progress:
+        for name in xnames:
+            if name not in znames:
+                 y.writestr(x.getinfo(name), x.read(name))
+            n += 1
+            progress(step=n)
 
-        y.writestr(name, ydata)
-        getLogger('progress.update').info(n)
+        for name in z.namelist():
+            if name == '__zdiff_info__.json':
+                continue
+            zdata = z.read(name)
+            if zdata.startswith('BSDIFF4'):
+                ydata = bsdiff4.patch(x.read(name), zdata)
+            elif zdata.startswith('BZ'):
+                ydata = bz2.decompress(zdata)
+            elif zdata.startswith('RM'):
+                continue
+            else:
+                raise Exception("Hmm, didn't expect to get here: %r" % zdata)
 
-    getLogger('progress.stop').info(None)
+            y.writestr(name, ydata)
+            progress(step=n)
 
     z.close()
     y.close()
