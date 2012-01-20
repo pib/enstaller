@@ -60,7 +60,14 @@ class Enpkg(object):
     # ============= methods which relate to remove store =================
 
     def reconnect(self):
-        self.remote.connect(self.userpass)
+        """
+        Normally it is not necessary to call this method, it is only there
+        to offer a convenient way to (re)connect the key-value store.
+        This is necessary to update to changes which have occured in the
+        store, as the remove store might create a cache during connecting.
+        """
+        self._connected = False
+        self._connect()
 
     def _connect(self):
         if getattr(self, '_connected', None):
