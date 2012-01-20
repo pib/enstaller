@@ -1,6 +1,6 @@
 import os
 import hashlib
-from logging import getLogger
+from uuid import uuid4
 from os.path import basename, isdir, isfile, join
 
 from egginst.utils import human_bytes
@@ -13,9 +13,10 @@ class MD5Mismatch(Exception):
 
 class FetchAPI(object):
 
-    def __init__(self, remote, local_dir):
+    def __init__(self, remote, local_dir, evt_mgr=None):
         self.remote = remote
         self.local_dir = local_dir
+        self.evt_mgr = evt_mgr
         self.verbose = False
 
     def path(self, fn):
@@ -28,11 +29,16 @@ class FetchAPI(object):
         size = info['size']
         md5 = info.get('md5')
 
-        getLogger('progress.start').info(dict(
-                amount = size,
-                disp_amount = human_bytes(size),
-                filename = basename(path),
-                action = 'fetching'))
+        if self.evt_mgr:
+            from encore.events.api import ProgressManager
+        else:
+            from egginst.console import ProgressManager
+
+        progress = ProgressManager(
+                self.evt_mgr, source=self,
+                operation_id=uuid4(), steps=size,
+                message="fetching", filename=basename(path),
+                disp_amount=human_bytes(size))
 
         n = 0
         h = hashlib.new('md5')
@@ -41,18 +47,18 @@ class FetchAPI(object):
         else:
             buffsize = 256
 
-        with open(path + '.part', 'wb') as fo:
-            while True:
-                chunk = fi.read(buffsize)
-                if not chunk:
-                    break
-                fo.write(chunk)
-                if md5:
-                    h.update(chunk)
-                n += len(chunk)
-                getLogger('progress.update').info(n)
+        with progress:
+            with open(path + '.part', 'wb') as fo:
+                while True:
+                    chunk = fi.read(buffsize)
+                    if not chunk:
+                        break
+                    fo.write(chunk)
+                    if md5:
+                        h.update(chunk)
+                    n += len(chunk)
+                    progress(step=n)
         fi.close()
-        getLogger('progress.stop').info(None)
 
         if md5 and h.hexdigest() != md5:
             raise MD5Mismatch("Error: received data MD5 sums mismatch")

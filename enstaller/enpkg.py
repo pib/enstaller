@@ -1,6 +1,6 @@
 import sys
-from os.path import isdir, join
 from logging import getLogger
+from os.path import isdir, join
 
 from store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
 from store.joined import JoinedStore
@@ -43,16 +43,18 @@ class EnpkgError(Exception):
 
 class Enpkg(object):
 
-    def __init__(self, remote, userpass=None,
-                 prefixes=[sys.prefix], hook=False, verbose=False):
+    def __init__(self, remote, userpass=None, prefixes=[sys.prefix],
+                 hook=False, evt_mgr=None, verbose=False):
         self.remote = remote
         self.userpass = userpass
         self.prefixes = prefixes
         self.hook = hook
+        self.evt_mgr = evt_mgr
         self.verbose = verbose
 
-        self.ec = JoinedEggCollection([EggCollection(prefix, self.hook)
-                                       for prefix in self.prefixes])
+        self.ec = JoinedEggCollection([
+                EggCollection(prefix, self.hook, self.evt_mgr)
+                for prefix in self.prefixes])
         self.local_dir = join(self.prefixes[0], 'LOCAL-REPO')
 
     # ============= methods which relate to remove store =================
@@ -156,6 +158,6 @@ class Enpkg(object):
 
     def fetch(self, egg, force=False):
         self._connect()
-        f = FetchAPI(self.remote, self.local_dir)
+        f = FetchAPI(self.remote, self.local_dir, self.evt_mgr)
         f.verbose = self.verbose
         f.fetch_egg(egg, force)

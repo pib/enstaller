@@ -42,10 +42,10 @@ def info_from_metadir(meta_dir):
 
 class EggCollection(AbstractEggCollection):
 
-    def __init__(self, prefix, hook):
+    def __init__(self, prefix, hook, evt_mgr=None):
         self.prefix = prefix
         self.hook = hook
-
+        self.evt_mgr = evt_mgr
         self.verbose = False
 
         self.pkgs_dir = join(self.prefix, 'pkgs')
@@ -89,12 +89,14 @@ class EggCollection(AbstractEggCollection):
     def install(self, egg, dir_path, extra_info=None):
         ei = egginst.EggInst(join(dir_path, egg),
                              prefix=self.prefix, hook=self.hook,
+                             evt_mgr=self.evt_mgr,
                              pkgs_dir=self.pkgs_dir, verbose=self.verbose)
         ei.install(extra_info)
 
     def remove(self, egg):
         ei = egginst.EggInst(egg,
                              prefix=self.prefix, hook=self.hook,
+                             evt_mgr=self.evt_mgr,
                              pkgs_dir=self.pkgs_dir, verbose=self.verbose)
         ei.remove()
 

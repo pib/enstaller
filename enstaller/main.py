@@ -15,7 +15,6 @@ from os.path import isfile, join
 
 import egginst
 from egginst.utils import bin_dir_name, rel_site_packages
-from egginst.console import setup_handlers
 from enstaller import __version__
 import config
 from history import History
@@ -254,7 +253,6 @@ def main():
         user_base = site.USER_BASE
     except AttributeError:
         user_base = abs_expanduser('~/.local')
-    setup_handlers()
 
     p = ArgumentParser(description=__doc__)
     p.add_argument('cnames', metavar='NAME', nargs='*',
@@ -375,6 +373,14 @@ def main():
     dry_run = args.dry_run
     verbose = args.verbose
 
+    if 0:
+        from encore.events.api import EventManager
+        from encore.terminal.api import ProgressDisplay
+        evt_mgr = EventManager()
+        display = ProgressDisplay(evt_mgr)
+    else:
+        evt_mgr = None
+
     if config.get('use_resource_index'):
         from resource import Resources
         res = Resources('http://beta.enthought.com/webservice/',
@@ -384,9 +390,9 @@ def main():
         enst.prefixes = prefixes
     else:
         enpkg = Enpkg(
-            create_joined_store(config.get('IndexedRepos')),
-            config.get_auth(), prefixes=prefixes, hook=args.hook,
-            verbose=args.verbose)
+              create_joined_store(config.get('IndexedRepos')),
+              config.get_auth(), prefixes=prefixes, hook=args.hook,
+              evt_mgr=evt_mgr, verbose=args.verbose)
 
     if args.imports:                              # --imports
         assert not args.hook
