@@ -59,8 +59,14 @@ class Enpkg(object):
 
     # ============= methods which relate to remove store =================
 
-    def _connect(self):
+    def reconnect(self):
         self.remote.connect(self.userpass)
+
+    def _connect(self):
+        if getattr(self, '_connected', None):
+            return
+        self.remote.connect(self.userpass)
+        self._connected = True
 
     def query_remote(self, **kwargs):
         self._connect()
