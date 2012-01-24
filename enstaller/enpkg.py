@@ -144,7 +144,7 @@ class Enpkg(object):
         progress = ProgressManager(
                 self.evt_mgr, source=self,
                 operation_id=uuid4(), steps=len(actions),
-                message="super_install", filename=actions[-1][1],
+                progress_type="super_install", filename=actions[-1][1],
                 disp_amount=len(actions))
 
         with progress:

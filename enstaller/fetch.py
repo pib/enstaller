@@ -37,7 +37,7 @@ class FetchAPI(object):
         progress = ProgressManager(
                 self.evt_mgr, source=self,
                 operation_id=uuid4(), steps=size,
-                message="fetching", filename=basename(path),
+                progress_type="fetching", filename=basename(path),
                 disp_amount=human_bytes(size))
 
         n = 0

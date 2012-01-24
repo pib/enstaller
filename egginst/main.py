@@ -176,7 +176,7 @@ class EggInst(object):
         progress = ProgressManager(
                 self.evt_mgr, source=self,
                 operation_id=uuid4(), steps=size,
-                message="installing", filename=self.fn,
+                progress_type="installing", filename=self.fn,
                 disp_amount=human_bytes(self.installed_size))
         with progress:
             for name in self.arcnames:
@@ -293,7 +293,7 @@ class EggInst(object):
         progress = ProgressManager(
                 self.evt_mgr, source=self,
                 operation_id=uuid4(), steps=len(self.files),
-                message="removing", filename=self.fn,
+                progress_type="removing", filename=self.fn,
                 disp_amount=human_bytes(self.installed_size))
         self.install_app(remove=True)
         self.run('pre_egguninst.py')

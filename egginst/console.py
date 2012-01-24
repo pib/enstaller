@@ -4,8 +4,8 @@ import sys
 class ProgressManager(object):
 
     def __init__(self, event_manager, source, operation_id, steps,
-                 message, filename, disp_amount):
-        self.action = message
+                 progress_type, filename, disp_amount):
+        self.action = progress_type
         self.filename = filename
         self.disp_amount = disp_amount
         self._tot = steps
