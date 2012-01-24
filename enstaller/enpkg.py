@@ -1,4 +1,5 @@
 import sys
+from uuid import uuid4
 from logging import getLogger
 from os.path import isdir, join
 
@@ -100,7 +101,7 @@ class Enpkg(object):
     def find(self, egg):
         return self.ec.find(egg)
 
-    def install(self, arg, mode='recur', force=False, forceall=False):
+    def action_sequence(self, arg, mode='recur', force=False, forceall=False):
         req = req_from_anything(arg)
         # resolve the list of eggs that need to be installed
         self._connect()
@@ -117,35 +118,55 @@ class Enpkg(object):
             else:
                 eggs = rm(eggs)
 
-        total_size = sum((self.remote.get_metadata(egg)['size'] for egg in eggs))
-
-        getLogger('progress.start_install').info(dict(
-                  size = total_size,
-                  name = arg,
-                  ))
-        # fetch eggs
         for egg in eggs:
-            self.fetch(egg, force or forceall)
+            yield 'fetch', egg
 
         if not self.hook:
             # remove packages with the same name (from first egg collection
             # only, in reverse install order)
             for egg in reversed(eggs):
-                try:
-                    self.remove(Req(name_egg(egg)))
-                except EnpkgError:
-                    pass
+                yield 'remove', egg
 
-        # install eggs
         for egg in eggs:
-            info = self.remote.get_metadata(egg)
-            extra_info = dict(repo_dispname=info.get('repo_dispname'))
-            self.ec.install(egg, self.local_dir, extra_info)
+            yield 'install', egg
 
-        getLogger('progress.finish_install').info(dict(
-                  name = arg,
-                  ))
-        return len(eggs)
+    def install(self, arg, mode='recur', force=False, forceall=False):
+
+        actions = list(self.action_sequence(arg, mode, force, forceall))
+        if not actions:
+            return
+
+        if self.evt_mgr:
+            from encore.events.api import ProgressManager
+        else:
+            from egginst.console import ProgressManager
+
+        progress = ProgressManager(
+                self.evt_mgr, source=self,
+                operation_id=uuid4(), steps=len(actions),
+                message="super_install", filename=actions[-1][1],
+                disp_amount=len(actions))
+
+        with progress:
+            for n, (action, egg) in enumerate(actions):
+                if action == 'fetch':
+                    self.fetch(egg, force or forceall)
+
+                elif action == 'remove':
+                    try:
+                        self.remove(Req(name_egg(egg)))
+                    except EnpkgError:
+                        pass
+
+                elif action == 'install':
+                    info = self.remote.get_metadata(egg)
+                    extra_info = dict(repo_dispname=info.get('repo_dispname'))
+                    self.ec.install(egg, self.local_dir, extra_info)
+
+                else:
+                    raise Exception("unknown action: %r" % action)
+                progress(step=n)
+
 
     def remove(self, req):
         assert req.name
@@ -174,3 +195,16 @@ class Enpkg(object):
         f = FetchAPI(self.remote, self.local_dir, self.evt_mgr)
         f.verbose = self.verbose
         f.fetch_egg(egg, force)
+
+
+if __name__ == '__main__':
+    from enpkg import create_joined_store
+    from plat import subdir
+
+    urls = ['http://www.enthought.com/repo/epd/eggs/%s/' % subdir]
+
+    enpkg = Enpkg(create_joined_store(urls),
+                  userpass=('EPDUser', 'Epd789'))
+
+    for x in enpkg.action_sequence('ets 4.0.0'):
+        print x
