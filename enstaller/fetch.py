@@ -38,7 +38,8 @@ class FetchAPI(object):
                 self.evt_mgr, source=self,
                 operation_id=uuid4(), steps=size,
                 progress_type="fetching", filename=basename(path),
-                disp_amount=human_bytes(size))
+                disp_amount=human_bytes(size),
+                super_id=getattr(self, 'super_id', None))
 
         n = 0
         h = hashlib.new('md5')
@@ -96,7 +97,8 @@ class FetchAPI(object):
 
         self.fetch(patch_fn)
         zdiff.patch(self.path(info['src']), self.path(egg),
-                    self.path(patch_fn), self.evt_mgr)
+                    self.path(patch_fn), self.evt_mgr,
+                    super_id=getattr(self, 'super_id', None))
         return True
 
     def fetch_egg(self, egg, force=False):

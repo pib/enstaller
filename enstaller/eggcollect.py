@@ -91,6 +91,7 @@ class EggCollection(AbstractEggCollection):
                              prefix=self.prefix, hook=self.hook,
                              evt_mgr=self.evt_mgr,
                              pkgs_dir=self.pkgs_dir, verbose=self.verbose)
+        ei.super_id = getattr(self, 'super_id', None)
         ei.install(extra_info)
 
     def remove(self, egg):
@@ -98,6 +99,7 @@ class EggCollection(AbstractEggCollection):
                              prefix=self.prefix, hook=self.hook,
                              evt_mgr=self.evt_mgr,
                              pkgs_dir=self.pkgs_dir, verbose=self.verbose)
+        ei.super_id = getattr(self, 'super_id', None)
         ei.remove()
 
 

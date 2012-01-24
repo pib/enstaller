@@ -177,7 +177,8 @@ class EggInst(object):
                 self.evt_mgr, source=self,
                 operation_id=uuid4(), steps=size,
                 progress_type="installing", filename=self.fn,
-                disp_amount=human_bytes(self.installed_size))
+                disp_amount=human_bytes(self.installed_size),
+                super_id=getattr(self, 'super_id', None))
         with progress:
             for name in self.arcnames:
                 n += self.z.getinfo(name).file_size
@@ -294,7 +295,8 @@ class EggInst(object):
                 self.evt_mgr, source=self,
                 operation_id=uuid4(), steps=len(self.files),
                 progress_type="removing", filename=self.fn,
-                disp_amount=human_bytes(self.installed_size))
+                disp_amount=human_bytes(self.installed_size),
+                super_id=getattr(self, 'super_id', None))
         self.install_app(remove=True)
         self.run('pre_egguninst.py')
 

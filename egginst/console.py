@@ -4,7 +4,7 @@ import sys
 class ProgressManager(object):
 
     def __init__(self, event_manager, source, operation_id, steps,
-                 progress_type, filename, disp_amount):
+                 progress_type, filename, disp_amount, super_id):
         self.silent = progress_type.startswith('super')
         self.action = progress_type
         self.filename = filename

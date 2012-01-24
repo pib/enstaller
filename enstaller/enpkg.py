@@ -141,11 +141,15 @@ class Enpkg(object):
         else:
             from egginst.console import ProgressManager
 
+        self.super_id = uuid4()
+        for c in self.ec.collections:
+            c.super_id = self.super_id
+
         progress = ProgressManager(
                 self.evt_mgr, source=self,
-                operation_id=uuid4(), steps=len(actions),
+                operation_id=self.super_id, steps=len(actions),
                 progress_type="super_install", filename=actions[-1][1],
-                disp_amount=len(actions))
+                disp_amount=len(actions), super_id=None)
 
         with progress:
             for n, (action, egg) in enumerate(actions):
@@ -167,6 +171,9 @@ class Enpkg(object):
                     raise Exception("unknown action: %r" % action)
                 progress(step=n)
 
+        self.super_id = None
+        for c in self.ec.collections:
+            c.super_id = self.super_id
 
     def remove(self, req):
         assert req.name
@@ -193,6 +200,7 @@ class Enpkg(object):
     def fetch(self, egg, force=False):
         self._connect()
         f = FetchAPI(self.remote, self.local_dir, self.evt_mgr)
+        f.super_id = getattr(self, 'super_id', None)
         f.verbose = self.verbose
         f.fetch_egg(egg, force)
 

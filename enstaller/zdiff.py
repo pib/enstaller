@@ -69,7 +69,7 @@ def diff(src_path, dst_path, patch_path):
     return count
 
 
-def patch(src_path, dst_path, patch_path, evt_mgr=None):
+def patch(src_path, dst_path, patch_path, evt_mgr=None, super_id=None):
     if evt_mgr:
         from encore.events.api import ProgressManager
     else:
@@ -89,7 +89,8 @@ def patch(src_path, dst_path, patch_path, evt_mgr=None):
                 evt_mgr, source=patch,
                 operation_id=uuid4(), steps=tot,
                 progress_type="patching", filename=basename(patch_path),
-                disp_amount=str(tot))
+                disp_amount=str(tot),
+                super_id=super_id)
 
     with progress:
         for name in xnames:
