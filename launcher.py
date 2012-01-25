@@ -8,7 +8,7 @@ from optparse import OptionParser
 
 
 verbose = False
-eggs_dir, local_repo, prefix, pkgs_dir, python_exe = None
+eggs_dir = local_repo = prefix = pkgs_dir = python_exe = None
 
 
 def unzip(zip_path, dir_path):
@@ -66,7 +66,7 @@ def bootstrap_enstaller(pkg):
 
 def update_pkgs(pkgs):
     if not isfile(python_exe):
-        unzip(fetch_to_repo(pkgs[0] + '.egg'), prefix)
+        unzip(fetch_to_repo(pkgs[0] + '.egg'), dirname(prefix))
 
     if not isfile(registry_pkg(pkgs[1])):
         bootstrap_enstaller(pkgs[1])
