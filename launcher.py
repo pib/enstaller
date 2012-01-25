@@ -65,8 +65,11 @@ def bootstrap_enstaller(pkg):
 
 
 def update_pkgs(pkgs):
+    if not isdir(local_repo):
+        os.makedirs(local_repo)
+
     if not isfile(python_exe):
-        unzip(fetch_to_repo(pkgs[0] + '.egg'), dirname(prefix))
+        unzip(fetch_to_repo(pkgs[0] + '.egg'), prefix)
 
     if not isfile(registry_pkg(pkgs[1])):
         bootstrap_enstaller(pkgs[1])
