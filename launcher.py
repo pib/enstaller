@@ -1,3 +1,4 @@
+import re
 import os
 import sys
 import subprocess
@@ -32,23 +33,26 @@ def unzip(zip_path, dir_path):
 
 
 def parse_dists_file(path):
-    pkgs = []
+    pat = re.compile(r'(([+-]{2})\s*)?(\w\S+)$')
     for line in open(path):
         line = line.strip()
         if not line or line.startswith('#'):
             continue
-        if line.endswith('.egg'):
-            line = line[:-4]
-        assert line.count('-') == 2
-        pkgs.append(line)
-    return pkgs
+        m = pat.match(line)
+        if m is None:
+            sys.exit('Error: invalid line in dists.txt: %r' % line)
+        pkg = m.group(3)
+        if pkg.endswith('.egg'):
+            pkg = pkg[:-4]
+        yield pkg
 
 
 def registry_pkg(pkg):
     return join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')
 
 
-def fetch_to_repo(fn, force=False):
+def cp_to_repo(pkg, force=False):
+    fn = pkg + '.egg'
     path = join(local_repo, fn)
     if not isfile(path) or force:
         shutil.copyfile(join(eggs_dir, fn), path)
@@ -60,7 +64,7 @@ def bootstrap_enstaller(pkg):
     code = ("import sys;"
             "sys.path.insert(0, %r);"
             "from egginst.bootstrap import main;"
-            "main()" % fetch_to_repo(pkg + '.egg'))
+            "main()" % cp_to_repo(pkg))
     subprocess.check_call([python_exe, '-c', code])
 
 
@@ -69,7 +73,7 @@ def update_pkgs(pkgs):
         os.makedirs(local_repo)
 
     if not isfile(python_exe):
-        unzip(fetch_to_repo(pkgs[0] + '.egg'), prefix)
+        unzip(cp_to_repo(pkgs[0]), prefix)
 
     if not isfile(registry_pkg(pkgs[1])):
         bootstrap_enstaller(pkgs[1])
@@ -83,8 +87,7 @@ def update_pkgs(pkgs):
         if isfile(registry_pkg(pkg)):
             continue
         subprocess.check_call([python_exe, egginst_py, '--hook',
-                               '--pkgs-dir', pkgs_dir,
-                               fetch_to_repo(pkg + '.egg')])
+                               '--pkgs-dir', pkgs_dir, cp_to_repo(pkg)])
 
 
 def main():
@@ -99,7 +102,7 @@ def main():
 
     p.add_option("--root",
                  action="store",
-                 default=join(expanduser('~'), 'jpm'),
+                 default=join(expanduser('~'), 'canopy'),
                  help="install location, defaults to %default",
                  metavar='PATH')
 
@@ -125,7 +128,11 @@ def main():
     if verbose:
         print "eggs_dir = %r" % eggs_dir
 
-    pkgs = parse_dists_file(join(eggs_dir, 'dists.txt'))
+    pkgs = list(parse_dists_file(join(eggs_dir, 'dists.txt')))
+
+    if verbose:
+        for pkg in pkgs:
+            print "\t" + pkg
 
     local_repo = join(opts.root, 'repo')
     prefix = join(opts.root, pkgs[0])
