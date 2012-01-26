@@ -135,6 +135,11 @@ def main():
     else:
         python_exe = join(prefix, 'bin', 'python')
 
+    if verbose:
+        print "local_repo = %r" % local_repo
+        print "prefix = %r" % prefix
+        print "python_exe = %r" % python_exe
+
     update_pkgs(pkgs)
     return subprocess.call([
             python_exe,
