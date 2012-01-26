@@ -33,7 +33,7 @@ def unzip(zip_path, dir_path):
 
 
 def parse_dists_file(path):
-    pat = re.compile(r'(([+-]{2})\s*)?(\w\S+)$')
+    pat = re.compile(r'(([+-]{2})\s*)?(\w\S+\.egg)$')
     for line in open(path):
         line = line.strip()
         if not line or line.startswith('#'):
@@ -41,53 +41,50 @@ def parse_dists_file(path):
         m = pat.match(line)
         if m is None:
             sys.exit('Error: invalid line in dists.txt: %r' % line)
-        pkg = m.group(3)
-        if pkg.endswith('.egg'):
-            pkg = pkg[:-4]
-        yield pkg
+        yield m.group(3)
 
 
-def registry_pkg(pkg):
-    return join(pkgs_dir, pkg, 'EGG-INFO', 'registry.txt')
+def registry_egg(egg):
+    return join(pkgs_dir, egg[:-4], 'EGG-INFO', 'registry.txt')
 
 
-def cp_to_repo(pkg, force=False):
-    fn = pkg + '.egg'
-    path = join(local_repo, fn)
+def cp_to_repo(egg, force=False):
+    path = join(local_repo, egg)
     if not isfile(path) or force:
-        shutil.copyfile(join(eggs_dir, fn), path)
+        shutil.copyfile(join(eggs_dir, egg), path)
     return path
 
 
-def bootstrap_enstaller(pkg):
-    assert pkg.startswith('enstaller-')
+def bootstrap_enstaller(egg):
+    assert egg.startswith('enstaller-')
     code = ("import sys;"
             "sys.path.insert(0, %r);"
             "from egginst.bootstrap import main;"
-            "main()" % cp_to_repo(pkg))
+            "main()" % cp_to_repo(egg))
     subprocess.check_call([python_exe, '-c', code])
 
 
-def update_pkgs(pkgs):
+def update_eggs(eggs):
     if not isdir(local_repo):
         os.makedirs(local_repo)
 
     if not isfile(python_exe):
-        unzip(cp_to_repo(pkgs[0]), prefix)
+        unzip(cp_to_repo(eggs[0]), prefix)
 
-    if not isfile(registry_pkg(pkgs[1])):
-        bootstrap_enstaller(pkgs[1])
+    if not isfile(registry_egg(eggs[1])):
+        bootstrap_enstaller(eggs[1])
 
     if sys.platform == 'win32':
         egginst_py = join(prefix, r'Scripts\egginst-script.py')
     else:
         egginst_py = join(prefix, 'bin/egginst')
 
-    for pkg in pkgs[1:]:
-        if isfile(registry_pkg(pkg)):
+    for egg in eggs[1:]:
+        if isfile(registry_egg(egg)):
             continue
         subprocess.check_call([python_exe, egginst_py, '--hook',
-                               '--pkgs-dir', pkgs_dir, cp_to_repo(pkg)])
+                               '--pkgs-dir', pkgs_dir,
+                               cp_to_repo(egg)])
 
 
 def main():
@@ -128,14 +125,14 @@ def main():
     if verbose:
         print "eggs_dir = %r" % eggs_dir
 
-    pkgs = list(parse_dists_file(join(eggs_dir, 'dists.txt')))
+    eggs = list(parse_dists_file(join(eggs_dir, 'dists.txt')))
 
     if verbose:
-        for pkg in pkgs:
-            print "\t" + pkg
+        for egg in eggs:
+            print "\t" + egg
 
     local_repo = join(opts.root, 'repo')
-    prefix = join(opts.root, pkgs[0])
+    prefix = join(opts.root, eggs[0])
     pkgs_dir = join(prefix, 'pkgs')
     if sys.platform == 'win32':
         python_exe = join(prefix, 'python.exe')
@@ -147,11 +144,10 @@ def main():
         print "prefix = %r" % prefix
         print "python_exe = %r" % python_exe
 
-    update_pkgs(pkgs)
-    return subprocess.call([
-            python_exe,
-            join(pkgs_dir, pkgs[-1], 'EGG-INFO', 'app_entry.py')
-            ])
+    update_eggs(eggs)
+
+    entry_py = join(pkgs_dir, eggs[-1], 'EGG-INFO', 'app_entry.py')
+    return subprocess.call([python_exe, entry_py])
 
 
 if __name__ == '__main__':
