@@ -146,7 +146,7 @@ def main():
 
     update_eggs(eggs)
 
-    entry_py = join(dirname(registry_egg(egg)), 'app_entry.py')
+    entry_py = join(dirname(registry_egg(eggs[-1])), 'app_entry.py')
     return subprocess.call([python_exe, entry_py])
 
 
