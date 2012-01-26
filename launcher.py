@@ -88,6 +88,12 @@ def update_pkgs(pkgs):
 
 
 def main():
+    if sys.platform == 'win32' and not sys.executable.endswith('python.exe'):
+        default_eggs_dir = dirname(sys.executable)
+    else:
+        default_eggs_dir = os.getcwd()
+
+
     p = OptionParser(usage="usage: %prog [options]",
                      description=__doc__)
 
@@ -99,8 +105,9 @@ def main():
 
     p.add_option("--eggs-dir",
                  action="store",
-                 default=dirname(sys.executable),
-                 help="directory with eggs to install (and dists.txt)",
+                 default=default_eggs_dir,
+                 help="directory with eggs to install (and dists.txt), "
+                      "defaults to %default",
                  metavar='PATH')
 
     p.add_option('-v', "--verbose", action="store_true")
