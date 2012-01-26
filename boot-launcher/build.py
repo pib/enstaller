@@ -3,7 +3,7 @@ See:
 www.surlyjake.com/2011/03/create-a-single-standalone-exe-from-a-python-program/
 
 
-1.  grab pyinstaller 1.5rc (1.4 doesn’t work with python 2.7).
+1.  grab pyinstaller 1.5rc (1.4 doesn't work with python 2.7).
     extract the zip file anywhere.
 
 2. change directories to the pyinstaller folder you just created.
