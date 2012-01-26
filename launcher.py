@@ -132,7 +132,7 @@ def main():
             print "\t" + egg
 
     local_repo = join(opts.root, 'repo')
-    prefix = join(opts.root, eggs[0])
+    prefix = join(opts.root, eggs[0][:-4])
     pkgs_dir = join(prefix, 'pkgs')
     if sys.platform == 'win32':
         python_exe = join(prefix, 'python.exe')
@@ -146,7 +146,7 @@ def main():
 
     update_eggs(eggs)
 
-    entry_py = join(pkgs_dir, eggs[-1], 'EGG-INFO', 'app_entry.py')
+    entry_py = join(dirname(registry_egg), 'app_entry.py')
     return subprocess.call([python_exe, entry_py])
 
 
