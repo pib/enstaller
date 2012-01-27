@@ -9,6 +9,8 @@ from egginst.eggmeta import info_from_z
 from utils import info_file
 
 
+egg_fmt = '%(name)s-%(version)s-%(build)d.egg'
+
 egg_pat = re.compile(r'([\w.]+)-([\w.]+)-(\d+)\.egg$')
 
 def is_valid_eggname(eggname):
