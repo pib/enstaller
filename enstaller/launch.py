@@ -9,11 +9,11 @@ from enpkg import Enpkg
 class Launch(Enpkg):
 
     def get_icon_path(self, egg):
-        """ return the path of the icon file
+        """ return the absolute path of the icon file
         """
         info = self.find(egg)
-        if info and 'app_icon_path' in info:
-            path = join(info['meta_dir'], info['app_icon_path'])
+        if info and 'app_icon_file' in info:
+            path = join(info['meta_dir'], info['app_icon_file'])
             return open(path, 'rb').read()
         return None
 
