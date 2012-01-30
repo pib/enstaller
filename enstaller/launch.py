@@ -20,15 +20,16 @@ class Launch(Enpkg):
             return open(path, 'rb').read()
         return None
 
-    def get_icon(self, egg):
-        """ return the binary content of the icon file
+    def get_icon_data(self, egg):
+        """ return the binary content of the icon file, either from the
+        local file, or from the remote store when the egg is not installed
         """
         path = self.get_icon_path(egg)
         if path is None:
             # egg not installed, see if there is one in the store
             info = self.remote.get_metadata(egg)
-            if 'app_icon' in info:
-                return info['app_icon'].decode('base64')
+            if 'app_icon_data' in info:
+                return info['app_icon_data'].decode('base64')
         else:
             # egg is installed, so read the data from the file
             return open(path, 'rb').read()
