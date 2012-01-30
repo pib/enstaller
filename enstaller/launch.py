@@ -10,6 +10,9 @@ class Launch(Enpkg):
 
     def get_icon_path(self, egg):
         """ return the absolute path of the icon file
+
+        the metadata 'app_icon_file' is the filename of the
+        icon (which is always located in the meta-data directory
         """
         info = self.find(egg)
         if info and 'app_icon_file' in info:
