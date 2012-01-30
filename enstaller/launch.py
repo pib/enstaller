@@ -8,16 +8,27 @@ from enpkg import Enpkg
 
 class Launch(Enpkg):
 
-    def get_icon(self, egg):
+    def get_icon_path(self, egg):
+        """ return the path of the icon file
+        """
         info = self.find(egg)
-        if info and 'app_icon' in info:
-            path = join(info['meta_dir'], info['app_icon'])
-            if isfile(path):
-                return open(path, 'rb').read()
-        else:
-            # Egg not installed, see if there is one in the store
-            return self.remote.get_metadata(egg)['app_icon'].decode('base64')
+        if info and 'app_icon_path' in info:
+            path = join(info['meta_dir'], info['app_icon_path'])
+            return open(path, 'rb').read()
         return None
+
+    def get_icon(self, egg):
+        """ return the binary content of the icon file
+        """
+        path = self.get_icon_path(egg)
+        if path is None:
+            # egg not installed, see if there is one in the store
+            info = self.remote.get_metadata(egg)
+            if 'app_icon' in info:
+                return info['app_icon'].decode('base64')
+        else:
+            # egg is installed, so read the data from the file
+            return open(path, 'rb').read()
 
     def launch_app(self, egg):
         info = self.find(egg)
