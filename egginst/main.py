@@ -96,9 +96,10 @@ class EggInst(object):
 
         if not self.hook:
             self.entry_points()
-        if 'EGG-INFO/spec/depend' in self.arcnames:
+        if ('EGG-INFO/spec/depend' in self.arcnames  or
+            'EGG-INFO/info.json' in self.arcnames):
             import eggmeta
-            eggmeta.create_info(self, extra_info)
+            info = eggmeta.create_info(self, extra_info)
         self.z.close()
 
         if not self.hook:
@@ -110,9 +111,10 @@ class EggInst(object):
         if self.hook:
             import registry
             registry.create_file(self)
-        if 'EGG-INFO/app.json' in self.arcnames:
+
+        if info.get('app'):
             import app_entry
-            app_entry.create_entry(self)
+            app_entry.create_entry(self, info)
 
 
     def entry_points(self):

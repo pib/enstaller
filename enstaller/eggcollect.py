@@ -31,7 +31,7 @@ class AbstractEggCollection(object):
 
 
 def info_from_metadir(meta_dir):
-    path = join(meta_dir, 'info.json')
+    path = join(meta_dir, '_info.json')
     if isfile(path):
         info = json.load(open(path))
         info['installed'] = True

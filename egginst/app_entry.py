@@ -1,4 +1,3 @@
-import json
 import re
 from os.path import isfile, join
 from registry import REGISTRY_CODE
@@ -28,8 +27,7 @@ def registry_lines(pkgs_dir, info):
 
 def create_entry_script(path, entry):
     """
-    create entry point Python script at 'path', which sets up registry
-    for the packages ... according to app.json
+    create entry point Python script at 'path', which reads app_registry.txt
     """
     assert entry.count(':') == 1
     module, func = entry.strip().split(':')
@@ -49,14 +47,12 @@ if __name__ == '__main__':
     fo.close()
 
 
-def create_entry(egg):
-    info = json.load(open(join(egg.meta_dir, 'info.json')))
-
+def create_entry(egg, info):
     if egg.hook:
         with open(join(egg.meta_dir, 'app_registry.txt'), 'w') as fo:
             for line in registry_lines(egg.pkgs_dir, info):
                 fo.write('%s\n' % line)
 
-    if 'app_entry' in info:
-        create_entry_script(join(egg.meta_dir, 'app_entry.py'),
-                            info['app_entry'])
+    app_entry = info.get('app_entry')
+    if app_entry:
+        create_entry_script(join(egg.meta_dir, 'app_entry.py'), app_entry)
