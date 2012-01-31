@@ -23,6 +23,13 @@ python = None
 packages = []
 EOF
 
+sed -e "s/_VER_/$VER/" <<EOF >enstaller.egg-info/info.json
+{
+  "build": 1, 
+  "name": "enstaller", 
+  "version": "_VER_"
+}
+EOF
 
 EGG=dist/enstaller-$VER-1.egg
 rm -rf build dist
