@@ -100,6 +100,8 @@ class EggInst(object):
             'EGG-INFO/info.json' in self.arcnames):
             import eggmeta
             info = eggmeta.create_info(self, extra_info)
+        else:
+            info = {}
         self.z.close()
 
         if not self.hook:
