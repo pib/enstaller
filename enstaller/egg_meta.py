@@ -22,9 +22,10 @@ def split_eggname(eggname):
     return m.group(1), m.group(2), int(m.group(3))
 
 def info_from_egg(path):
-    with zipfile.ZipFile(path) as z:
-        return info_from_z(z)
-
+    z = zipfile.ZipFile(path)
+    res = info_from_z(z)
+    z.close()
+    return res
 
 def update_index(dir_path, force=False, verbose=False):
     index_path = join(dir_path, 'index.json')
