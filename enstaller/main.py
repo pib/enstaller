@@ -383,7 +383,7 @@ def main():
     dry_run = args.dry_run
     verbose = args.verbose
 
-    if 1: # for testing event manager only
+    if 0: # for testing event manager only
         from encore.events.api import EventManager
         from encore.terminal.api import ProgressDisplay
         evt_mgr = EventManager()
