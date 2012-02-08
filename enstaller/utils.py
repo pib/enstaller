@@ -62,8 +62,43 @@ def md5_file(path):
 
 
 def info_file(path):
-    return dict(
-        size=getsize(path),
-        mtime=getmtime(path),
-        md5=md5_file(path),
-    )
+    return dict(size=getsize(path),
+                mtime=getmtime(path),
+                md5=md5_file(path))
+
+
+def cleanup_url(url):
+    """
+    Ensure a given repo string, i.e. a string specifying a repository,
+    is valid and return a cleaned up version of the string.
+    """
+    if url.startswith(('http://', 'https://')):
+        if not url.endswith('/'):
+            url += '/'
+
+    elif url.startswith('file://'):
+        dir_path = url[7:]
+        if dir_path.startswith('/'):
+            # Unix filename
+            if not url.endswith('/'):
+                url += '/'
+        else:
+            # Windows filename
+            if not repo.endswith('\\'):
+                url += '\\'
+
+    elif isdir(abs_expanduser(url)):
+        return cleanup_reponame('file://' + abs_expanduser(url))
+
+    else:
+        raise Exception("Invalid URL or non-existing file: %r" % url)
+
+    return url
+
+
+def fill_url(url):
+    import plat
+
+    url = url.replace('{ARCH}', plat.arch)
+    url = url.replace('{SUBDIR}', plat.subdir)
+    return cleanup_url(url)

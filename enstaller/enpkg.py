@@ -60,6 +60,7 @@ class Enpkg(object):
     prefixes: list of path -- default: [sys.prefix]
         Each path, is an install "prefix" (such as, e.g. /usr/local)
         in which things get installed.
+        Eggs are installed or removed from the first prefix in the list.
 
     hook: boolean -- default: False
         Usually eggs are installed into the site-packages directory of the
@@ -258,7 +259,7 @@ class Enpkg(object):
         egg = index.keys()[0]
         self.ec.remove(egg)
 
-    # == methods which relate to both (remote store / local installation ==
+    # == methods which relate to both (remote store and local installation) ==
 
     def query(self, **kwargs):
         index = dict(self.query_remote(**kwargs))

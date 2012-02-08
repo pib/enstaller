@@ -19,7 +19,7 @@ from enstaller import __version__
 import config
 from history import History
 from proxy.api import setup_proxy
-from utils import comparable_version, abs_expanduser
+from utils import comparable_version, abs_expanduser, fill_url
 
 from eggcollect import EggCollection
 from enpkg import Enpkg, EnpkgError, create_joined_store
@@ -381,18 +381,15 @@ def main():
     else:
         evt_mgr = None
 
-    if config.get('use_resource_index'):
-        from resource import Resources
-        res = Resources('http://beta.enthought.com/webservice/',
-                        verbose=verbose)
-        enst = res.enst
-        enst.dry_run = dry_run
-        enst.prefixes = prefixes
+    if config.get_path() is None or config.get('use_webservice'):
+        urls = ['http://beta.enthought.com/webservice/epd/{SUBDIR}/']
     else:
-        enpkg = Enpkg(
-              create_joined_store(config.get('IndexedRepos')),
-              config.get_auth(), prefixes=prefixes, hook=args.hook,
-              evt_mgr=evt_mgr, verbose=args.verbose)
+        urls = config.get('IndexedRepos')
+    urls = [fill_url(u) for u in urls]
+
+    enpkg = Enpkg(create_joined_store(urls),
+                  config.get_auth(), prefixes=prefixes, hook=args.hook,
+                  evt_mgr=evt_mgr, verbose=args.verbose)
 
     if args.imports:                              # --imports
         assert not args.hook
