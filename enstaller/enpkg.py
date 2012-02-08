@@ -211,7 +211,10 @@ class Enpkg(object):
 
         progress = ProgressManager(
                 self.evt_mgr, source=self,
-                operation_id=self.super_id, steps=len(actions),
+                operation_id=self.super_id,
+                message="super install",
+                steps=len(actions),
+                # ---
                 progress_type="super_install", filename=actions[-1][1],
                 disp_amount=len(actions), super_id=None)
 

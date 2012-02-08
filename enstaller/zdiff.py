@@ -87,7 +87,10 @@ def patch(src_path, dst_path, patch_path, evt_mgr=None, super_id=None):
 
     progress = ProgressManager(
                 evt_mgr, source=patch,
-                operation_id=uuid4(), steps=tot,
+                operation_id=uuid4(),
+                message="patching",
+                steps=tot,
+                # ---
                 progress_type="patching", filename=basename(patch_path),
                 disp_amount=str(tot),
                 super_id=super_id)

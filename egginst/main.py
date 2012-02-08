@@ -179,7 +179,10 @@ class EggInst(object):
         self.installed_size = size
         progress = ProgressManager(
                 self.evt_mgr, source=self,
-                operation_id=uuid4(), steps=size,
+                operation_id=uuid4(),
+                message="installing egg",
+                steps=size,
+                # ---
                 progress_type="installing", filename=self.fn,
                 disp_amount=human_bytes(self.installed_size),
                 super_id=getattr(self, 'super_id', None))
@@ -297,7 +300,10 @@ class EggInst(object):
         n = 0
         progress = ProgressManager(
                 self.evt_mgr, source=self,
-                operation_id=uuid4(), steps=len(self.files),
+                operation_id=uuid4(),
+                message="removing egg",
+                steps=len(self.files),
+                # ---
                 progress_type="removing", filename=self.fn,
                 disp_amount=human_bytes(self.installed_size),
                 super_id=getattr(self, 'super_id', None))
