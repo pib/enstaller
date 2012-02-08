@@ -81,14 +81,23 @@ def info_option(enst, cname):
 
 
 def print_installed(prefix, hook=False, pat=None):
-    print FMT % ('Name', 'Version', 'Repository')
+    print FMT % ('Name', 'Version', 'Store')
     print 60 * '='
     ec = EggCollection(prefix, hook)
     for egg, info in ec.query():
         if pat and not pat.search(info['name']):
             continue
-        print FMT % (info['name'], '%(version)s-%(build)d' % info,
-                     info.get('repo_dispname', '-'))
+
+        sl = info.get('store_location')
+        if sl:
+            disp = sl
+            for rm in 'http://', 'https://', 'www', '.enthought.com', '/repo/':
+                disp = disp.replace(rm, '')
+            disp = disp.replace('/eggs/', ' ').strip('/')
+        else:
+            disp = '-'
+
+        print FMT % (info['name'], '%(version)s-%(build)d' % info, disp)
 
 
 def list_option(prefixes, hook=False, pat=None):
@@ -373,7 +382,7 @@ def main():
     dry_run = args.dry_run
     verbose = args.verbose
 
-    if 0:
+    if 0: # testing event manager only
         from encore.events.api import EventManager
         from encore.terminal.api import ProgressDisplay
         evt_mgr = EventManager()

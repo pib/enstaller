@@ -17,7 +17,7 @@ class IndexedStore(AbstractStore):
             raise Exception("Could not connect")
         self._index = json.load(fp)
         for info in self._index.itervalues():
-            info['repo_dispname'] = self.info().get('dispname')
+            info['store_location'] = self.info().get('root')
         fp.close()
 
         # maps names to keys
@@ -67,7 +67,7 @@ class LocalIndexedStore(IndexedStore):
         self.root = root_dir
 
     def info(self):
-        return dict(dispname=self.root)
+        return dict(root=self.root)
 
     def get_data(self, key):
         try:
@@ -82,11 +82,7 @@ class RemoteHTTPIndexedStore(IndexedStore):
         self.root = url
 
     def info(self):
-        dispname = self.root
-        for rm in 'http://', 'https://', 'www', '.enthought.com', '/repo/':
-            dispname = dispname.replace(rm, '')
-        dispname = dispname.replace('/eggs/', ' ').strip('/')
-        return dict(dispname=dispname)
+        return dict(root=self.root)
 
     def get_data(self, key):
         url = self._location(key)

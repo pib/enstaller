@@ -144,8 +144,6 @@ class Enpkg(object):
         installed: True (always)
 
         meta_dir: the path to the egg metadata directory on the local system
-
-        repo_dispname: XXX
         """
         return self.ec.query(**kwargs)
 
@@ -230,8 +228,7 @@ class Enpkg(object):
 
                 elif action == 'install':
                     info = self.remote.get_metadata(egg)
-                    extra_info = dict(repo_dispname=info.get('repo_dispname'))
-                    self.ec.install(egg, self.local_dir, extra_info)
+                    self.ec.install(egg, self.local_dir, extra_info=info)
 
                 else:
                     raise Exception("unknown action: %r" % action)
