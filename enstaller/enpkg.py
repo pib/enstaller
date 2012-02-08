@@ -47,15 +47,15 @@ class Enpkg(object):
     This is main interface for using enpkg, it is used by the CLI.
     Arguments for object creation:
 
-    remote: key-value store instance
-        This is the key-value store which enpkg will try to connect to for
-        querying and fetching eggs.
+    remote: key-value store (KVS) instance
+        This is the KVS which enpkg will try to connect to for querying
+        and fetching eggs.
 
     All remaining arguments are optional.
 
     userpass: tuple(username, password) -- default: None
-        these credentials are used when the remote key-value store instance
-        is being connected.
+        these credentials are used when the remote KVS instance is being
+        connected.
 
     prefixes: list of path -- default: [sys.prefix]
         Each path, is an install "prefix" (such as, e.g. /usr/local)
@@ -106,11 +106,18 @@ class Enpkg(object):
         self._connected = True
 
     def query_remote(self, **kwargs):
+        """
+        Query the (usually remote) KVS for egg packages.
+        """
         self._connect()
         kwargs['type'] = 'egg'
         return self.remote.query(**kwargs)
 
     def info_list_name(self, name):
+        """
+        Return a sorted list of versions which are available on the remote
+        KVS for a given name.
+        """
         req = Req(name)
         info_list = []
         for key, info in self.query_remote(name=name):
@@ -125,12 +132,39 @@ class Enpkg(object):
     # ============= methods which relate to local installation ===========
 
     def query_installed(self, **kwargs):
+        """
+        Query installed packages.  In addition to the remote metadata the
+        following attributes are added:
+
+        ctime: creation (install) time
+
+        hook: boolean -- whether installed into "versioned" egg directory
+
+        installed: True (always)
+
+        meta_dir: the path to the egg metadata directory on the local system
+
+        repo_dispname: XXX
+        """
         return self.ec.query(**kwargs)
 
     def find(self, egg):
+        """
+        Return the local egg metadata (see ``query_installed``) for a given
+        egg (key) or None is the egg is not installed
+        """
         return self.ec.find(egg)
 
     def action_sequence(self, arg, mode='recur', force=False, forceall=False):
+        """
+        Create the sequence of actions which are required for insatlling,
+        which includes updating, a package.
+
+        The first argument may be any of:
+          * the KVS key, i.e. the egg filename
+          * a requirement object (enstaller.resolve.Req)
+          * the requirement as a string
+        """
         req = req_from_anything(arg)
         # resolve the list of eggs that need to be installed
         self._connect()
@@ -160,7 +194,9 @@ class Enpkg(object):
             yield 'install', egg
 
     def install(self, arg, mode='recur', force=False, forceall=False):
-
+        """
+        Do the actual install/update, see ``action_sequence``.
+        """
         actions = list(self.action_sequence(arg, mode, force, forceall))
         if not actions:
             return
@@ -205,6 +241,9 @@ class Enpkg(object):
             c.super_id = self.super_id
 
     def remove(self, req):
+        """
+        Remove an egg, given a requirement object (enstaller.resolve.Req)
+        """
         assert req.name
         index = dict(self.ec.collections[0].query(**req.as_dict()))
         if len(index) == 0:
