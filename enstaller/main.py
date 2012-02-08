@@ -51,6 +51,15 @@ def env_option(prefixes):
                                  join(p, 'lib') for p in prefixes))
 
 
+def disp_store_info(info):
+    sl = info.get('store_location')
+    if not sl:
+        return '-'
+    for rm in 'http://', 'https://', 'www', '.enthought.com', '/repo/':
+        sl = sl.replace(rm, '')
+    return sl.replace('/eggs/', ' ').strip('/')
+
+
 def info_option(enst, cname):
     info = get_info()
     if info and cname in info:
@@ -88,16 +97,8 @@ def print_installed(prefix, hook=False, pat=None):
         if pat and not pat.search(info['name']):
             continue
 
-        sl = info.get('store_location')
-        if sl:
-            disp = sl
-            for rm in 'http://', 'https://', 'www', '.enthought.com', '/repo/':
-                disp = disp.replace(rm, '')
-            disp = disp.replace('/eggs/', ' ').strip('/')
-        else:
-            disp = '-'
-
-        print FMT % (info['name'], '%(version)s-%(build)d' % info, disp)
+        print FMT % (info['name'], '%(version)s-%(build)d' % info,
+                     disp_store_info(info))
 
 
 def list_option(prefixes, hook=False, pat=None):
@@ -138,7 +139,7 @@ def search(enpkg, pat=None):
         disp_name = name
         for info in enpkg.info_list_name(name):
             print FMT % (disp_name, '%(version)s-%(build)d' % info,
-                         info['repo_dispname'])
+                         disp_store_info(info))
             disp_name = ''
 
 
