@@ -24,10 +24,12 @@ from utils import comparable_version, abs_expanduser, fill_url
 from eggcollect import EggCollection
 from enpkg import Enpkg, EnpkgError, create_joined_store
 from resolve import Req
+from egg_meta import split_eggname
 
+
+webservice_url = 'http://beta.enthought.com/webservice/epd/'
 
 FMT = '%-20s %-15s %s'
-
 
 def env_option(prefixes):
     print "Prefixes:"
@@ -58,6 +60,10 @@ def disp_store_info(info):
     for rm in 'http://', 'https://', 'www', '.enthought.com', '/repo/':
         sl = sl.replace(rm, '')
     return sl.replace('/eggs/', ' ').strip('/')
+
+
+def name_egg(egg):
+    return split_eggname(egg)[0]
 
 
 def info_option(enst, cname):
@@ -96,8 +102,7 @@ def print_installed(prefix, hook=False, pat=None):
     for egg, info in ec.query():
         if pat and not pat.search(info['name']):
             continue
-
-        print FMT % (info['name'], '%(version)s-%(build)d' % info,
+        print FMT % (name_egg(egg), '%(version)s-%(build)d' % info,
                      disp_store_info(info))
 
 
@@ -132,11 +137,14 @@ def search(enpkg, pat=None):
     print FMT % ('Name', 'Versions', 'Repository')
     print 60 * '-'
 
-    names = set(info['name'] for _, info in enpkg.query_remote())
+    names = {}
+    for key, info in enpkg.query_remote():
+        names[info['name']] = name_egg(key)
+
     for name in sorted(names, key=string.lower):
         if pat and not pat.search(name):
             continue
-        disp_name = name
+        disp_name = names[name]
         for info in enpkg.info_list_name(name):
             print FMT % (disp_name, '%(version)s-%(build)d' % info,
                          disp_store_info(info))
@@ -392,7 +400,7 @@ def main():
         evt_mgr = None
 
     if config.get_path() is None or config.get('use_webservice'):
-        urls = ['http://beta.enthought.com/webservice/epd/{SUBDIR}/']
+        urls = [webservice_url + '/{SUBDIR}/']
     else:
         urls = config.get('IndexedRepos')
     urls = [fill_url(u) for u in urls]
