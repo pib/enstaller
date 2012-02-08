@@ -43,7 +43,36 @@ class EnpkgError(Exception):
 
 
 class Enpkg(object):
+    """
+    This is main interface for using enpkg, it is used by the CLI.
+    Arguments for object creation:
 
+    remote: key-value store instance
+        This is the key-value store which enpkg will try to connect to for
+        querying and fetching eggs.
+
+    All remaining arguments are optional.
+
+    userpass: tuple(username, password) -- default: None
+        these credentials are used when the remote key-value store instance
+        is being connected.
+
+    prefixes: list of path -- default: [sys.prefix]
+        Each path, is an install "prefix" (such as, e.g. /usr/local)
+        in which things get installed.
+
+    hook: boolean -- default: False
+        Usually eggs are installed into the site-packages directory of the
+        corresponding prefix (e.g. /usr/local/lib/python2.7/site-packages).
+        When hook is set to True, eggs are installed into "versioned" egg
+        directories, for special usage with import hooks (hence the name).
+
+    evt_mgr: encore event manager instance -- default: None
+        Various progress events (e.g. for download, install, ...) are being
+        emitted to the event manager.  By default, a simple progress bar
+        is displayed on the console (which does not use the event manager
+        at all).
+    """
     def __init__(self, remote, userpass=None, prefixes=[sys.prefix],
                  hook=False, evt_mgr=None, verbose=False):
         self.remote = remote
