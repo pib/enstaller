@@ -406,7 +406,7 @@ def main():
     urls = [fill_url(u) for u in urls]
 
     enpkg = Enpkg(create_joined_store(urls),
-                  config.get_auth(), prefixes=prefixes, hook=args.hook,
+                  prefixes=prefixes, hook=args.hook,
                   evt_mgr=evt_mgr, verbose=args.verbose)
 
     if args.imports:                              # --imports

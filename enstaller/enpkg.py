@@ -74,10 +74,14 @@ class Enpkg(object):
         is displayed on the console (which does not use the event manager
         at all).
     """
-    def __init__(self, remote, userpass=None, prefixes=[sys.prefix],
+    def __init__(self, remote, userpass='<config>', prefixes=[sys.prefix],
                  hook=False, evt_mgr=None, verbose=False):
         self.remote = remote
-        self.userpass = userpass
+        if userpass == '<config>':
+            import config
+            self.userpass = config.get_auth()
+        else:
+            self.userpass = userpass
         self.prefixes = prefixes
         self.hook = hook
         self.evt_mgr = evt_mgr
