@@ -53,9 +53,11 @@ class Enpkg(object):
 
     All remaining arguments are optional.
 
-    userpass: tuple(username, password) -- default: None
+    userpass: tuple(username, password) -- default, see below
         these credentials are used when the remote KVS instance is being
         connected.
+        By default the credentials are obtained from config.get_auth(),
+        which might use the keyring package.
 
     prefixes: list of path -- default: [sys.prefix]
         Each path, is an install "prefix" (such as, e.g. /usr/local)
