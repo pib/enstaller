@@ -27,8 +27,6 @@ from resolve import Req
 from egg_meta import split_eggname
 
 
-webservice_url = 'http://beta.enthought.com/webservice/epd/'
-
 FMT = '%-20s %-15s %s'
 
 def env_option(prefixes):
@@ -400,13 +398,12 @@ def main():
         evt_mgr = None
 
     if config.get_path() is None or config.get('use_webservice'):
-        urls = [webservice_url + '/{SUBDIR}/']
+        remote = None # Enpkg will create the default
     else:
-        urls = config.get('IndexedRepos')
-    urls = [fill_url(u) for u in urls]
+        urls = [fill_url(u) for u in config.get('IndexedRepos')]
+        remote = create_joined_store(urls)
 
-    enpkg = Enpkg(create_joined_store(urls),
-                  prefixes=prefixes, hook=args.hook,
+    enpkg = Enpkg(remote, prefixes=prefixes, hook=args.hook,
                   evt_mgr=evt_mgr, verbose=args.verbose)
 
     if args.imports:                              # --imports

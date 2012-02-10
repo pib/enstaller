@@ -27,6 +27,18 @@ def create_joined_store(urls):
             raise Exception("cannot create store: %r" % url)
     return JoinedStore(stores)
 
+def get_default_kvs():
+    from utils import fill_url
+
+    # FIXME: eventually we want to use
+    #     'http://beta.enthought.com/webservice/epd/'
+    urls = [
+        'https://www.enthought.com/repo/epd/GPL-eggs/{SUBDIR}/',
+        'https://www.enthought.com/repo/epd/eggs/{SUBDIR}/',
+        'http://www.enthought.com/repo/pypi/eggs/{SUBDIR}/',
+    ]
+    return create_joined_store([fill_url(u) for u in urls])
+
 def req_from_anything(arg):
     if isinstance(arg, Req):
         return arg
@@ -76,9 +88,12 @@ class Enpkg(object):
         is displayed on the console (which does not use the event manager
         at all).
     """
-    def __init__(self, remote, userpass='<config>', prefixes=[sys.prefix],
+    def __init__(self, remote=None, userpass='<config>', prefixes=[sys.prefix],
                  hook=False, evt_mgr=None, verbose=False):
-        self.remote = remote
+        if remote is None:
+            self.remote = get_default_kvs()
+        else:
+            self.remote = remote
         if userpass == '<config>':
             import config
             self.userpass = config.get_auth()
