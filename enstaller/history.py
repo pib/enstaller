@@ -21,7 +21,7 @@ class History(object):
         self.path = join(prefix or sys.prefix, 'enpkg.hist')
 
     def __enter__(self):
-        self.init()
+        self.update()
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.update()
@@ -43,6 +43,23 @@ class History(object):
         fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
         for eggname in self.get_installed():
             fo.write('%s\n' % eggname)
+        fo.close()
+
+    def update(self):
+        """
+        update the history file (creating a new one if necessary)
+        """
+        self.init()
+        last = self.get_state()
+        curr = set(self.get_installed())
+        if last == curr:
+            return
+        fo = open(self.path, 'a')
+        fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
+        for fn in last - curr:
+            fo.write('-%s\n' % fn)
+        for fn in curr - last:
+            fo.write('+%s\n' % fn)
         fo.close()
 
     def parse(self):
@@ -110,23 +127,6 @@ class History(object):
         else:
             raise Exception('Did not expect: %r' % arg)
         return pkgs[i]
-
-    def update(self):
-        """
-        update the history file (creating a new one if necessary)
-        """
-        self.init()
-        last = self.get_state()
-        curr = set(self.get_installed())
-        if last == curr:
-            return
-        fo = open(self.path, 'a')
-        fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
-        for fn in last - curr:
-            fo.write('-%s\n' % fn)
-        for fn in curr - last:
-            fo.write('+%s\n' % fn)
-        fo.close()
 
     def print_diff(self, diff):
         added = {}

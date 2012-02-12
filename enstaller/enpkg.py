@@ -283,9 +283,14 @@ class Enpkg(object):
 
     def revert_actions(self, rev_in):
         """
-        XXX
+        Calculate the actions necessary to revert to a given state, the
+        argument may be one of:
+          * revision number (negative numbers allowed)
+          * datetime in ISO format
+          * simple strings like '1 day ago', see parse_dt module
         """
         h = History(self.prefixes[0])
+        h.update()
         try:
             rev = int(rev_in)
         except ValueError:

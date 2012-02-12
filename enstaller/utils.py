@@ -1,6 +1,6 @@
 import sys
 import hashlib
-from os.path import abspath, expanduser, getmtime, getsize
+from os.path import abspath, expanduser, getmtime, getsize, isdir
 
 from verlib import NormalizedVersion, IrrationalVersionError
 
@@ -15,6 +15,7 @@ def abs_expanduser(path):
 def canonical(s):
     """
     return the canonical representations of a project name
+    DON'T USE THIS IN NEW CODE (ONLY HERE FOR HISTORICAL REASONS)
     """
     # eventually (once Python 2.6 repo eggs are no longer supported), this
     # function should only return s.lower()
@@ -84,11 +85,11 @@ def cleanup_url(url):
                 url += '/'
         else:
             # Windows filename
-            if not repo.endswith('\\'):
+            if not url.endswith('\\'):
                 url += '\\'
 
     elif isdir(abs_expanduser(url)):
-        return cleanup_reponame('file://' + abs_expanduser(url))
+        return cleanup_url('file://' + abs_expanduser(url))
 
     else:
         raise Exception("Invalid URL or non-existing file: %r" % url)

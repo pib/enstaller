@@ -11,9 +11,8 @@ import site
 import string
 import textwrap
 from argparse import ArgumentParser
-from os.path import isfile, join
+from os.path import join
 
-import egginst
 from egginst.utils import bin_dir_name, rel_site_packages
 from enstaller import __version__
 import config
@@ -128,8 +127,7 @@ def imports_option(enpkg, pat=None):
 
 def search(enpkg, pat=None):
     """
-    Print the distributions available in a repo, i.e. a "virtual" repo made
-    of a chain of (indexed) repos.
+    print the packages which are available in the (remote) KVS
     """
     print FMT % ('Name', 'Versions', 'Repository')
     print 60 * '-'
@@ -249,7 +247,7 @@ def main():
     p.add_argument("--revert", metavar="REV",
                    help="revert to a previous set of packages")
     p.add_argument('-s', "--search", action="store_true",
-                   help="search the index in the repo (chain) of packages "
+                   help="search the index in the repo of packages "
                         "and display versions available.")
     p.add_argument("--sys-config", action="store_true",
                    help="use <sys.prefix>/.enstaller4rc (even when "
@@ -304,6 +302,7 @@ def main():
     if args.log:                                  # --log
         from history import History
         h = History(prefix)
+        h.update()
         h.print_log()
         return
 
@@ -373,11 +372,11 @@ def main():
     if args.info:                                 # --info
         if len(args.cnames) != 1:
             p.error("Option requires one argument (name of package)")
-        info_option(enst, canonical(args.cnames[0]))
+        info_option(enpkg, args.cnames)
         return
 
     if args.whats_new:                            # --whats-new
-        whats_new(enst)
+        whats_new(enpkg)
         return
 
     if len(args.cnames) == 0:
