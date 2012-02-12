@@ -303,13 +303,13 @@ class Enpkg(object):
             from parse_dt import parse
             rev = parse(rev_in)
             if rev is None:
-                sys.exit("Error: could not parse: %r" % rev_in)
+                raise EnpkgError("Error: could not parse: %r" % rev_in)
 
         print "reverting to: %r" % rev
         try:
             state = h.get_state(rev)
         except IndexError:
-            sys.exit("Error: no such revision: %r" % rev)
+            raise EnpkgError("Error: no such revision: %r" % rev)
 
         curr = set(h.get_installed())
         if state == curr:

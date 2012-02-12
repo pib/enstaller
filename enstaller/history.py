@@ -26,9 +26,9 @@ class History(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.update()
 
-    def ensure_path(self):
+    def check_for_path(self):
         if not isfile(self.path):
-            sys.exit('Error: log file %r not found' % self.path)
+            raise Exception('Error: log file %r not found' % self.path)
 
     def get_installed(self):
         return egginst.get_installed(self.prefix)
@@ -67,7 +67,7 @@ class History(object):
         parse the history file and return a list of
         tuples(datetime strings, set of eggs/diffs)
         """
-        self.ensure_path()
+        self.check_for_path()
         res = []
         sep_pat = re.compile(r'==>\s*(.+?)\s*<==')
         for line in open(self.path):
@@ -147,7 +147,7 @@ class History(object):
             print '    +%s-%s' % (name, added[name])
 
     def print_log(self):
-        self.ensure_path()
+        self.check_for_path()
         for i, (dt, cont) in enumerate(self.parse()):
             print '%s  (rev %d)' % (dt, i)
             if is_diff(cont):

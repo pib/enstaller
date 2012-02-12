@@ -1,5 +1,4 @@
 import re
-import sys
 from collections import defaultdict
 
 from enstaller.utils import PY_VER, comparable_version
@@ -189,7 +188,7 @@ class Resolve(object):
         for r in self.reqs_egg(root):
             d = self.get_egg(r)
             if d is None:
-                sys.exit('Error: could not resolve %r' % r)
+                raise Exception('Error: could not resolve %r' % r)
             eggs.append(d)
 
         can_order = self.are_complete(eggs)
@@ -213,8 +212,8 @@ class Resolve(object):
                     continue
                 d = self.get_egg(r)
                 if d is None:
-                    sys.exit('Error: could not resolve %r required by %r' %
-                             (r, egg))
+                    raise Exception('Error: could not resolve %r '
+                                    'required by %r' % (r, egg))
                 eggs.add(d)
                 add_dependents(d)
 

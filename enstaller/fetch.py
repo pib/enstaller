@@ -170,7 +170,7 @@ def main():
     f.verbose = opts.verbose
     for fn in args[1:]:
         if not is_valid_eggname(fn):
-            sys.exit('Error: invalid egg name: %r' % fn)
+            raise Exception('Error: invalid egg name: %r' % fn)
         f.fetch_egg(fn, opts.force)
 
 
