@@ -29,7 +29,7 @@ class JoinedStore(AbstractStore):
         for repo in self.repos:
             if repo.exists(key):
                 return repo.get_metadata(key)
-        raise KeyError
+        raise KeyError(key)
 
     def exists(self, key):
         for repo in self.repos:
