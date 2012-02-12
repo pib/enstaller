@@ -11,6 +11,7 @@ from utils import comparable_version
 from resolve import Req, Resolve
 from fetch import FetchAPI
 from egg_meta import is_valid_eggname, split_eggname
+from history import History
 
 
 def create_joined_store(urls):
@@ -170,14 +171,16 @@ class Enpkg(object):
         """
         return self.ec.find(egg)
 
-    def execute_actions(self, actions):
+    def execute(self, actions):
         """
         execute actions, which is an iterable over tuples(action, egg_name),
         where action is one of 'fetch', 'remote', or 'install' and egg_name
         is the filename of the egg.
         """
         if self.verbose:
-            print "execute_actions:", actions
+            print "Enpkg.execute:", len(actions)
+            for action in actions:
+                print '\t' + str(action)
 
         if len(actions) == 0:
             return
@@ -200,24 +203,22 @@ class Enpkg(object):
                 progress_type="super_install", filename=actions[-1][1],
                 disp_amount=len(actions), super_id=None)
 
-        with progress:
-            for n, (action, egg) in enumerate(actions):
-                if action == 'fetch':
-                    self.fetch(egg)
-
-                elif action == 'remove':
-                    try:
-                        self.ec.remove(egg)
-                    except EnpkgError:
-                        pass
-
-                elif action == 'install':
-                    info = self.remote.get_metadata(egg)
-                    self.ec.install(egg, self.local_dir, extra_info=info)
-
-                else:
-                    raise Exception("unknown action: %r" % action)
-                progress(step=n)
+        with History(self.prefixes[0]):
+            with progress:
+                for n, (action, egg) in enumerate(actions):
+                    if action == 'fetch':
+                        self.fetch(egg)
+                    elif action == 'remove':
+                        try:
+                            self.ec.remove(egg)
+                        except EnpkgError:
+                            pass
+                    elif action == 'install':
+                        info = self.remote.get_metadata(egg)
+                        self.ec.install(egg, self.local_dir, extra_info=info)
+                    else:
+                        raise Exception("unknown action: %r" % action)
+                    progress(step=n)
 
         self.super_id = None
         for c in self.ec.collections:
@@ -262,13 +263,6 @@ class Enpkg(object):
             res.append(('install', egg))
         return res
 
-    def install(self, arg, mode='recur', force=False, forceall=False):
-        """
-        Do the actual install/update, see install_actions().
-        """
-        actions = self.install_actions(arg, mode, force, forceall)
-        self.execute_actions(actions)
-
     def remove_actions(self, req):
         """
         Create the actions necessary to remove an egg, given a requirement
@@ -287,12 +281,50 @@ class Enpkg(object):
                               (req.name, ', '.join(versions)))
         return [('remove', index.keys()[0])]
 
-    def remove(self, req):
-        """
-        Do the actual removal of an egg, see, remove_actions().
-        """
-        actions = self.remove_actions(req)
-        self.execute_actions(actions)
+    def revert_actions(self, rev_in):
+        history = History(enst.prefixes[0])
+        try:
+            rev = int(rev_in)
+        except ValueError:
+            # we have a "date string"
+            from parse_dt import parse
+            rev = parse(rev_in)
+            if rev is None:
+                sys.exit("Error: could not parse: %r" % rev_in)
+
+        print "reverting to: %r" % rev
+        try:
+            state = history.get_state(rev)
+        except IndexError:
+            sys.exit("Error: no such revision: %r" % rev)
+
+        curr = set(egginst.get_installed())
+        if state == curr:
+            print "Nothing to revert"
+            return
+
+        # remove packages
+        for fn in curr - state:
+            enst.remove_egg(fn)
+
+        # install packages (fetch from server if necessary)
+        to_install = []
+        need_fetch = []
+        for fn in state - curr:
+            to_install.append(fn)
+            if not isfile(join(enst.egg_dir, fn)):
+                need_fetch.append(fn)
+        if need_fetch:
+            for fn in need_fetch:
+                dist = enst.chain.get_dist(filename_as_req(fn))
+                if dist:
+                    enst.chain.fetch_dist(dist, enst.egg_dir,
+                                          dry_run=enst.dry_run)
+        for fn in to_install:
+            egg_path = join(enst.egg_dir, fn)
+            if isfile(egg_path):
+                ei = egginst.EggInst(egg_path)
+                ei.install()
 
     # == methods which relate to both (remote store and local installation) ==
 

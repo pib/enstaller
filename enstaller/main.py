@@ -17,7 +17,6 @@ import egginst
 from egginst.utils import bin_dir_name, rel_site_packages
 from enstaller import __version__
 import config
-from history import History
 from proxy.api import setup_proxy
 from utils import comparable_version, abs_expanduser, fill_url
 
@@ -173,18 +172,6 @@ def whats_new(enst):
         print "no new version of any installed package is available"
 
 
-def remove_req(enpkg, req):
-    """
-    Tries remove a package from prefix given a requirement object.
-    This function is only used for the --remove option.
-    """
-    try:
-        enpkg.remove(req)
-    except EnpkgError as e:
-        print e.message
-        return
-
-
 def add_url(url, verbose):
     url = dist_naming.cleanup_reponame(url)
 
@@ -198,58 +185,24 @@ def add_url(url, verbose):
     config.prepend_url(url)
 
 
-def revert(enst, rev_in, quiet=False):
-    history = History(enst.prefixes[0])
+def remove_req(enpkg, req):
+    """
+    Tries remove a package from prefix given a requirement object.
+    This function is only used for the --remove option.
+    """
     try:
-        rev = int(rev_in)
-    except ValueError:
-        # we have a "date string"
-        from parse_dt import parse
-        rev = parse(rev_in)
-        if rev is None:
-            sys.exit("Error: could not parse: %r" % rev_in)
-
-    print "reverting to: %r" % rev
-    try:
-        state = history.get_state(rev)
-    except IndexError:
-        sys.exit("Error: no such revision: %r" % rev)
-
-    curr = set(egginst.get_installed())
-    if state == curr:
-        print "Nothing to revert"
-        return
-
-    # remove packages
-    for fn in curr - state:
-        enst.remove_egg(fn)
-
-    # install packages (fetch from server if necessary)
-    to_install = []
-    need_fetch = []
-    for fn in state - curr:
-        to_install.append(fn)
-        if not isfile(join(enst.egg_dir, fn)):
-            need_fetch.append(fn)
-    if need_fetch:
-        for fn in need_fetch:
-            dist = enst.chain.get_dist(filename_as_req(fn))
-            if dist:
-                enst.chain.fetch_dist(dist, enst.egg_dir,
-                                      dry_run=enst.dry_run)
-    for fn in to_install:
-        egg_path = join(enst.egg_dir, fn)
-        if isfile(egg_path):
-            ei = egginst.EggInst(egg_path)
-            ei.install()
-
-    history.update()
+        enpkg.execute(enpkg.remove_actions(req))
+    except EnpkgError as e:
+        print e.message
 
 
 def install_req(enpkg, req, opts):
     try:
-        cnt = enpkg.install(req, mode='root' if opts.no_deps else 'recur',
-                            force=opts.force, forceall=opts.forceall)
+        actions = enpkg.install_actions(
+                req,
+                mode='root' if opts.no_deps else 'recur',
+                force=opts.force, forceall=opts.forceall)
+        enpkg.execute(actions)
     except EnpkgError, e:
         print e.message
         info_list = enpkg.info_list_name(req.name)
@@ -259,7 +212,7 @@ def install_req(enpkg, req, opts):
                 ', '.join(sorted(set(i['version'] for i in info_list))))
         sys.exit(1)
 
-    if cnt == 0:
+    if len(actions) == 0:
         print "No update necessary, %r is up-to-date." % req.name
         #print_installed_info(enpkg, req.name)
 
@@ -360,8 +313,8 @@ def main():
         return
 
     if args.log:                                  # --log
+        from history import History
         h = History(prefix)
-        h.init()
         h.print_log()
         return
 
@@ -418,7 +371,7 @@ def main():
         return
 
     if args.revert:                               # --revert
-        revert(enst, args.revert)
+        #enpkg.revert(, args.revert)
         return
 
     if args.search:                               # --search
@@ -458,12 +411,11 @@ def main():
 
     print "prefix:", prefix
 
-    with History(prefix):
-        for req in reqs:
-            if args.remove:                           # --remove
-                remove_req(enpkg, req)
-            else:
-                install_req(enpkg, req, args)
+    for req in reqs:
+        if args.remove:                               # --remove
+            remove_req(enpkg, req)
+        else:
+            install_req(enpkg, req, args)             # install (default)
 
 
 if __name__ == '__main__':
