@@ -25,7 +25,7 @@ from resolve import Req
 from egg_meta import split_eggname
 
 
-FMT = '%-20s %-15s %s'
+FMT = '%-20s %-20s %s'
 
 def env_option(prefixes):
     print "Prefixes:"

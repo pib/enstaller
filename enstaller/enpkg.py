@@ -172,6 +172,20 @@ class Enpkg(object):
         """
         return self.ec.find(egg)
 
+    def _egg_from_req(self, req):
+        assert req.name
+        index = dict(self.ec.collections[0].query(**req.as_dict()))
+        if len(index) == 0:
+            raise EnpkgError("package %s not installed in: %r" %
+                              (req, self.prefixes[0]))
+        if len(index) > 1:
+            assert self.hook
+            versions = ['%(version)s-%(build)d' % d
+                        for d in index.itervalues()]
+            raise EnpkgError("package %s installed more than once: %s" %
+                              (req.name, ', '.join(versions)))
+        return index.keys()[0]
+
     def execute(self, actions):
         """
         execute actions, which is an iterable over tuples(action, egg_name),
@@ -210,10 +224,7 @@ class Enpkg(object):
                     if action.startswith('fetch_'):
                         self.fetch(egg, force=int(action[-1]))
                     elif action == 'remove':
-                        try:
-                            self.ec.remove(egg)
-                        except EnpkgError:
-                            pass
+                        self.ec.remove(egg)
                     elif action == 'install':
                         if self._connected:
                             extra_info = self.remote.get_metadata(egg)
@@ -262,29 +273,23 @@ class Enpkg(object):
             # remove packages with the same name (from first egg collection
             # only, in reverse install order)
             for egg in reversed(eggs):
-                if self.find(egg):
-                    res.append(('remove', egg))
+                r = Req(split_eggname(egg)[0])
+                try:
+                    res.append(('remove', self._egg_from_req(r)))
+                except EnpkgError:
+                    pass
         for egg in eggs:
             res.append(('install', egg))
         return res
 
-    def remove_actions(self, req):
+    def remove_actions(self, arg):
         """
-        Create the actions necessary to remove an egg, given a requirement
-        object (see enstaller.resolve.Req).
+        Create the action necessary to remove an egg.  The argument, may be
+        one of ..., see above.
         """
-        assert req.name
-        index = dict(self.ec.collections[0].query(**req.as_dict()))
-        if len(index) == 0:
-            raise EnpkgError("Package %s not installed in: %r" %
-                              (req, self.prefixes[0]))
-        if len(index) > 1:
-            assert self.hook
-            versions = ['%(version)s-%(build)d' % d
-                        for d in index.itervalues()]
-            raise EnpkgError("Package %s installed more than once: %s" %
-                              (req.name, ', '.join(versions)))
-        return [('remove', index.keys()[0])]
+        req = req_from_anything(arg)
+        egg = self._egg_from_req(req)
+        return [('remove', egg)]
 
     def revert_actions(self, rev_in):
         """
