@@ -1,6 +1,5 @@
 import sys
 from uuid import uuid4
-from logging import getLogger
 from os.path import isdir, join
 
 from store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
@@ -45,10 +44,6 @@ def req_from_anything(arg):
     if is_valid_eggname(arg):
         return Req('%s %s-%d' % split_eggname(arg))
     return Req(arg)
-
-def name_egg(egg):
-    n, v, b = split_eggname(egg)
-    return n.lower()
 
 class EnpkgError(Exception):
     pass
@@ -175,50 +170,13 @@ class Enpkg(object):
         """
         return self.ec.find(egg)
 
-    def action_sequence(self, arg, mode='recur', force=False, forceall=False):
+    def execute_actions(self, actions):
         """
-        Create the sequence of actions which are required for insatlling,
-        which includes updating, a package.
-
-        The first argument may be any of:
-          * the KVS key, i.e. the egg filename
-          * a requirement object (enstaller.resolve.Req)
-          * the requirement as a string
+        execute actions, which is an iterable over tuples(action, egg_name),
+        where action is one of 'fetch', 'remote', or 'install' and egg_name
+        is the filename of the egg.
         """
-        req = req_from_anything(arg)
-        # resolve the list of eggs that need to be installed
-        self._connect()
-        resolver = Resolve(self.remote, self.verbose)
-        eggs = resolver.install_sequence(req, mode)
-        if eggs is None:
-             raise EnpkgError("No egg found for requirement '%s'." % req)
-
-        if not forceall:
-            # remove already installed eggs from egg list
-            rm = lambda eggs: [e for e in eggs if self.find(e) is None]
-            if force:
-                eggs = rm(eggs[:-1]) + [eggs[-1]]
-            else:
-                eggs = rm(eggs)
-
-        for egg in eggs:
-            yield 'fetch', egg
-
-        if not self.hook:
-            # remove packages with the same name (from first egg collection
-            # only, in reverse install order)
-            for egg in reversed(eggs):
-                yield 'remove', egg
-
-        for egg in eggs:
-            yield 'install', egg
-
-    def install(self, arg, mode='recur', force=False, forceall=False):
-        """
-        Do the actual install/update, see ``action_sequence``.
-        """
-        actions = list(self.action_sequence(arg, mode, force, forceall))
-        if not actions:
+        if len(actions) == 0:
             return
 
         if self.evt_mgr:
@@ -242,11 +200,11 @@ class Enpkg(object):
         with progress:
             for n, (action, egg) in enumerate(actions):
                 if action == 'fetch':
-                    self.fetch(egg, force or forceall)
+                    self.fetch(egg)
 
                 elif action == 'remove':
                     try:
-                        self.remove(Req(name_egg(egg)))
+                        self.ec.remove(egg)
                     except EnpkgError:
                         pass
 
@@ -262,9 +220,55 @@ class Enpkg(object):
         for c in self.ec.collections:
             c.super_id = self.super_id
 
-    def remove(self, req):
+    def install_actions(self, arg, mode='recur', force=False, forceall=False):
         """
-        Remove an egg, given a requirement object (enstaller.resolve.Req)
+        Create a list of actions which are required for insatlling, which
+        includes updating, a package (without actually doing anything).
+
+        The first argument may be any of:
+          * the KVS key, i.e. the egg filename
+          * a requirement object (enstaller.resolve.Req)
+          * the requirement as a string
+        """
+        req = req_from_anything(arg)
+        # resolve the list of eggs that need to be installed
+        self._connect()
+        resolver = Resolve(self.remote, self.verbose)
+        eggs = resolver.install_sequence(req, mode)
+        if eggs is None:
+             raise EnpkgError("No egg found for requirement '%s'." % req)
+
+        if not forceall:
+            # remove already installed eggs from egg list
+            rm = lambda eggs: [e for e in eggs if self.find(e) is None]
+            if force:
+                eggs = rm(eggs[:-1]) + [eggs[-1]]
+            else:
+                eggs = rm(eggs)
+
+        res = []
+        for egg in eggs:
+            res.append(('fetch', egg))
+        if not self.hook:
+            # remove packages with the same name (from first egg collection
+            # only, in reverse install order)
+            for egg in reversed(eggs):
+                res.append(('remove', egg))
+        for egg in eggs:
+            res.append(('install', egg))
+        return res
+
+    def install(self, arg, mode='recur', force=False, forceall=False):
+        """
+        Do the actual install/update, see install_actions().
+        """
+        actions = self.install_actions(arg, mode, force, forceall)
+        self.execute_actions(actions)
+
+    def remove_actions(self, req):
+        """
+        Create the actions necessary to remove an egg, given a requirement
+        object (see enstaller.resolve.Req).
         """
         assert req.name
         index = dict(self.ec.collections[0].query(**req.as_dict()))
@@ -277,8 +281,14 @@ class Enpkg(object):
                         for d in index.itervalues()]
             raise EnpkgError("Package %s installed more than once: %s" %
                               (req.name, ', '.join(versions)))
-        egg = index.keys()[0]
-        self.ec.remove(egg)
+        return [('remove', index.keys()[0])]
+
+    def remove(self, req):
+        """
+        Do the actual removal of an egg, see, remove_actions().
+        """
+        actions = self.remove_actions(req)
+        self.execute_actions(actions)
 
     # == methods which relate to both (remote store and local installation) ==
 
