@@ -300,6 +300,8 @@ def main():
         return
 
     if args.log:                                  # --log
+        if args.hook:
+            raise NotImplementedError
         from history import History
         h = History(prefix)
         h.update()

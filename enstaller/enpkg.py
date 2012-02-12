@@ -218,7 +218,7 @@ class Enpkg(object):
                 progress_type="super_install", filename=actions[-1][1],
                 disp_amount=len(actions), super_id=None)
 
-        with History(self.prefixes[0]):
+        with History(None if self.hook else self.prefixes[0]):
             with progress:
                 for n, (action, egg) in enumerate(actions):
                     if action.startswith('fetch_'):
@@ -288,8 +288,7 @@ class Enpkg(object):
         one of ..., see above.
         """
         req = req_from_anything(arg)
-        egg = self._egg_from_req(req)
-        return [('remove', egg)]
+        return [('remove', self._egg_from_req(req))]
 
     def revert_actions(self, rev_in):
         """
@@ -299,6 +298,8 @@ class Enpkg(object):
           * datetime in ISO format
           * simple strings like '1 day ago', see parse_dt module
         """
+        if self.hook:
+            raise NotImplementedError
         h = History(self.prefixes[0])
         h.update()
         try:

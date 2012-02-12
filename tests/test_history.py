@@ -8,8 +8,9 @@ PATH = join(dirname(__file__), 'history')
 
 
 class TestHistory(unittest.TestCase):
+
     def setUp(self):
-        self.history = History()
+        self.history = History('<dummy prefix>')
         self.history.path = PATH
 
     def test_find_revision(self):

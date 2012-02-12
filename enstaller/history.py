@@ -16,14 +16,21 @@ def is_diff(cont):
 
 
 class History(object):
-    def __init__(self, prefix=None):
+
+    def __init__(self, prefix):
         self.prefix = prefix
-        self.path = join(prefix or sys.prefix, 'enpkg.hist')
+        if prefix is None:
+            return
+        self.path = join(prefix, 'enpkg.hist')
 
     def __enter__(self):
+        if self.prefix is None:
+            return
         self.update()
 
     def __exit__(self, exc_type, exc_value, traceback):
+        if self.prefix is None:
+            return
         self.update()
 
     def check_for_path(self):
@@ -159,7 +166,7 @@ class History(object):
 
 
 if __name__ == '__main__':
-    h = History()
+    h = History(sys.prefix)
     with h:
         h.update()
         h.print_log()
