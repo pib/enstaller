@@ -17,13 +17,13 @@ class JoinedStore(AbstractStore):
         for repo in self.repos:
             if repo.exists(key):
                 return repo.get(key)
-        raise KeyError
+        raise KeyError(key)
 
     def get_data(self, key):
         for repo in self.repos:
             if repo.exists(key):
                 return repo.get_data(key)
-        raise KeyError
+        raise KeyError(key)
 
     def get_metadata(self, key):
         for repo in self.repos:

@@ -14,7 +14,7 @@ class IndexedStore(AbstractStore):
 
         fp = self.get_data('index.json')
         if fp is None:
-            raise Exception("Could not connect")
+            raise Exception("could not connect")
         self._index = json.load(fp)
         for info in self._index.itervalues():
             info['store_location'] = self.info().get('root')
