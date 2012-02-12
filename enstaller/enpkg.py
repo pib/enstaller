@@ -104,6 +104,7 @@ class Enpkg(object):
                 EggCollection(prefix, self.hook, self.evt_mgr)
                 for prefix in self.prefixes])
         self.local_dir = join(self.prefixes[0], 'LOCAL-REPO')
+        self._connected = False
 
     # ============= methods which relate to remove store =================
 
@@ -118,7 +119,7 @@ class Enpkg(object):
         self._connect()
 
     def _connect(self):
-        if getattr(self, '_connected', None):
+        if self._connected:
             return
         self.remote.connect(self.userpass)
         self._connected = True
@@ -216,9 +217,11 @@ class Enpkg(object):
                         except EnpkgError:
                             pass
                     elif action == 'install':
-                        self._connect()
-                        info = self.remote.get_metadata(egg)
-                        self.ec.install(egg, self.local_dir, extra_info=info)
+                        if self._connected:
+                            extra_info = self.remote.get_metadata(egg)
+                        else:
+                            extra_info = None
+                        self.ec.install(egg, self.local_dir, extra_info)
                     else:
                         raise Exception("unknown action: %r" % action)
                     progress(step=n)
