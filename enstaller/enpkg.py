@@ -176,6 +176,9 @@ class Enpkg(object):
         where action is one of 'fetch', 'remote', or 'install' and egg_name
         is the filename of the egg.
         """
+        if self.verbose:
+            print "execute_actions:", actions
+
         if len(actions) == 0:
             return
 
@@ -253,7 +256,8 @@ class Enpkg(object):
             # remove packages with the same name (from first egg collection
             # only, in reverse install order)
             for egg in reversed(eggs):
-                res.append(('remove', egg))
+                if self.find(egg):
+                    res.append(('remove', egg))
         for egg in eggs:
             res.append(('install', egg))
         return res

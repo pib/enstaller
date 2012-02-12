@@ -350,8 +350,9 @@ def get_installed(prefix=sys.prefix):
         if not pat.match(fn):
             continue
         d = read_meta(join(egg_info_dir, fn))
-        if d:
-            yield d['egg_name']
+        if d is None:
+            continue
+        yield d['egg_name']
 
 
 def print_installed(prefix=sys.prefix):
