@@ -53,14 +53,15 @@ class EggCollection(AbstractEggCollection):
     def find(self, egg):
         n, v, b = split_eggname(egg)
         if self.hook:
-            return info_from_metadir(join(self.pkgs_dir,
-                             '%s-%s-%d' % (n.lower(), v, b), 'EGG-INFO'))
+            path = join(self.pkgs_dir,
+                        '%s-%s-%d' % (n.lower(), v, b), 'EGG-INFO')
         else:
-            info = info_from_metadir(join(self.prefix, 'EGG-INFO', n.lower()))
-            if info and info['key'] == egg:
-                return info
-            else:
-                return None
+            path = join(self.prefix, 'EGG-INFO', n.lower())
+        info = info_from_metadir(path)
+        if info and info['key'] == egg:
+            return info
+        else:
+            return None
 
     def query(self, **kwargs):
         name = kwargs.get('name')
@@ -95,6 +96,7 @@ class EggCollection(AbstractEggCollection):
         ei.install(extra_info)
 
     def remove(self, egg):
+        assert self.find(egg), egg
         ei = egginst.EggInst(egg,
                              prefix=self.prefix, hook=self.hook,
                              evt_mgr=self.evt_mgr,
