@@ -322,7 +322,11 @@ class Enpkg(object):
 
         for egg in state - curr:
             if not isfile(join(self.local_dir, egg)):
-                res.append(('fetch_0', egg))
+                self._connect()
+                if self.remote.exists(egg):
+                    res.append(('fetch_0', egg))
+                else:
+                    raise EnpkgError("cannot revert -- missing %r" % egg)
             res.append(('install', egg))
         return res
 
