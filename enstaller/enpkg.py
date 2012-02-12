@@ -208,12 +208,15 @@ class Enpkg(object):
                 for n, (action, egg) in enumerate(actions):
                     if action == 'fetch':
                         self.fetch(egg)
+                    elif action == 'fetch_force':
+                        self.fetch(egg, force=True)
                     elif action == 'remove':
                         try:
                             self.ec.remove(egg)
                         except EnpkgError:
                             pass
                     elif action == 'install':
+                        self._connect()
                         info = self.remote.get_metadata(egg)
                         self.ec.install(egg, self.local_dir, extra_info=info)
                     else:
@@ -252,7 +255,9 @@ class Enpkg(object):
 
         res = []
         for egg in eggs:
-            res.append(('fetch', egg))
+            if not isfile(join(self.local_dir, egg)):
+                res.append(('fetch_force' if forceall or force else 'fetch',
+                            egg))
         if not self.hook:
             # remove packages with the same name (from first egg collection
             # only, in reverse install order)
@@ -316,7 +321,7 @@ class Enpkg(object):
             res.append(('remove', egg))
 
         for egg in state - curr:
-            if isfile(join(self.local_dir, egg)):
+            if not isfile(join(self.local_dir, egg)):
                 res.append(('fetch', egg))
             res.append(('install', egg))
         return res
