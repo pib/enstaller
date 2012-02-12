@@ -1,6 +1,6 @@
 import sys
 from uuid import uuid4
-from os.path import isdir, join
+from os.path import isdir, isfile, join
 
 from store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
 from store.joined import JoinedStore
@@ -226,7 +226,7 @@ class Enpkg(object):
 
     def install_actions(self, arg, mode='recur', force=False, forceall=False):
         """
-        Create a list of actions which are required for insatlling, which
+        Create a list of actions which are required for installing, which
         includes updating, a package (without actually doing anything).
 
         The first argument may be any of:
@@ -282,7 +282,10 @@ class Enpkg(object):
         return [('remove', index.keys()[0])]
 
     def revert_actions(self, rev_in):
-        history = History(enst.prefixes[0])
+        """
+        XXX
+        """
+        h = History(self.prefixes[0])
         try:
             rev = int(rev_in)
         except ValueError:
@@ -294,37 +297,24 @@ class Enpkg(object):
 
         print "reverting to: %r" % rev
         try:
-            state = history.get_state(rev)
+            state = h.get_state(rev)
         except IndexError:
             sys.exit("Error: no such revision: %r" % rev)
 
-        curr = set(egginst.get_installed())
+        curr = set(h.get_installed())
         if state == curr:
             print "Nothing to revert"
-            return
+            return []
 
-        # remove packages
-        for fn in curr - state:
-            enst.remove_egg(fn)
+        res = []
+        for egg in curr - state:
+            res.append(('remove', egg))
 
-        # install packages (fetch from server if necessary)
-        to_install = []
-        need_fetch = []
-        for fn in state - curr:
-            to_install.append(fn)
-            if not isfile(join(enst.egg_dir, fn)):
-                need_fetch.append(fn)
-        if need_fetch:
-            for fn in need_fetch:
-                dist = enst.chain.get_dist(filename_as_req(fn))
-                if dist:
-                    enst.chain.fetch_dist(dist, enst.egg_dir,
-                                          dry_run=enst.dry_run)
-        for fn in to_install:
-            egg_path = join(enst.egg_dir, fn)
-            if isfile(egg_path):
-                ei = egginst.EggInst(egg_path)
-                ei.install()
+        for egg in state - curr:
+            if isfile(join(self.local_dir, egg)):
+                res.append(('fetch', egg))
+            res.append(('install', egg))
+        return res
 
     # == methods which relate to both (remote store and local installation) ==
 

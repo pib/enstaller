@@ -17,6 +17,7 @@ def is_diff(cont):
 
 class History(object):
     def __init__(self, prefix=None):
+        self.prefix = prefix
         self.path = join(prefix or sys.prefix, 'enpkg.hist')
 
     def __enter__(self):
@@ -29,6 +30,9 @@ class History(object):
         if not isfile(self.path):
             sys.exit('Error: log file %r not found' % self.path)
 
+    def get_installed(self):
+        return egginst.get_installed(self.prefix)
+
     def init(self, force=False):
         """
         initialize the history file
@@ -37,7 +41,7 @@ class History(object):
             return
         fo = open(self.path, 'w')
         fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
-        for eggname in egginst.get_installed():
+        for eggname in self.get_installed():
             fo.write('%s\n' % eggname)
         fo.close()
 
@@ -113,7 +117,7 @@ class History(object):
         """
         self.init()
         last = self.get_state()
-        curr = set(egginst.get_installed())
+        curr = set(self.get_installed())
         if last == curr:
             return
         fo = open(self.path, 'a')

@@ -185,17 +185,6 @@ def add_url(url, verbose):
     config.prepend_url(url)
 
 
-def remove_req(enpkg, req):
-    """
-    Tries remove a package from prefix given a requirement object.
-    This function is only used for the --remove option.
-    """
-    try:
-        enpkg.execute(enpkg.remove_actions(req))
-    except EnpkgError as e:
-        print e.message
-
-
 def install_req(enpkg, req, opts):
     try:
         actions = enpkg.install_actions(
@@ -371,7 +360,10 @@ def main():
         return
 
     if args.revert:                               # --revert
-        #enpkg.revert(, args.revert)
+        try:
+            enpkg.execute(enpkg.revert_actions(args.revert))
+        except EnpkgError as e:
+            print e.message
         return
 
     if args.search:                               # --search
@@ -413,7 +405,10 @@ def main():
 
     for req in reqs:
         if args.remove:                               # --remove
-            remove_req(enpkg, req)
+            try:
+                enpkg.execute(enpkg.remove_actions(req))
+            except EnpkgError as e:
+                print e.message
         else:
             install_req(enpkg, req, args)             # install (default)
 
