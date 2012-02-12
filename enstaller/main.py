@@ -360,7 +360,9 @@ def main():
         return
 
     if args.log:                                  # --log
-        History(prefix).print_log()
+        h = History(prefix)
+        h.init()
+        h.print_log()
         return
 
     if args.sys_config:                           # --sys-config

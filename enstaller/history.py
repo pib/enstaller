@@ -155,7 +155,7 @@ class History(object):
 
 
 if __name__ == '__main__':
-    hist = History()
-    hist.update()
-    hist.print_log()
-    #get_state()
+    h = History()
+    with h:
+        h.update()
+        h.print_log()
