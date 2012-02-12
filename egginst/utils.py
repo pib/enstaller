@@ -1,7 +1,8 @@
 import sys
 import os
 import shutil
-from os.path import isdir, isfile, islink, join
+import tempfile
+from os.path import basename, isdir, isfile, islink, join
 
 
 on_win = bool(sys.platform == 'win32')
@@ -40,15 +41,21 @@ def rm_rf(path, verbose=False):
         if on_win:
             try:
                 os.unlink(path)
-            except WindowsError:
-                pass
+            except (WindowsError, IOError):
+                os.rename(path, join(tempfile.mkdtemp(), basename(path)))
         else:
             os.unlink(path)
 
     elif isdir(path):
         if verbose:
             print "Removing: %r (directory)" % path
-        shutil.rmtree(path)
+        if on_win:
+            try:
+                shutil.rmtree(path)
+            except (WindowsError, IOError):
+                os.rename(path, join(tempfile.mkdtemp(), basename(path)))
+        else:
+            shutil.rmtree(path)
 
 
 def get_executable(prefix):
