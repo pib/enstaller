@@ -65,13 +65,15 @@ class History(object):
                 res[-1][1].add(line)
         return res
 
-    def construct_states(self, ):
+    def construct_states(self):
         """
         return a list of tuples(datetime strings, set of eggs)
         """
         res = []
         for dt, cont in self.parse():
-            if is_diff(cont):
+            if not is_diff(cont):
+                cur = cont
+            else:
                 for s in cont:
                     if s.startswith('-'):
                         cur.discard(s[1:])
@@ -79,8 +81,6 @@ class History(object):
                         cur.add(s[1:])
                     else:
                         raise Exception('Did not expect: %s' % s)
-            else:
-                cur = cont
             res.append((dt, cur.copy()))
         return res
 
