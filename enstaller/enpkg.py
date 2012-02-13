@@ -170,24 +170,6 @@ class Enpkg(object):
         """
         return self.ec.find(egg)
 
-    def _egg_from_req(self, req):
-        """
-        given a requirement object (enstaller.resolve.Req), return the egg
-        filename if it was installed into prefixes[0], or raise an EnpkgError
-        """
-        assert req.name
-        index = dict(self.ec.collections[0].query(**req.as_dict()))
-        if len(index) == 0:
-            raise EnpkgError("package %s not installed in: %r" %
-                              (req, self.prefixes[0]))
-        if len(index) > 1:
-            assert self.hook
-            versions = ['%(version)s-%(build)d' % d
-                        for d in index.itervalues()]
-            raise EnpkgError("package %s installed more than once: %s" %
-                              (req.name, ', '.join(versions)))
-        return index.keys()[0]
-
     def execute(self, actions):
         """
         Execute actions, which is an iterable over tuples(action, egg_name),
@@ -292,7 +274,18 @@ class Enpkg(object):
         one of ..., see above.
         """
         req = req_from_anything(arg)
-        return [('remove', self._egg_from_req(req))]
+        assert req.name
+        index = dict(self.ec.collections[0].query(**req.as_dict()))
+        if len(index) == 0:
+            raise EnpkgError("package %s not installed in: %r" %
+                              (req, self.prefixes[0]))
+        if len(index) > 1:
+            assert self.hook
+            versions = ['%(version)s-%(build)d' % d
+                        for d in index.itervalues()]
+            raise EnpkgError("package %s installed more than once: %s" %
+                              (req.name, ', '.join(versions)))
+        return [('remove', index.keys()[0])]
 
     def revert_actions(self, rev_in):
         """
