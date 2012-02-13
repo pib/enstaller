@@ -9,7 +9,6 @@ import re
 import sys
 import site
 import string
-import textwrap
 from argparse import ArgumentParser
 from os.path import join
 
@@ -62,33 +61,26 @@ def name_egg(egg):
     return split_eggname(egg)[0]
 
 
-def info_option(enst, cname):
-    info = get_info()
-    if info and cname in info:
-        spec = info[cname]
-        print "Name    :", spec['name']
-        print "License :", spec['license']
-        print "Summary :", spec['summary']
-        print
-        for line in textwrap.wrap(' '.join(spec['description'].split()), 77):
-            print line
-    print
-    print "In repositories:"
-    displayed = set()
-    for dist in enst.chain.iter_dists(Req(cname)):
-        repo = dist_naming.repo_dist(dist)
-        if repo not in displayed:
-            print '    %s' % repo
-            displayed.add(repo)
-    print
+def print_install_time(enpkg, name):
+    try:
+        egg = enpkg._egg_from_req(Req(name))
+    except EnpkgError as e:
+        print e.message
+        return
+    print '%(key)s was installed on: %(ctime)s' % enpkg.find(egg)
 
-    dist = enst.chain.get_dist(Req(cname))
-    if dist:
-        reqs = set(r.name for r in enst.chain.reqs_dist(dist))
+
+def info_option(enpkg, name):
+    name = name.lower()
+    print 'Package:', name
+    versions = []
+    for info in enpkg.info_list_name(name):
+        versions.append('%(version)s-%(build)d' % info)
+    print 'Available version: %s' % (', '.join(versions) if versions else None)
+    if versions:
+        reqs = set(r for r in info['packages'])
         print "Requirements: %s" % ', '.join(sorted(reqs))
-
-    print "Available versions: %s" % ', '.join(chain.list_versions(cname))
-    print_installed_info(enst, cname)
+    print_install_time(enpkg, name)
 
 
 def print_installed(prefix, hook=False, pat=None):
@@ -203,7 +195,7 @@ def install_req(enpkg, req, opts):
 
     if len(actions) == 0:
         print "No update necessary, %r is up-to-date." % req.name
-        #print_installed_info(enpkg, req.name)
+        print_install_time(enpkg, req.name)
 
 
 def main():
@@ -378,7 +370,7 @@ def main():
     if args.info:                                 # --info
         if len(args.cnames) != 1:
             p.error("Option requires one argument (name of package)")
-        info_option(enpkg, args.cnames)
+        info_option(enpkg, args.cnames[0])
         return
 
     if args.whats_new:                            # --whats-new

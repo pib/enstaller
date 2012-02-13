@@ -153,7 +153,7 @@ class Enpkg(object):
         Query installed packages.  In addition to the remote metadata the
         following attributes are added:
 
-        ctime: creation (install) time
+        ctime: creation (install) time (string representing local time)
 
         hook: boolean -- whether installed into "versioned" egg directory
 
