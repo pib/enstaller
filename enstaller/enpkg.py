@@ -360,5 +360,5 @@ if __name__ == '__main__':
     enpkg = Enpkg(create_joined_store(urls),
                   userpass=('EPDUser', 'Epd789'))
 
-    for x in enpkg.install_actions('ets 4.0.0'):
-        print x
+    print [egg for action, egg in enpkg.install_actions('lxml 2.3.2')
+           if action == 'install']
