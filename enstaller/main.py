@@ -349,8 +349,8 @@ def main():
                   evt_mgr=evt_mgr, verbose=args.verbose)
     if args.dry_run:
         def print_actions(actions):
-            for action, egg in actions:
-                print action, egg
+            for item in actions:
+                print '%-8s %s' % item
         enpkg.execute = print_actions
 
     if args.imports:                              # --imports
