@@ -331,9 +331,6 @@ def main():
     else:
         setup_proxy()
 
-    dry_run = args.dry_run
-    verbose = args.verbose
-
     if 0: # for testing event manager only
         from encore.events.api import EventManager
         from encore.terminal.api import ProgressDisplay
@@ -349,7 +346,8 @@ def main():
         remote = create_joined_store(urls)
 
     enpkg = Enpkg(remote, prefixes=prefixes, hook=args.hook,
-                  evt_mgr=evt_mgr, verbose=args.verbose)
+                  evt_mgr=evt_mgr, verbose=args.verbose,
+                  dry_run=args.dry_run)
 
     if args.imports:                              # --imports
         assert not args.hook
@@ -396,7 +394,7 @@ def main():
         else:
             reqs.append(Req(arg))
 
-    if verbose:
+    if args.verbose:
         print "Requirements:"
         for req in reqs:
             print '    %r' % req
