@@ -346,8 +346,12 @@ def main():
         remote = create_joined_store(urls)
 
     enpkg = Enpkg(remote, prefixes=prefixes, hook=args.hook,
-                  evt_mgr=evt_mgr, verbose=args.verbose,
-                  dry_run=args.dry_run)
+                  evt_mgr=evt_mgr, verbose=args.verbose)
+    if args.dry_run:
+        def print_actions(actions):
+            for action, egg in actions:
+                print action, egg
+        enpkg.execute = print_actions
 
     if args.imports:                              # --imports
         assert not args.hook

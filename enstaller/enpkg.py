@@ -85,7 +85,7 @@ class Enpkg(object):
         at all).
     """
     def __init__(self, remote=None, userpass='<config>', prefixes=[sys.prefix],
-                 hook=False, evt_mgr=None, verbose=False, dry_run=False):
+                 hook=False, evt_mgr=None, verbose=False):
         if remote is None:
             self.remote = get_default_kvs()
         else:
@@ -99,7 +99,6 @@ class Enpkg(object):
         self.hook = hook
         self.evt_mgr = evt_mgr
         self.verbose = verbose
-        self.dry_run = dry_run
 
         self.ec = JoinedEggCollection([
                 EggCollection(prefix, self.hook, self.evt_mgr)
@@ -199,11 +198,6 @@ class Enpkg(object):
                 print '\t' + str(action)
 
         if len(actions) == 0:
-            return
-
-        if self.dry_run:
-            for action, egg in actions:
-                print action, egg
             return
 
         if self.evt_mgr:
