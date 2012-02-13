@@ -192,8 +192,8 @@ class Enpkg(object):
         """
         if self.verbose:
             print "Enpkg.execute:", len(actions)
-            for action in actions:
-                print '\t' + str(action)
+            for item in actions:
+                print '\t' + str(item)
 
         if len(actions) == 0:
             return
@@ -218,19 +218,19 @@ class Enpkg(object):
 
         with History(None if self.hook else self.prefixes[0]):
             with progress:
-                for n, (action, egg) in enumerate(actions):
-                    if action.startswith('fetch_'):
-                        self.fetch(egg, force=int(action[-1]))
-                    elif action == 'remove':
+                for n, (opcode, egg) in enumerate(actions):
+                    if opcode.startswith('fetch_'):
+                        self.fetch(egg, force=int(opcode[-1]))
+                    elif opcode == 'remove':
                         self.ec.remove(egg)
-                    elif action == 'install':
+                    elif opcode == 'install':
                         if self._connected:
                             extra_info = self.remote.get_metadata(egg)
                         else:
                             extra_info = None
                         self.ec.install(egg, self.local_dir, extra_info)
                     else:
-                        raise Exception("unknown action: %r" % action)
+                        raise Exception("unknown opcode: %r" % opcode)
                     progress(step=n)
 
         self.super_id = None
@@ -358,5 +358,5 @@ if __name__ == '__main__':
     enpkg = Enpkg(create_joined_store(urls),
                   userpass=('EPDUser', 'Epd789'))
 
-    for x in enpkg.action_sequence('ets 4.0.0'):
+    for x in enpkg.install_actions('ets 4.0.0'):
         print x
