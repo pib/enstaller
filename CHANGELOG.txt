@@ -1,6 +1,9 @@
-2011-??-??   4.5.0:
+2012-??-??   4.5.0:
 -------------------
 * refactor to separate enpkg backend from frontend
+
+* add ability to see which versions are installed when using the
+  enpkg --search option
 
 
 
