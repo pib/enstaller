@@ -7,8 +7,7 @@ from store.joined import JoinedStore
 
 from eggcollect import EggCollection, JoinedEggCollection
 
-from utils import comparable_version
-from resolve import Req, Resolve
+from resolve import Req, Resolve, comparable_info
 from fetch import FetchAPI
 from egg_meta import is_valid_eggname, split_eggname
 from history import History
@@ -143,8 +142,7 @@ class Enpkg(object):
             if req.matches(info):
                 info_list.append(dict(info))
         try:
-            return sorted(info_list,
-                      key=lambda info: comparable_version(info['version']))
+            return sorted(info_list, key=comparable_info)
         except TypeError:
             return info_list
 

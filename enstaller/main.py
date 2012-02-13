@@ -129,20 +129,27 @@ def search(enpkg, pat=None):
     """
     print the packages which are available in the (remote) KVS
     """
-    print FMT % ('Name', 'Versions', 'Repository')
+    print FMT % ('Name', '  Versions', 'Repository')
     print 60 * '-'
 
     names = {}
     for key, info in enpkg.query_remote():
         names[info['name']] = name_egg(key)
 
+    installed = {}
+    for key, info in enpkg.query_installed():
+        installed[info['name']] = '%(version)s-%(build)d' % info
+
     for name in sorted(names, key=string.lower):
         if pat and not pat.search(name):
             continue
         disp_name = names[name]
+        installed_version = installed.get(name)
         for info in enpkg.info_list_name(name):
-            print FMT % (disp_name, '%(version)s-%(build)d' % info,
-                         disp_store_info(info))
+            version = '%(version)s-%(build)d' % info
+            disp_ver = (('* ' if installed_version == version else '  ') +
+                        version)
+            print FMT % (disp_name, disp_ver, disp_store_info(info))
             disp_name = ''
 
 

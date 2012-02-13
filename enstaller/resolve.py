@@ -4,7 +4,7 @@ from collections import defaultdict
 from enstaller.utils import PY_VER, comparable_version
 
 
-def comparable_spec(spec):
+def comparable_info(spec):
     """
     Returns a tuple(version, build) for a distribution, version is a
     RationalVersion object.  The result may be used for as a sort key.
@@ -116,7 +116,7 @@ class Resolve(object):
                 matches.append(key)
         if not matches:
             return None
-        return max(matches, key=lambda k: comparable_spec(d[k]))
+        return max(matches, key=lambda k: comparable_info(d[k]))
 
     def reqs_egg(self, egg):
         """
