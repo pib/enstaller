@@ -133,8 +133,8 @@ class Enpkg(object):
 
     def info_list_name(self, name):
         """
-        Return a sorted list of versions which are available on the remote
-        KVS for a given name.
+        return (sorted by versions (when possible)), a list of metadata
+        dictionaries which are available on the remote KVS for a given name
         """
         req = Req(name)
         info_list = []
