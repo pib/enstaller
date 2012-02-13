@@ -277,11 +277,11 @@ class Enpkg(object):
             # remove packages with the same name (from first egg collection
             # only, in reverse install order)
             for egg in reversed(eggs):
-                r = Req(split_eggname(egg)[0])
-                try:
-                    res.append(('remove', self._egg_from_req(r)))
-                except EnpkgError:
-                    pass
+                name = split_eggname(egg)[0].lower()
+                index = dict(self.ec.collections[0].query(name=name))
+                assert len(index) < 2
+                if len(index) == 1:
+                    res.append(('remove', index.keys()[0]))
         for egg in eggs:
             res.append(('install', egg))
         return res
