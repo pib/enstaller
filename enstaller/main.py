@@ -26,6 +26,7 @@ from egg_meta import split_eggname
 
 FMT = '%-20s %-20s %s'
 
+
 def env_option(prefixes):
     print "Prefixes:"
     for p in prefixes:

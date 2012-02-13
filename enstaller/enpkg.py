@@ -186,9 +186,11 @@ class Enpkg(object):
 
     def execute(self, actions):
         """
-        execute actions, which is an iterable over tuples(action, egg_name),
+        Execute actions, which is an iterable over tuples(action, egg_name),
         where action is one of 'fetch', 'remote', or 'install' and egg_name
         is the filename of the egg.
+        This method is only meant to be called with actions created by the
+        *_actions methods below.
         """
         if self.verbose:
             print "Enpkg.execute:", len(actions)
