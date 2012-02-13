@@ -63,12 +63,8 @@ def name_egg(egg):
 
 
 def print_install_time(enpkg, name):
-    try:
-        egg = enpkg._egg_from_req(Req(name))
-    except EnpkgError as e:
-        print e.message
-        return
-    print '%(key)s was installed on: %(ctime)s' % enpkg.find(egg)
+    for key, info in enpkg.ec.query(name=name):
+        print '%s was installed on: %s' % (key, info['ctime'])
 
 
 def info_option(enpkg, name):
@@ -274,7 +270,7 @@ def main():
     if (args.list or args.search) and args.cnames:
         pat = re.compile(args.cnames[0], re.I)
 
-    # --- make prefix
+    # make prefix
     if args.sys_prefix:
         prefix = sys.prefix
     elif args.prefix:
@@ -282,7 +278,7 @@ def main():
     else:
         prefix = config.get('prefix', sys.prefix)
 
-    # --- now make prefixes
+    # now make prefixes
     if prefix == sys.prefix:
         prefixes = [sys.prefix]
     else:

@@ -171,6 +171,10 @@ class Enpkg(object):
         return self.ec.find(egg)
 
     def _egg_from_req(self, req):
+        """
+        given a requirement object (enstaller.resolve.Req), return the egg
+        filename if it was installed into prefixes[0], or raise an EnpkgError
+        """
         assert req.name
         index = dict(self.ec.collections[0].query(**req.as_dict()))
         if len(index) == 0:
