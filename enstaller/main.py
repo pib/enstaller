@@ -273,6 +273,7 @@ def main():
     if (args.list or args.search) and args.cnames:
         pat = re.compile(args.cnames[0], re.I)
 
+    # --- make prefix
     if args.sys_prefix:
         prefix = sys.prefix
     elif args.prefix:
@@ -280,10 +281,17 @@ def main():
     else:
         prefix = config.get('prefix', sys.prefix)
 
+    # --- now make prefixes
     if prefix == sys.prefix:
         prefixes = [sys.prefix]
     else:
         prefixes = [prefix, sys.prefix]
+
+    if args.verbose:
+        print "Prefixes:"
+        for p in prefixes:
+            print '    %s%s' % (p, ['', ' (sys)'][p == sys.prefix])
+        print
 
     if args.env:                                  # --env
         env_option(prefixes)
