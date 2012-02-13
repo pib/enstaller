@@ -178,15 +178,10 @@ def whats_new(enst):
 
 
 def add_url(url, verbose):
-    url = dist_naming.cleanup_reponame(url)
-
-    arch_url = config.arch_filled_url(url)
-    Chain([arch_url], verbose)
-
-    if arch_url in config.get('IndexedRepos'):
+    url = fill_url(url)
+    if url in config.get('IndexedRepos'):
         print "Already configured:", url
         return
-
     config.prepend_url(url)
 
 
