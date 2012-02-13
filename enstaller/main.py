@@ -16,11 +16,11 @@ from egginst.utils import bin_dir_name, rel_site_packages
 from enstaller import __version__
 import config
 from proxy.api import setup_proxy
-from utils import comparable_version, abs_expanduser, fill_url
+from utils import abs_expanduser, fill_url
 
 from eggcollect import EggCollection
 from enpkg import Enpkg, EnpkgError, create_joined_store
-from resolve import Req
+from resolve import Req, comparable_info
 from egg_meta import split_eggname
 
 
@@ -145,24 +145,20 @@ def search(enpkg, pat=None):
             disp_name = ''
 
 
-def whats_new(enst):
+def whats_new(enpkg):
     print FMT % ('Name', 'installed', 'available')
     print 60 * "="
 
-    inst = set(enst.get_installed_eggs())
-
     something_new = False
-    for egg_name in inst:
-        if not dist_naming.is_valid_eggname(egg_name):
+    for key, info in enpkg.query_installed():
+        av_infos = enpkg.info_list_name(info['name'])
+        if len(av_infos) == 0:
             continue
-        in_n, in_v, in_b = dist_naming.split_eggname(egg_name)
-        spec = enst.get_dist_meta(Req(in_n))
-        if spec is None:
-            continue
-        av_v = spec['version']
-        if (av_v != in_v and
-                    comparable_version(av_v) > comparable_version(in_v)):
-            print FMT % (in_n, in_v, av_v)
+        av_info = av_infos[-1]
+        if comparable_info(av_info) > comparable_info(info):
+            print FMT % (name_egg(key),
+                         '%(version)s-%(build)d' % info,
+                         '%(version)s-%(build)d' % av_info)
             something_new = True
 
     if not something_new:
