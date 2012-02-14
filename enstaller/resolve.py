@@ -97,7 +97,13 @@ class Req(object):
 
 
 class Resolve(object):
+    """
+    The main purpose of this class is to support the install_sequence method
+    below.  In most cases, the user will only create an instace of this
+    class (which is inexpensive), to call the install_sequence method, e.g.:
 
+    eggs = Resolve(store).install_sequence(req)
+    """
     def __init__(self, repo, verbose=False):
         self.repo = repo
         self.verbose = verbose

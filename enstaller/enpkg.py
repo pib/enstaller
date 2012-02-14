@@ -238,8 +238,7 @@ class Enpkg(object):
         req = req_from_anything(arg)
         # resolve the list of eggs that need to be installed
         self._connect()
-        resolver = Resolve(self.remote, self.verbose)
-        eggs = resolver.install_sequence(req, mode)
+        eggs = Resolve(self.remote, self.verbose).install_sequence(req, mode)
         if eggs is None:
              raise EnpkgError("No egg found for requirement '%s'." % req)
 
