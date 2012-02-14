@@ -210,10 +210,10 @@ class Enpkg(object):
         progress = ProgressManager(
                 self.evt_mgr, source=self,
                 operation_id=self.super_id,
-                message="super install",
+                message="super",
                 steps=len(actions),
                 # ---
-                progress_type="super_install", filename=actions[-1][1],
+                progress_type="super", filename=actions[-1][1],
                 disp_amount=len(actions), super_id=None)
 
         with History(None if self.hook else self.prefixes[0]):
