@@ -278,13 +278,13 @@ class Enpkg(object):
         index = dict(self.ec.collections[0].query(**req.as_dict()))
         if len(index) == 0:
             raise EnpkgError("package %s not installed in: %r" %
-                              (req, self.prefixes[0]))
+                             (req, self.prefixes[0]))
         if len(index) > 1:
             assert self.hook
             versions = ['%(version)s-%(build)d' % d
                         for d in index.itervalues()]
             raise EnpkgError("package %s installed more than once: %s" %
-                              (req.name, ', '.join(versions)))
+                             (req.name, ', '.join(versions)))
         return [('remove', index.keys()[0])]
 
     def revert_actions(self, rev_in):
@@ -292,7 +292,7 @@ class Enpkg(object):
         Calculate the actions necessary to revert to a given state, the
         argument may be one of:
           * revision number (negative numbers allowed)
-          * datetime in ISO format
+          * datetime in ISO format, i.e. YYYY-mm-dd HH:MM:SS
           * simple strings like '1 day ago', see parse_dt module
         """
         if self.hook:
