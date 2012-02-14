@@ -73,10 +73,10 @@ def info_option(enpkg, name):
     versions = []
     for info in enpkg.info_list_name(name):
         versions.append('%(version)s-%(build)d' % info)
-    print 'Available version: %s' % (', '.join(versions) if versions else None)
+    print 'Available version: %s' % (', '.join(versions) or None)
     if versions:
         reqs = set(r for r in info['packages'])
-        print "Requirements: %s" % (', '.join(sorted(reqs)) if reqs else None)
+        print "Requirements: %s" % (', '.join(sorted(reqs)) or None)
     print_install_time(enpkg, name)
 
 
