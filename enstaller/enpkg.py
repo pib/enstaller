@@ -170,25 +170,13 @@ class Enpkg(object):
         """
         return self.ec.find(egg)
 
-    def _egg_from_req(self, req):
-        assert req.name
-        index = dict(self.ec.collections[0].query(**req.as_dict()))
-        if len(index) == 0:
-            raise EnpkgError("package %s not installed in: %r" %
-                              (req, self.prefixes[0]))
-        if len(index) > 1:
-            assert self.hook
-            versions = ['%(version)s-%(build)d' % d
-                        for d in index.itervalues()]
-            raise EnpkgError("package %s installed more than once: %s" %
-                              (req.name, ', '.join(versions)))
-        return index.keys()[0]
-
     def execute(self, actions):
         """
-        execute actions, which is an iterable over tuples(action, egg_name),
+        Execute actions, which is an iterable over tuples(action, egg_name),
         where action is one of 'fetch', 'remote', or 'install' and egg_name
         is the filename of the egg.
+        This method is only meant to be called with actions created by the
+        *_actions methods below.
         """
         if self.verbose:
             print "Enpkg.execute:", len(actions)
@@ -271,11 +259,11 @@ class Enpkg(object):
             # remove packages with the same name (from first egg collection
             # only, in reverse install order)
             for egg in reversed(eggs):
-                r = Req(split_eggname(egg)[0])
-                try:
-                    res.append(('remove', self._egg_from_req(r)))
-                except EnpkgError:
-                    pass
+                name = split_eggname(egg)[0].lower()
+                index = dict(self.ec.collections[0].query(name=name))
+                assert len(index) < 2
+                if len(index) == 1:
+                    res.append(('remove', index.keys()[0]))
         for egg in eggs:
             res.append(('install', egg))
         return res
@@ -286,7 +274,18 @@ class Enpkg(object):
         one of ..., see above.
         """
         req = req_from_anything(arg)
-        return [('remove', self._egg_from_req(req))]
+        assert req.name
+        index = dict(self.ec.collections[0].query(**req.as_dict()))
+        if len(index) == 0:
+            raise EnpkgError("package %s not installed in: %r" %
+                              (req, self.prefixes[0]))
+        if len(index) > 1:
+            assert self.hook
+            versions = ['%(version)s-%(build)d' % d
+                        for d in index.itervalues()]
+            raise EnpkgError("package %s installed more than once: %s" %
+                              (req.name, ', '.join(versions)))
+        return [('remove', index.keys()[0])]
 
     def revert_actions(self, rev_in):
         """
@@ -358,5 +357,5 @@ if __name__ == '__main__':
     enpkg = Enpkg(create_joined_store(urls),
                   userpass=('EPDUser', 'Epd789'))
 
-    for x in enpkg.install_actions('ets 4.0.0'):
-        print x
+    print [egg for action, egg in enpkg.install_actions('lxml 2.3.2')
+           if action == 'install']
