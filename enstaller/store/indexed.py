@@ -18,6 +18,9 @@ class IndexedStore(AbstractStore):
         self._index = json.load(fp)
         for info in self._index.itervalues():
             info['store_location'] = self.info().get('root')
+            # for testing only:
+            #if info['name'] in ('fastnumpy', 'numexpr'):
+            #    info['available'] = False
         fp.close()
 
         # maps names to keys

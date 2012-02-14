@@ -1,7 +1,8 @@
 import re
 from collections import defaultdict
 
-from enstaller.utils import PY_VER, comparable_version
+from utils import PY_VER, comparable_version
+
 
 
 def comparable_info(spec):
@@ -117,8 +118,8 @@ class Resolve(object):
         if not d:
             return None
         matches = []
-        for key, spec in d.iteritems():
-            if req.matches(spec):
+        for key, info in d.iteritems():
+            if req.matches(info) and info.get('available', True):
                 matches.append(key)
         if not matches:
             return None
@@ -194,7 +195,8 @@ class Resolve(object):
         for r in self.reqs_egg(root):
             d = self.get_egg(r)
             if d is None:
-                raise Exception('Error: could not resolve %r' % r)
+                from enstaller.enpkg import EnpkgError
+                raise EnpkgError('Error: could not resolve %r' % r)
             eggs.append(d)
 
         can_order = self.are_complete(eggs)
@@ -218,8 +220,9 @@ class Resolve(object):
                     continue
                 d = self.get_egg(r)
                 if d is None:
-                    raise Exception('Error: could not resolve %r '
-                                    'required by %r' % (r, egg))
+                    from enstaller.enpkg import EnpkgError
+                    raise EnpkgError('Error: could not resolve %r '
+                                     'required by %r' % (r, egg))
                 eggs.add(d)
                 add_dependents(d)
 

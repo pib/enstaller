@@ -118,7 +118,7 @@ def search(enpkg, pat=None):
     """
     print the packages which are available in the (remote) KVS
     """
-    print FMT % ('Name', '  Versions', 'Repository')
+    print FMT % ('Name', '  Versions', 'Note')
     print 60 * '-'
 
     names = {}
@@ -138,7 +138,8 @@ def search(enpkg, pat=None):
             version = '%(version)s-%(build)d' % info
             disp_ver = (('* ' if installed_version == version else '  ') +
                         version)
-            print FMT % (disp_name, disp_ver, disp_store_info(info))
+            print FMT % (disp_name, disp_ver,
+                   '' if info.get('available', True) else 'not subscribed to')
             disp_name = ''
 
 
@@ -184,6 +185,8 @@ def install_req(enpkg, req, opts):
             print "Versions for package %r are: %s" % (
                 req.name,
                 ', '.join(sorted(set(i['version'] for i in info_list))))
+            if any(not i.get('available', True) for i in info_list):
+                print "No subscription for %r" % req.name
         sys.exit(1)
 
     if len(actions) == 0:
