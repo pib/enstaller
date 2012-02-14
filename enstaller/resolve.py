@@ -242,7 +242,8 @@ class Resolve(object):
 
     def install_sequence(self, req, mode='recur'):
         """
-        Return the list of eggs which need to be installed.
+        Return the list of eggs which need to be installed (and None if
+        the requirement can not be resolved).
         The returned list is given in dependency order.
         The 'mode' may be:
 

@@ -7,10 +7,6 @@ from egginst.utils import human_bytes
 from utils import md5_file
 
 
-class MD5Mismatch(Exception):
-    pass
-
-
 class FetchAPI(object):
 
     def __init__(self, remote, local_dir, evt_mgr=None):
@@ -65,7 +61,7 @@ class FetchAPI(object):
         fi.close()
 
         if md5 and h.hexdigest() != md5:
-            raise MD5Mismatch("Error: received data MD5 sums mismatch")
+            raise ValueError("received data MD5 sums mismatch")
         os.rename(path + '.part', path)
 
     def patch_egg(self, egg):

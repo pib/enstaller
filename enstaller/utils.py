@@ -15,7 +15,7 @@ def abs_expanduser(path):
 def canonical(s):
     """
     return the canonical representations of a project name
-    DON'T USE THIS IN NEW CODE (ONLY HERE FOR HISTORICAL REASONS)
+    DON'T USE THIS IN NEW CODE (ONLY (STILL) HERE FOR HISTORICAL REASONS)
     """
     # eventually (once Python 2.6 repo eggs are no longer supported), this
     # function should only return s.lower()
