@@ -134,7 +134,6 @@ class FetchAPI(object):
 
 
 def main():
-    import sys
     from optparse import OptionParser
     import store.indexed as indexed
     from egg_meta import is_valid_eggname
