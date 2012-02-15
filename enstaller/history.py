@@ -14,7 +14,7 @@ TIME_FMT = '%Y-%m-%d %H:%M:%S %Z'
 def is_diff(cont):
     return any(s.startswith(('-', '+')) for s in cont)
 
-def print_diff(diff):
+def pretty_diff(diff):
     added = {}
     removed = {}
     for s in diff:
@@ -26,11 +26,17 @@ def print_diff(diff):
             added[name.lower()] = version
     changed = set(added) & set(removed)
     for name in sorted(changed):
-        print '     %s  (%s -> %s)' % (name, removed[name], added[name])
+        yield ' %s  (%s -> %s)' % (name, removed[name], added[name])
     for name in sorted(set(removed) - changed):
-        print '    -%s-%s' % (name, removed[name])
+        yield '-%s-%s' % (name, removed[name])
     for name in sorted(set(added) - changed):
-        print '    +%s-%s' % (name, added[name])
+        yield '+%s-%s' % (name, added[name])
+
+def pretty_cont(cont):
+    if is_diff(cont):
+        return pretty_diff(cont)
+    else:
+        return iter(sorted(cont, key=string.lower))
 
 
 class History(object):
@@ -157,11 +163,8 @@ class History(object):
         self.check_for_path()
         for i, (dt, cont) in enumerate(self.parse()):
             print '%s  (rev %d)' % (dt, i)
-            if is_diff(cont):
-                print_diff(cont)
-            else:
-                for x in sorted(cont, key=string.lower):
-                    print '    %s' % x
+            for line in pretty_cont(cont):
+                print '    %s' % line
             print
 
 
