@@ -38,6 +38,17 @@ def pretty_cont(cont):
     else:
         return iter(sorted(cont, key=string.lower))
 
+def find_revision(times, dt):
+    """
+    given a list of (sorted) datetimes 'times', return the index
+    corresponding to the time 'dt'
+    """
+    i = bisect.bisect(times, dt)
+    if i == 0:
+        return 0
+    else:
+        return i - 1
+
 
 class History(object):
 
@@ -132,17 +143,6 @@ class History(object):
             res.append((dt, cur.copy()))
         return res
 
-    def find_revision(self, times, dt):
-        """
-        given a list of (sorted) datetimes 'times', return the index
-        corresponding to the time 'dt'
-        """
-        i = bisect.bisect(times, dt)
-        if i == 0:
-            return 0
-        else:
-            return i - 1
-
     def get_state(self, arg=None):
         """
         return the state, i.e. the set of eggs, for a given revision or time,
@@ -152,7 +152,7 @@ class History(object):
         if arg is None:
             i = -1
         elif isinstance(arg, str):
-            i = self.find_revision(times, arg)
+            i = find_revision(times, arg)
         elif isinstance(arg, int):
             i = arg
         else:

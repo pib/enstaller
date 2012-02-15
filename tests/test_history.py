@@ -1,7 +1,7 @@
 import unittest
 from os.path import dirname, join
 
-from enstaller.history import History
+from enstaller.history import History, find_revision
 
 
 PATH = join(dirname(__file__), 'history')
@@ -11,7 +11,7 @@ class TestHistory(unittest.TestCase):
 
     def setUp(self):
         self.history = History('<dummy prefix>')
-        self.history.path = PATH
+        self.history._path = PATH
 
     def test_find_revision(self):
         times = [
@@ -30,7 +30,7 @@ class TestHistory(unittest.TestCase):
             ('2011-08-01 23:05:07 CDT', 2),
             ('2011-08-01 23:05:08 CDT', 2),
             ]:
-            self.assertEqual(self.history.find_revision(times, dt), res)
+            self.assertEqual(find_revision(times, dt), res)
 
     def test_get_state(self):
         self.assertEqual(self.history.get_state(0),
