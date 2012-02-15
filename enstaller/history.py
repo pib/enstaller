@@ -56,7 +56,7 @@ class History(object):
         self.prefix = prefix
         if prefix is None:
             return
-        self._path = join(prefix, 'enpkg.hist')
+        self._log_path = join(prefix, 'enpkg.hist')
 
     def __enter__(self):
         if self.prefix is None:
@@ -68,22 +68,15 @@ class History(object):
             return
         self.update()
 
-    def check_for_path(self):
-        if not isfile(self._path):
-            raise Exception('Error: log file %r not found' % self._path)
-
-    def get_installed(self):
-        return egginst.get_installed(self.prefix)
-
-    def init(self, force=False):
+    def _init_log_file(self, force=False):
         """
-        initialize the history file
+        initialize the log file
         """
-        if not force and isfile(self._path):
+        if not force and isfile(self._log_path):
             return
-        fo = open(self._path, 'w')
+        fo = open(self._log_path, 'w')
         fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
-        for eggname in self.get_installed():
+        for eggname in egginst.get_installed(self.prefix):
             fo.write('%s\n' % eggname)
         fo.close()
 
@@ -91,12 +84,12 @@ class History(object):
         """
         update the history file (creating a new one if necessary)
         """
-        self.init()
+        self._init_log_file()
         last = self.get_state()
-        curr = set(self.get_installed())
+        curr = set(egginst.get_installed(self.prefix))
         if last == curr:
             return
-        fo = open(self._path, 'a')
+        fo = open(self._log_path, 'a')
         fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
         for fn in last - curr:
             fo.write('-%s\n' % fn)
@@ -109,10 +102,9 @@ class History(object):
         parse the history file and return a list of
         tuples(datetime strings, set of eggs/diffs)
         """
-        self.check_for_path()
         res = []
         sep_pat = re.compile(r'==>\s*(.+?)\s*<==')
-        for line in open(self._path):
+        for line in open(self._log_path):
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
@@ -146,7 +138,8 @@ class History(object):
     def get_state(self, arg=None):
         """
         return the state, i.e. the set of eggs, for a given revision or time,
-        defaults to latest
+        defaults to latest (which is the same as the current state when the
+        log file is up-to-date)
         """
         times, pkgs = zip(*self.construct_states())
         if arg is None:
@@ -160,7 +153,6 @@ class History(object):
         return pkgs[i]
 
     def print_log(self):
-        self.check_for_path()
         for i, (dt, cont) in enumerate(self.parse()):
             print '%s  (rev %d)' % (dt, i)
             for line in pretty_cont(cont):

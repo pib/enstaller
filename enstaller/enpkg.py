@@ -313,7 +313,7 @@ class Enpkg(object):
         except IndexError:
             raise EnpkgError("Error: no such revision: %r" % rev)
 
-        curr = set(h.get_installed())
+        curr = h.get_state()
         if state == curr:
             print "Nothing to revert"
             return []
@@ -336,8 +336,8 @@ class Enpkg(object):
         """
         return a history (h) object:
 
+        h = Enpkg().get_history()
         h.parse() -> list of tuples(datetime strings, set of eggs/diffs)
-
         h.construct_states() -> list of tuples(datetime strings, set of eggs)
         """
         return History(self.prefixes[0])

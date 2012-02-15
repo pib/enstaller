@@ -11,7 +11,7 @@ class TestHistory(unittest.TestCase):
 
     def setUp(self):
         self.history = History('<dummy prefix>')
-        self.history._path = PATH
+        self.history._log_path = PATH
 
     def test_find_revision(self):
         times = [
