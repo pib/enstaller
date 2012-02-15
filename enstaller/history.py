@@ -14,6 +14,24 @@ TIME_FMT = '%Y-%m-%d %H:%M:%S %Z'
 def is_diff(cont):
     return any(s.startswith(('-', '+')) for s in cont)
 
+def print_diff(diff):
+    added = {}
+    removed = {}
+    for s in diff:
+        fn = s[1:]
+        name, version = egginst.name_version_fn(fn)
+        if s.startswith('-'):
+            removed[name.lower()] = version
+        elif s.startswith('+'):
+            added[name.lower()] = version
+    changed = set(added) & set(removed)
+    for name in sorted(changed):
+        print '     %s  (%s -> %s)' % (name, removed[name], added[name])
+    for name in sorted(set(removed) - changed):
+        print '    -%s-%s' % (name, removed[name])
+    for name in sorted(set(added) - changed):
+        print '    +%s-%s' % (name, added[name])
+
 
 class History(object):
 
@@ -21,7 +39,7 @@ class History(object):
         self.prefix = prefix
         if prefix is None:
             return
-        self.path = join(prefix, 'enpkg.hist')
+        self._path = join(prefix, 'enpkg.hist')
 
     def __enter__(self):
         if self.prefix is None:
@@ -34,8 +52,8 @@ class History(object):
         self.update()
 
     def check_for_path(self):
-        if not isfile(self.path):
-            raise Exception('Error: log file %r not found' % self.path)
+        if not isfile(self._path):
+            raise Exception('Error: log file %r not found' % self._path)
 
     def get_installed(self):
         return egginst.get_installed(self.prefix)
@@ -44,9 +62,9 @@ class History(object):
         """
         initialize the history file
         """
-        if not force and isfile(self.path):
+        if not force and isfile(self._path):
             return
-        fo = open(self.path, 'w')
+        fo = open(self._path, 'w')
         fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
         for eggname in self.get_installed():
             fo.write('%s\n' % eggname)
@@ -61,7 +79,7 @@ class History(object):
         curr = set(self.get_installed())
         if last == curr:
             return
-        fo = open(self.path, 'a')
+        fo = open(self._path, 'a')
         fo.write(time.strftime("==> %s <==\n" % TIME_FMT))
         for fn in last - curr:
             fo.write('-%s\n' % fn)
@@ -77,7 +95,7 @@ class History(object):
         self.check_for_path()
         res = []
         sep_pat = re.compile(r'==>\s*(.+?)\s*<==')
-        for line in open(self.path):
+        for line in open(self._path):
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
@@ -135,30 +153,12 @@ class History(object):
             raise Exception('Did not expect: %r' % arg)
         return pkgs[i]
 
-    def print_diff(self, diff):
-        added = {}
-        removed = {}
-        for s in diff:
-            fn = s[1:]
-            name, version = egginst.name_version_fn(fn)
-            if s.startswith('-'):
-                removed[name.lower()] = version
-            elif s.startswith('+'):
-                added[name.lower()] = version
-        changed = set(added) & set(removed)
-        for name in sorted(changed):
-            print '     %s  (%s -> %s)' % (name, removed[name], added[name])
-        for name in sorted(set(removed) - changed):
-            print '    -%s-%s' % (name, removed[name])
-        for name in sorted(set(added) - changed):
-            print '    +%s-%s' % (name, added[name])
-
     def print_log(self):
         self.check_for_path()
         for i, (dt, cont) in enumerate(self.parse()):
             print '%s  (rev %d)' % (dt, i)
             if is_diff(cont):
-                self.print_diff(cont)
+                print_diff(cont)
             else:
                 for x in sorted(cont, key=string.lower):
                     print '    %s' % x
