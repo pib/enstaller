@@ -5,6 +5,7 @@
 * add ability to see which versions are installed when using the
   enpkg --search option
 
+* add --hook and --user option to enpkg
 
 
 2011-08-04   4.4.1:
