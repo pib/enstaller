@@ -340,6 +340,8 @@ class Enpkg(object):
         h.parse() -> list of tuples(datetime strings, set of eggs/diffs)
         h.construct_states() -> list of tuples(datetime strings, set of eggs)
         """
+        if self.hook:
+            raise NotImplementedError
         return History(self.prefixes[0])
 
     # == methods which relate to both (remote store and local installation) ==
