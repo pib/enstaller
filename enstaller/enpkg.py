@@ -27,8 +27,8 @@ def create_joined_store(urls):
     return JoinedStore(stores)
 
 def get_default_kvs():
-    #url = 'https://beta.enthought.com/webservice/kvs'
-    url = 'http://www.enthought.com/repo/.s3'
+    url = 'https://beta.enthought.com/webservice/kvs'
+    #url = 'http://www.enthought.com/repo/.s3'
     return RemoteHTTPIndexedStore(url)
 
 def req_from_anything(arg):
