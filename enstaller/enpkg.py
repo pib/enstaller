@@ -27,16 +27,9 @@ def create_joined_store(urls):
     return JoinedStore(stores)
 
 def get_default_kvs():
-    from utils import fill_url
-
-    # FIXME: eventually we want to use
-    #     'http://beta.enthought.com/webservice/epd/'
-    urls = [
-        'https://www.enthought.com/repo/epd/GPL-eggs/{SUBDIR}/',
-        'https://www.enthought.com/repo/epd/eggs/{SUBDIR}/',
-        'http://www.enthought.com/repo/pypi/eggs/{SUBDIR}/',
-    ]
-    return create_joined_store([fill_url(u) for u in urls])
+    #url = 'https://beta.enthought.com/webservice/kvs'
+    url = 'http://www.enthought.com/repo/.s3'
+    return RemoteHTTPIndexedStore(url)
 
 def req_from_anything(arg):
     if isinstance(arg, Req):
@@ -360,13 +353,6 @@ class Enpkg(object):
 
 
 if __name__ == '__main__':
-    from enpkg import create_joined_store
-    from plat import subdir
-
-    urls = ['http://www.enthought.com/repo/epd/eggs/%s/' % subdir]
-
-    enpkg = Enpkg(create_joined_store(urls),
-                  userpass=('EPDUser', 'Epd789'))
-
-    print [egg for action, egg in enpkg.install_actions('lxml 2.3.2')
-           if action == 'install']
+    enpkg = Enpkg()
+    for key, info in enpkg.query_remote(name='numpy'):
+        print key

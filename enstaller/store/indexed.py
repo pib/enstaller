@@ -2,7 +2,7 @@ import json
 import urlparse
 import urllib2
 from collections import defaultdict
-from os.path import join
+from os.path import basename
 
 from base import AbstractStore
 
@@ -11,17 +11,35 @@ class IndexedStore(AbstractStore):
 
     def connect(self, userpass=None):
         self.userpass = userpass  # tuple(username, password)
+        self._webservice = ('webservice/kvs' in self.root or
+                            'repo/.s3' in self.root)
+        if self._webservice:
+            import enstaller.plat as plat
 
-        fp = self.get_data('index.json')
-        if fp is None:
-            raise Exception("could not connect")
-        self._index = json.load(fp)
+            fp = self.get_data('index.json?plat=' + plat.custom_plat)
+            if fp is None:
+                raise Exception("could not connect")
+            self._index = {}
+            for path, info in json.load(fp).iteritems():
+                if plat.subdir in path:
+                    info['_path'] = path
+                    self._index[basename(path)] = info
+        else:
+            fp = self.get_data('index.json')
+            if fp is None:
+                raise Exception("could not connect")
+            self._index = json.load(fp)
+
+        fp.close()
+
+        #for k, v in self._index.iteritems():
+        #    print k, v
+
         for info in self._index.itervalues():
             info['store_location'] = self.info().get('root')
             # for testing only:
             #if info['name'] in ('fastnumpy', 'numexpr'):
             #    info['available'] = False
-        fp.close()
 
         # maps names to keys
         self._groups = defaultdict(list)
@@ -33,6 +51,8 @@ class IndexedStore(AbstractStore):
 
     def _location(self, key):
         rt = self.root.rstrip('/') + '/'
+        if self._webservice and key.endswith(('.egg', '.zdiff')):
+            return rt + self._index[key]['_path']
         if key.endswith('.zdiff'):
             return rt + 'patches/' + key
         return rt + key
