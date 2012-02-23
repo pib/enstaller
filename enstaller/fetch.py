@@ -1,9 +1,10 @@
 import os
+import sys
 import hashlib
 from uuid import uuid4
 from os.path import basename, isdir, isfile, join
 
-from egginst.utils import human_bytes
+from egginst.utils import human_bytes, rm_rf
 from utils import md5_file
 
 
@@ -47,6 +48,8 @@ class FetchAPI(object):
         else:
             buffsize = 256
 
+        if sys.platform == 'win32':
+            rm_rf(path + '.part')
         with progress:
             with open(path + '.part', 'wb') as fo:
                 while True:
@@ -62,6 +65,9 @@ class FetchAPI(object):
 
         if md5 and h.hexdigest() != md5:
             raise ValueError("received data MD5 sums mismatch")
+
+        if sys.platform == 'win32':
+            rm_rf(path)
         os.rename(path + '.part', path)
 
     def patch_egg(self, egg):
