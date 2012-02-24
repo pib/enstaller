@@ -48,10 +48,11 @@ class FetchAPI(object):
         else:
             buffsize = 256
 
+        pp = path + '.part'
         if sys.platform == 'win32':
-            rm_rf(path + '.part')
+            rm_rf(pp)
         with progress:
-            with open(path + '.part', 'wb') as fo:
+            with open(pp, 'wb') as fo:
                 while True:
                     chunk = fi.read(buffsize)
                     if not chunk:
@@ -68,7 +69,7 @@ class FetchAPI(object):
 
         if sys.platform == 'win32':
             rm_rf(path)
-        os.rename(path + '.part', path)
+        os.rename(pp, path)
 
     def patch_egg(self, egg):
         """
