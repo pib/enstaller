@@ -11,8 +11,7 @@ class IndexedStore(AbstractStore):
 
     def connect(self, userpass=None):
         self.userpass = userpass  # tuple(username, password)
-        self._webservice = ('webservice/kvs' in self.root or
-                            'repo/.s3' in self.root)
+        self._webservice = 'webservice/kvs' in self.root
         if self._webservice:
             import enstaller.plat as plat
 
