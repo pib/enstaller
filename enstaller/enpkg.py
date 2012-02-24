@@ -244,9 +244,11 @@ class Enpkg(object):
                 eggs = rm(eggs)
 
         res = []
-        for egg in eggs:
+        for egg in eggs[:-1]:
             if not isfile(join(self.local_dir, egg)):
                 res.append(('fetch_%d' % bool(forceall or force), egg))
+        if forceall or force:
+            res.append(('fetch_1', eggs[-1]))
         if not self.hook:
             # remove packages with the same name (from first egg collection
             # only, in reverse install order)
