@@ -26,6 +26,7 @@ setup(
     packages = [
         'egginst',
         'enstaller',
+        'enstaller/store',
         'enstaller/indexed_repo',
         'enstaller/proxy',
     ],
@@ -33,6 +34,7 @@ setup(
         "console_scripts": [
              "enpkg = enstaller.main:main",
              "egginst = egginst.main:main",
+             "update-patches = enstaller.patch:main",
         ],
     },
     classifiers = [

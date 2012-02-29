@@ -1,220 +1,161 @@
-2011-??-??   4.5.0:
+2012-??-??   4.5.0:
 -------------------
-* refactor to separate enpkg backend from frontend
-
+  * refactor to separate enpkg backend from frontend
+  * add ability to see which versions are installed when using the
+    enpkg --search option
+  * add --hook and --user option to enpkg
+  * allow "{SUBDIR}" in URLs, in the configuration file
 
 
 2011-08-04   4.4.1:
 -------------------
-* BUG: remove object code fixes being limited to 256 KB header
-
-* add --log and --revert option to enpkg
-
-* add ability to enpkg to install/remove multiple packages at once
-
+  * BUG: remove object code fixes being limited to 256 KB header
+  * add --log and --revert option to enpkg
+  * add ability to enpkg to install/remove multiple packages at once
 
 
 2011-07-07   4.4.0:
 -------------------
-* add examples/update
-
-* add --sys-config option to enpkg
-
-* rewrote install_order method in Chain class (which is now called
-  install_sequence)
-
+  * add examples/update
+  * add --sys-config option to enpkg
+  * rewrote install_order method in Chain class (which is now called
+    install_sequence)
 
 
 2011-03-22   4.3.4:
 -------------------
-* fixed proxy problem with Python 2.7
-
+  * fixed proxy problem with Python 2.7
 
 
 2011-03-14   4.3.3:
 -------------------
-* allow "{ARCH}" when adding url with add --add-url option
-
+  * allow "{ARCH}" when adding url with add --add-url option
 
 
 2011-03-14   4.3.2:
 -------------------
-* added section about egg file naming to readme
-
-* add --add-url option to enpkg
-
+  * added section about egg file naming to readme
+  * add --add-url option to enpkg
 
 
 2011-02-16   4.3.1:
 -------------------
-* add commit message to egg repository index file, if
-  EGG-INFO/spec/__commit__ exists
-
-* fix bug and simplified directory removal (when eggs are uninstalled)
-
+  * add commit message to egg repository index file, if
+    EGG-INFO/spec/__commit__ exists
+  * fix bug and simplified directory removal (when eggs are uninstalled)
 
 
 2011-01-16   4.3.0:
 -------------------
-* metadata in now simply stored in EGG-INFO/<name> directories,
-  where <name> is the lowercase project name
-
-* EGG-INFO/PKG-INFO files are simply stored using the egg name + '-info'
-  in site-packages
-
-* EPD username and password are no longer stored in plain test in config
-  file; added --userpass option to enpkg
-
+  * metadata in now simply stored in EGG-INFO/<name> directories,
+    where <name> is the lowercase project name
+  * EGG-INFO/PKG-INFO files are simply stored using the egg name + '-info'
+    in site-packages
+  * EPD username and password are no longer stored in plain test in config
+    file; added --userpass option to enpkg
 
 
 2010-11-23   4.2.4:
 -------------------
-* fixed regular expression for placeholder in egginst/object_code.py to not
-  allow whitespace, and also simplified object code placeholder handling
-
-* fixed syntax for Python 2.5
-
+  * fixed regular expression for placeholder in egginst/object_code.py to not
+    allow whitespace, and also simplified object code placeholder handling
+  * fixed syntax for Python 2.5
 
 
 2010-11-01   4.2.3:
 -------------------
-* simplified how default configuration file is created
-
+  * simplified how default configuration file is created
 
 
 2010-10-29   4.2.2:
 -------------------
-* add new feature to enpkg which allows "enpkg -l" to list the
-  source repository from which packages have been downloaded
-
-* when egginst makes entry point scripts, it now guards the code
-  using "if __name__ == '__main__':"
-
-* added debug information (the exception) to the warning which is printed
-  when (un)installing the application item fails
-
-* changes targets (EGG-INFO/inst/targets.dat) to prepend (rather than append)
-  <sys.prefix>/lib in rpath.
-
+  * add new feature to enpkg which allows "enpkg -l" to list the
+    source repository from which packages have been downloaded
+  * when egginst makes entry point scripts, it now guards the code
+    using "if __name__ == '__main__':"
+  * added debug information (the exception) to the warning which is printed
+    when (un)installing the application item fails
+  * changes targets (EGG-INFO/inst/targets.dat) to prepend (rather than append)
+    <sys.prefix>/lib in rpath.
 
 
 2010-06-02   4.2.1:
 -------------------
-
-* be more explicit about valid characters in egg file-name
-
-* fixes in documentation, added notes anout install process in readme
-
+  * be more explicit about valid characters in egg file-name
+  * fixes in documentation, added notes anout install process in readme
 
 
 2010-04-03   4.2.0:
 -------------------
-
-* improved creation time of index-depend by adding mtime
-
-* fixed: enpkg now doesn't crash if a local repository contains invalid eggs
-
-* add --info option to enpkg
-
-* update to use the latest version of the official implementation of PEP 386
-
-* add print of "up-to-date message" when nothing was installed when running
-  enpkg
-
-* add --whats-new option to enpkg
-
+  * improved creation time of index-depend by adding mtime
+  * fixed: enpkg now doesn't crash if a local repository contains invalid eggs
+  * add --info option to enpkg
+  * update to use the latest version of the official implementation of PEP 386
+  * add print of "up-to-date message" when nothing was installed when running
+    enpkg
+  * add --whats-new option to enpkg
 
 
 2010-02-28   4.1.6:
 -------------------
-
-* added uncommented GPL-eggs repo to default configuration file
-
+  * added uncommented GPL-eggs repo to default configuration file
 
 
 2010-02-17   4.1.5:
 -------------------
-
-* Cleanup
-
+  * Cleanup
 
 
 2010-02-10   4.1.4:
 -------------------
-
-* Added --noapp (no application) option to egginst
-
-* Added ability to specify the proxy string in .enstaller4rc
-
-* Added optional noapp variable to .enstaller4rc
-
-* Changed to use username and password authentication
-
+  * Added --noapp (no application) option to egginst
+  * Added ability to specify the proxy string in .enstaller4rc
+  * Added optional noapp variable to .enstaller4rc
+  * Changed to use username and password authentication
 
 
 2010-01-05   4.1.3:
 -------------------
-
-* PKG-INFO file is now placed in site-packages as
-  <name>-<version>-py<major>.<minor>.egg-info
-
-* removed unused enstaller.indexed_repo.platforms module
-
-* allowing a placeholder '{ARCH}' in the list of indexed repositories
-  in the configuration file which gets substituted by 'amd64' or 'x86',
-  depending on the architecture of the current interpreter.
-  This allows having a single configuration file on systems which have
-  more than one interpreter installed.
-
-* added ability to handle release candidate versions
-
+  * PKG-INFO file is now placed in site-packages as
+    <name>-<version>-py<major>.<minor>.egg-info
+  * removed unused enstaller.indexed_repo.platforms module
+  * allowing a placeholder '{ARCH}' in the list of indexed repositories
+    in the configuration file which gets substituted by 'amd64' or 'x86',
+    depending on the architecture of the current interpreter.
+    This allows having a single configuration file on systems which have
+    more than one interpreter installed.
+  * added ability to handle release candidate versions
 
 
 2009-10-13   4.1.2:
 -------------------
-
-* fixed development versions being sorted incorrectly
-
-* improved to use normalized path in MachO headers
-
+  * fixed development versions being sorted incorrectly
+  * improved to use normalized path in MachO headers
 
 
 2009-10-07   4.1.1:
 -------------------
-
-* fixed enpkg bootstrapping problem
-
+  * fixed enpkg bootstrapping problem
 
 
 2009-10-05   4.1.0:
 -------------------
-
-* removed the setuptools patch
-
-* added more tests and documentation
-
-* added enpkg --proxy option which uses the proxy package from ensetuptools
-
-* added egginst --prefix option to specify install prefix
-
-* added ability to create a self-installing Enstaller egg, i.e. it is possible
-  to execute the Enstaller if bash is installed.
-
-* removed experimental egginst --activate and --deactivate options
-
-* added enpkg --prefix and --sys-prefix option
-
-* changed location of system config path to <sys.prefix>/.enstaller4rc
-
+  * removed the setuptools patch
+  * added more tests and documentation
+  * added enpkg --proxy option which uses the proxy package from ensetuptools
+  * added egginst --prefix option to specify install prefix
+  * added ability to create a self-installing Enstaller egg, i.e. it is possible
+    to execute the Enstaller if bash is installed.
+  * removed experimental egginst --activate and --deactivate options
+  * added enpkg --prefix and --sys-prefix option
+  * changed location of system config path to <sys.prefix>/.enstaller4rc
 
 
 2009-08-28   4.0.0:
 -------------------
-
-* replacing enpkg by new-enpkg which uses egginst.  The old (Enstaller v3)
-  enpkg command is still available and now called easy_manage, because it
-  can manage setuptools installed packages.
-
+  * replacing enpkg by new-enpkg which uses egginst.  The old (Enstaller v3)
+    enpkg command is still available and now called easy_manage, because it
+    can manage setuptools installed packages.
 
 
 All earlier versions

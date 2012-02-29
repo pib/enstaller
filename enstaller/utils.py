@@ -1,19 +1,9 @@
-import bz2
-import re
 import sys
-import time
 import hashlib
-import logging
-import urlparse
-import urllib2
-from cStringIO import StringIO
-from os.path import abspath, expanduser, getmtime, isfile, join
+from os.path import abspath, expanduser, getmtime, getsize, isdir
 
-from egginst import name_version_fn
-from enstaller import __version__
-from enstaller.verlib import NormalizedVersion, IrrationalVersionError
+from verlib import NormalizedVersion, IrrationalVersionError
 
-logger = logging.getLogger(__name__)
 
 PY_VER = '%i.%i' % sys.version_info[:2]
 
@@ -25,6 +15,7 @@ def abs_expanduser(path):
 def canonical(s):
     """
     return the canonical representations of a project name
+    DON'T USE THIS IN NEW CODE (ONLY (STILL) HERE FOR HISTORICAL REASONS)
     """
     # eventually (once Python 2.6 repo eggs are no longer supported), this
     # function should only return s.lower()
@@ -33,10 +24,6 @@ def canonical(s):
     if s == 'tables':
         s = 'pytables'
     return s
-
-
-def cname_fn(fn):
-    return canonical(fn.split('-')[0])
 
 
 def comparable_version(version):
@@ -75,195 +62,44 @@ def md5_file(path):
     return h.hexdigest()
 
 
-def open_with_auth(url):
-    """
-    Open a urllib2 request, handling HTTP authentication
-    """
-    import config
+def info_file(path):
+    return dict(size=getsize(path),
+                mtime=getmtime(path),
+                md5=md5_file(path))
 
-    scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
-    assert not query
-    auth, host = urllib2.splituser(netloc)
-    if auth:
-        auth = urllib2.unquote(auth).encode('base64').strip()
-    elif host.endswith('enthought.com') and not (
-             'repo/pypi/eggs/' in url or 'runner.enthought.com' in url):
-        username, password = config.get_auth()
-        if username and password:
-            auth = ('%s:%s' % (username, password)).encode('base64')
-        if auth is None:
-            userpass = config.get('EPD_userpass')
-            if userpass:
-                auth = userpass.encode('base64').strip()
 
-    if auth:
-        new_url = urlparse.urlunparse((scheme, host, path,
-                                       params, query, frag))
-        request = urllib2.Request(new_url)
-        request.add_unredirected_header("Authorization", "Basic " + auth)
-        logger.debug('Requesting %s with auth' % new_url)
+def cleanup_url(url):
+    """
+    Ensure a given repo string, i.e. a string specifying a repository,
+    is valid and return a cleaned up version of the string.
+    """
+    if url.startswith(('http://', 'https://')):
+        if not url.endswith('/'):
+            url += '/'
+
+    elif url.startswith('file://'):
+        dir_path = url[7:]
+        if dir_path.startswith('/'):
+            # Unix filename
+            if not url.endswith('/'):
+                url += '/'
+        else:
+            # Windows filename
+            if not url.endswith('\\'):
+                url += '\\'
+
+    elif isdir(abs_expanduser(url)):
+        return cleanup_url('file://' + abs_expanduser(url))
+
     else:
-        request = urllib2.Request(url)
-        logger.debug('Requesting %s without auth' % url)
-    request.add_header('User-Agent', 'enstaller/%s' % __version__)
-    return urllib2.urlopen(request)
+        raise Exception("Invalid URL or non-existing file: %r" % url)
+
+    return url
 
 
-def write_data_from_url(fo, url, md5=None, size=None, progress_callback=None):
-    """
-    Read data from the url and write to the file handle fo, which must
-    be open for writing.  Optionally check the MD5.  When the size in
-    bytes and progress_callback are provided, the callback is called
-    with progress updates as the download/copy occurs. If no size is
-    provided, the callback will be called with None for the total
-    size.
-
-    The callback will be called with 0% progress at the beginning and
-    100% progress at the end, so these two states can be used for any
-    initial and final display.
-
-    progress_callback signature: callback(so_far, total, state)
-      so_far -- bytes so far
-      total -- bytes total, if known, otherwise None
-    """
-    if progress_callback is not None and size:
-        n = 0
-        progress_callback(0, size)
-
-    if url.startswith('file://'):
-        path = url[7:]
-        fi = open(path, 'rb')
-    elif url.startswith(('http://', 'https://')):
-        try:
-            fi = open_with_auth(url)
-        except urllib2.HTTPError, e:
-            sys.stderr.write(str(e) + '\n')
-            if '401' in str(e):
-                sys.stderr.write("""\
-Please make sure you are using the correct authentication.
-Use "enpkg --userpass" to update authentication in configuration file.
-""")
-                sys.exit(1)
-            else:
-                raise
-    else:
-        sys.exit("Error: invalid url: %r" % url)
-
-    h = hashlib.new('md5')
-
-    if size and size < 16384:
-        buffsize = 1
-    else:
-        buffsize = 256
-
-    while True:
-        chunk = fi.read(buffsize)
-        if not chunk:
-            break
-        fo.write(chunk)
-        if md5:
-            h.update(chunk)
-        if progress_callback is not None and size:
-            n += len(chunk)
-            progress_callback(n, size)
-
-    fi.close()
-
-    if md5 and h.hexdigest() != md5:
-        sys.stderr.write("FATAL ERROR: Data received from\n\n"
-                         "    %s\n\n"
-                         "is corrupted.  MD5 sums mismatch.\n" % url)
-        fo.close()
-        sys.exit(1)
-
-# -----------------------------------------------------------------
-
-repo_pat = re.compile(r'/repo/([^\s/]+/[^\s/]+)/')
-def shorten_repo(repo):
-    m = repo_pat.search(repo)
-    if m:
-        return m.group(1)
-    else:
-        res = repo.replace('http://', '').replace('https://', '')
-        return res.replace('.enthought.com', '')
-
-
-def get_installed_info(prefix, cname):
-    """
-    return a dictionary with information about the package specified by the
-    canonical name found in prefix, or None if the package is not found
-    """
-    meta_dir = join(prefix, 'EGG-INFO', cname)
-    meta_txt = join(meta_dir, '__egginst__.txt')
-    if not isfile(meta_txt):
-        return None
-
-    d = {}
-    execfile(meta_txt, d)
-    res = {}
-    res['egg_name'] = d['egg_name']
-    res['name'], res['version'] = name_version_fn(d['egg_name'])
-    res['mtime'] = time.ctime(getmtime(meta_txt))
-    res['meta_dir'] = meta_dir
-
-    meta2_txt = join(meta_dir, '__enpkg__.txt')
-    if isfile(meta2_txt):
-        d = {}
-        execfile(meta2_txt, d)
-        res['repo'] = shorten_repo(d['repo'])
-    return res
-
-
-def get_info():
-    """
-    returns a dict mapping canonical project names to spec structures
-    containing additional meta-data of the project which is not contained
-    in the index-depend data
-    """
-    from indexed_repo.metadata import parse_index
-    import config
-
-    url = config.get('info_url')
-    faux = StringIO()
-    write_data_from_url(faux, url)
-    index_data = faux.getvalue()
-    faux.close()
-
-    if url.endswith('.bz2'):
-        index_data = bz2.decompress(index_data)
-
-    res = {}
-    for name, data in parse_index(index_data).iteritems():
-        d = {}
-        exec data.replace('\r', '') in d
-        cname = canonical(name)
-        res[cname] = {}
-        for var_name in ('name', 'homepage', 'doclink', 'license',
-                         'summary', 'description'):
-            res[cname][var_name] = d[var_name]
-    return res
-
-
-def get_available():
-    """
-    return a dict mapping canonical project names to versions which
-    are available in the subscriber repositories
-    """
+def fill_url(url):
     import plat
-    import config
 
-    url = '%savailable/%s.txt' % (config.pypi_url, plat.custom_plat)
-    faux = StringIO()
-    write_data_from_url(faux, url)
-    data = faux.getvalue()
-    faux.close()
-
-    res = {}
-    for line in data.splitlines():
-        line = line.strip()
-        if line:
-            parts = line.split()
-            cname = parts[0]
-            versions = parts[1:]
-            res[cname] = versions
-    return res
+    url = url.replace('{ARCH}', plat.arch)
+    url = url.replace('{SUBDIR}', plat.subdir)
+    return cleanup_url(url)

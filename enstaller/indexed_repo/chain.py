@@ -1,33 +1,61 @@
 import os
 import sys
-import bz2
+import hashlib
 import zipfile
-from cStringIO import StringIO
 from collections import defaultdict
-from os.path import basename, getsize, isfile, isdir, join
+from os.path import basename, isfile, isdir, join
 
-from egginst.utils import pprint_fn_action, rm_rf, console_file_progress
-from enstaller.utils import comparable_version, md5_file, write_data_from_url
+from egginst.utils import human_bytes
+
+from enstaller.store.indexed import LocalIndexedStore, RemoteHTTPIndexedStore
+
+from enstaller.utils import comparable_version, md5_file
 import metadata
 import dist_naming
 from requirement import Req, add_Reqs_to_spec
 
 
+def stream_to_file(fi, path, info={}):
+    """
+    Read data from the filehandle and write a the file.
+    Optionally check the MD5.
+    """
+    size = info['size']
+    md5 = info.get('md5')
+
+    print "Fetching: %s (%s)" % (basename(path), human_bytes(size))
+
+    n = 0
+    h = hashlib.new('md5')
+    with open(path + '.part', 'wb') as fo:
+        while True:
+            chunk = fi.read(16384)
+            if not chunk:
+                break
+            fo.write(chunk)
+            if md5:
+                h.update(chunk)
+            n += len(chunk)
+    fi.close()
+
+    if md5 and h.hexdigest() != md5:
+        raise Exception("Error: received data MD5 sums mismatch")
+    os.rename(path + '.part', path)
+
+
 class Chain(object):
 
-    def __init__(self, repos=[], verbose=False, file_action_callback=None,
-                 download_progress_callback=None):
+    def __init__(self, repos=[], verbose=False):
         self.verbose = verbose
-        self.file_action_callback = file_action_callback or pprint_fn_action
-        self.download_progress_callback = (download_progress_callback or
-                                           console_file_progress)
-        self.unsubscribed_repos = {}
 
         # maps distributions to specs
         self.index = {}
 
         # maps cnames to the list of distributions (in repository order)
         self.groups = defaultdict(list)
+
+        # maps the url of a repo to repository objects
+        self.repo_objs = {}
 
         # Chain of repositories, either local or remote
         self.repos = []
@@ -46,7 +74,26 @@ class Chain(object):
         print
 
 
-    def add_repo(self, repo, index_fn='index-depend.bz2'):
+    def connect(self, repo):
+        if repo in self.repo_objs:
+            return self.repo_objs[repo]
+
+        if repo.startswith('file://'):
+            r = LocalIndexedStore(repo[7:])
+            r.connect()
+
+        elif repo.startswith(('http://', 'https://')):
+            r = RemoteHTTPIndexedStore(repo)
+            if repo.startswith('https://'):
+                r.connect(userpass=('EPDUser', 'Epd789'))
+            else:
+                r.connect()
+
+        self.repo_objs[repo] = r
+        return r
+
+
+    def add_repo(self, repo, index_fn=None):
         """
         Add a repo to the chain, i.e. read the index file of the url,
         parse it and update the index.
@@ -55,38 +102,16 @@ class Chain(object):
             print "Adding repository:"
             print "   URL:", repo
         repo = dist_naming.cleanup_reponame(repo)
-
         self.repos.append(repo)
 
-        index_url = repo + index_fn
+        if index_fn: # for running the tests locally
+            assert repo.startswith('file://')
+            index_data = open(repo[7:] + index_fn).read()
+            new_index = metadata.parse_depend_index(index_data)
 
-        if index_url.startswith('file://'):
-            if isfile(index_url[7:]):
-                # A local url with index file
-                if self.verbose:
-                    print "    found index", index_url
-            else:
-                # A local url without index file
-                self.index_all_files(repo)
-                return
+        else:
+            new_index = dict(self.connect(repo).query(type='egg'))
 
-        if self.verbose:
-            print " index:", index_fn
-
-        faux = StringIO()
-        write_data_from_url(faux, index_url)
-        index_data = faux.getvalue()
-        faux.close()
-
-        if self.verbose:
-            import hashlib
-            print "   md5:", hashlib.md5(index_data).hexdigest()
-            print
-
-        if index_fn.endswith('.bz2'):
-            index_data = bz2.decompress(index_data)
-
-        new_index = metadata.parse_depend_index(index_data)
         for spec in new_index.itervalues():
             add_Reqs_to_spec(spec)
 
@@ -117,24 +142,22 @@ class Chain(object):
                 yield dist
 
 
-    def get_repo(self, req, allow_unsubscribed=False):
+    def get_repo(self, req):
         """
         return the first repository in which the requirement matches at least
         one distribution
         """
         for dist in self.iter_dists(req):
-            repo = dist_naming.repo_dist(dist)
-            if repo not in self.unsubscribed_repos or allow_unsubscribed:
-                return repo
+            return dist_naming.repo_dist(dist)
         return None
 
 
-    def get_dist(self, req, allow_unsubscribed=False):
+    def get_dist(self, req):
         """
         return the distributions with the largest version and build number
         from the first repository which contains any matches
         """
-        repo = self.get_repo(req, allow_unsubscribed)
+        repo = self.get_repo(req)
         if repo is None:
             return None
 
@@ -327,54 +350,32 @@ class Chain(object):
             return list(versions)
 
 
-    def fetch_dist(self, dist, fetch_dir, force=False, check_md5=False,
-                   dry_run=False):
+    def fetch_dist(self, dist, fetch_dir, force=False, dry_run=False):
         """
         Get a distribution, i.e. copy or download the distribution into
         fetch_dir.
 
         force:
-            force download or copy
-
-        check_md5:
-            when determining if a file needs to be downloaded or copied,
-            check it's MD5.  This is, of course, slower but more reliable
-            then just checking the file-size (which is always done first).
-            Note:
-              * This option has nothing to do with checking the MD5 of the
-                download.  The md5 is always checked when files are
-                downloaded (regardless of this option).
-              * If force=True, this option is has no effect, because the file
-                is forcefully downloaded, ignoring any existing file (as well
-                as the MD5).
+            force download or copy if MD5 mismatches
         """
-        md5 = self.index[dist].get('md5')
-        size = self.index[dist].get('size')
-
-        fn = dist_naming.filename_dist(dist)
-        dst = join(fetch_dir, fn)
-        # if force is not used, see if (i) the file exists (ii) its size is
-        # the expected (iii) optionally, make sure the md5 is the expected.
-        if (not force and isfile(dst) and getsize(dst) == size and
-                   (not check_md5 or md5_file(dst) == md5)):
+        info = self.index[dist]
+        repo, fn = dist_naming.split_dist(dist)
+        path = join(fetch_dir, fn)
+        # if force is used, make sure the md5 is the expected, otherwise
+        # only see if the file exists
+        if isfile(path) and (not force or md5_file(path) == info.get('md5')):
             if self.verbose:
-                print "Not forcing refetch, %r already exists" % dst
+                print "Not forcing refetch, %r already matches MD5" % path
             return
-        self.file_action_callback(fn, ('copying', 'downloading')
-                                  [dist.startswith(('http://', 'https://'))])
+
         if dry_run:
             return
 
         if self.verbose:
-            print "Copying: %r" % dist
-            print "     to: %r" % dst
+            print "Fetching: %r" % dist
+            print "      to: %r" % path
 
-        fo = open(dst + '.part', 'wb')
-        write_data_from_url(fo, dist, md5, size,
-                            progress_callback=self.download_progress_callback)
-        fo.close()
-        rm_rf(dst)
-        os.rename(dst + '.part', dst)
+        stream_to_file(self.repo_objs[repo].get_data(fn), path, info)
 
 
     def index_file(self, filename, repo):
@@ -416,3 +417,32 @@ class Chain(object):
                 print "WARNING: ignoring invalid egg name:", join(dir_path, fn)
                 continue
             self.index_file(fn, repo)
+
+
+def main():
+    from optparse import OptionParser
+
+    p = OptionParser(usage="usage: %prog [options] REPO [EGG ...]",
+                     description="simple interface to fetch eggs")
+    p.add_option("--dst",
+                 action="store",
+                 help="destination directory",
+                 default=os.getcwd(),
+                 metavar='PATH')
+    p.add_option('-v', "--verbose", action="store_true")
+
+    opts, args = p.parse_args()
+
+    if len(args) < 1:
+        p.error('at least one argument expected, try -h')
+
+    repo = args[0]
+    c = Chain([repo], opts.verbose)
+    for fn in args[1:]:
+        if not dist_naming.is_valid_eggname(fn):
+            sys.exit('Error: invalid egg name: %r' % fn)
+        c.fetch_dist(repo + fn, opts.dst)
+
+
+if __name__ == '__main__':
+    sys.exit(main())

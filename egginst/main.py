@@ -10,15 +10,14 @@ eggs and it installs/uninstalls them.
 import os
 import sys
 import re
+import json
 import zipfile
-import ConfigParser
+from uuid import uuid4
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
-from utils import (on_win, bin_dir_name, rel_site_packages,
-                   pprint_fn_action, rm_empty_dir, rm_rf, human_bytes,
-                   console_file_progress)
+from utils import (on_win, bin_dir_name, rel_site_packages, human_bytes,
+                   rm_empty_dir, rm_rf, get_executable)
 import scripts
-
 
 
 NS_PKG_PAT = re.compile(
@@ -40,20 +39,29 @@ def name_version_fn(fn):
 
 class EggInst(object):
 
-    def __init__(self, fpath, prefix=sys.prefix,
-                 hook=False, verbose=False, noapp=False):
-        self.fpath = fpath
-        self.cname = name_version_fn(basename(fpath))[0].lower()
+    def __init__(self, path, prefix=sys.prefix,
+                 hook=False, pkgs_dir=None, evt_mgr=None,
+                 verbose=False, noapp=False):
+        self.path = path
+        self.fn = basename(path)
+        name, version = name_version_fn(self.fn)
+        self.cname = name.lower()
         self.prefix = abspath(prefix)
         self.hook = bool(hook)
+        self.evt_mgr = evt_mgr
         self.noapp = noapp
-        self.progress_callback = console_file_progress
 
         self.bin_dir = join(self.prefix, bin_dir_name)
 
+        if self.prefix != abspath(sys.prefix):
+            scripts.executable = get_executable(self.prefix)
+
         if self.hook:
-            self.pkgs_dir = join(self.prefix, 'pkgs')
-            self.pkg_dir = join(self.pkgs_dir, basename(fpath)[:-4])
+            if pkgs_dir:
+                self.pkgs_dir = abspath(pkgs_dir)
+            else:
+                self.pkgs_dir = join(self.prefix, 'pkgs')
+            self.pkg_dir = join(self.pkgs_dir, self.cname + '-' + version)
             self.pyloc = self.pkg_dir
             self.meta_dir = join(self.pkg_dir, 'EGG-INFO')
             self.registry_txt = join(self.meta_dir, 'registry.txt')
@@ -63,48 +71,52 @@ class EggInst(object):
             self.egginfo_dir = join(self.prefix, 'EGG-INFO')
             self.meta_dir = join(self.egginfo_dir, self.cname)
 
-        self.meta_txt = join(self.meta_dir, '__egginst__.txt')
+        self.meta_json = join(self.meta_dir, 'egginst.json')
         self.files = []
         self.verbose = verbose
 
-    def rel_prefix(self, path):
-        assert abspath(path).startswith(self.prefix)
-        return path[len(self.prefix) + 1:]
 
-
-    def install(self):
+    def install(self, extra_info=None):
         if not isdir(self.meta_dir):
             os.makedirs(self.meta_dir)
 
-        self.z = zipfile.ZipFile(self.fpath)
+        self.z = zipfile.ZipFile(self.path)
         self.arcnames = self.z.namelist()
-
         self.extract()
 
         if on_win:
             scripts.create_proxies(self)
-
         else:
             import links
             import object_code
-
             if self.verbose:
                 links.verbose = object_code.verbose = True
-
             links.create(self)
             object_code.fix_files(self)
 
-        self.entry_points()
+        if not self.hook:
+            self.entry_points()
+        if ('EGG-INFO/spec/depend' in self.arcnames  or
+            'EGG-INFO/info.json' in self.arcnames):
+            import eggmeta
+            info = eggmeta.create_info(self, extra_info)
+        else:
+            info = {}
         self.z.close()
-        scripts.fix_scripts(self)
+
+        if not self.hook:
+            scripts.fix_scripts(self)
+            self.install_app()
         self.run('post_egginst.py')
-        self.install_app()
         self.write_meta()
 
         if self.hook:
             import registry
-
             registry.create_file(self)
+
+        if info.get('app'):
+            import app_entry
+            app_entry.create_entry(self, info)
 
 
     def entry_points(self):
@@ -112,78 +124,79 @@ class EggInst(object):
                                              ignore_empty=False))
         if lines == []:
             return
-
-        path = join(self.meta_dir, '__entry_points__.txt')
-        fo = open(path, 'w')
-        fo.write('\n'.join(lines) + '\n')
-        fo.close()
-
+        import ConfigParser, cStringIO
         conf = ConfigParser.ConfigParser()
-        conf.read(path)
+        conf.readfp(cStringIO.StringIO('\n'.join(lines) + '\n'))
         if ('console_scripts' in conf.sections() or
-            'gui_scripts' in conf.sections()):
+                'gui_scripts' in conf.sections()):
             if self.verbose:
                 print 'creating scripts'
                 scripts.verbose = True
             scripts.create(self, conf)
 
 
+    def rel_prefix(self, path):
+        return abspath(path).replace(self.prefix, '.').replace('\\', '/')
+
     def write_meta(self):
-        fo = open(self.meta_txt, 'w')
-        fo.write('# egginst metadata\n')
-        fo.write('egg_name = %r\n' % basename(self.fpath))
-        fo.write('prefix = %r\n' % self.prefix)
-        fo.write('installed_size = %i\n' % self.installed_size)
-        fo.write('rel_files = [\n')
-        fo.write('  %r,\n' % self.rel_prefix(self.meta_txt))
-        for p in self.files:
-            if abspath(p).startswith(self.prefix):
-                fo.write('  %r,\n' % self.rel_prefix(p))
-            else:
-                fo.write('  %r,\n' % p)
-        fo.write(']\n')
-        fo.close()
+        d = dict(
+            egg_name = self.fn,
+            prefix = self.prefix,
+            installed_size = self.installed_size,
+            files = [self.rel_prefix(p)
+                           if abspath(p).startswith(self.prefix) else p
+                     for p in self.files + [self.meta_json]]
+        )
+        with open(self.meta_json, 'w') as f:
+            json.dump(d, f, indent=2, sort_keys=True)
 
     def read_meta(self):
-        d = {'installed_size': -1}
-        execfile(self.meta_txt, d)
-        for name in ['egg_name', 'prefix', 'installed_size', 'rel_files']:
-            setattr(self, name, d[name])
-        self.files = [join(self.prefix, f) for f in d['rel_files']]
+        d = read_meta(self.meta_dir)
+        self.installed_size = d['installed_size']
+        self.files = [join(self.prefix, f) for f in d['files']]
 
 
-    def lines_from_arcname(self, arcname,
-                           ignore_empty=True,
-                           ignore_comments=True):
+    def lines_from_arcname(self, arcname, ignore_empty=True):
         if not arcname in self.arcnames:
             return
         for line in self.z.read(arcname).splitlines():
             line = line.strip()
             if ignore_empty and line == '':
                 continue
-            if ignore_comments and line.startswith('#'):
+            if line.startswith('#'):
                 continue
             yield line
 
 
     def extract(self):
+        if self.evt_mgr:
+            from encore.events.api import ProgressManager
+        else:
+            from console import ProgressManager
+
         n = 0
         size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
-        self.progress_callback(0, size)
-
-        for name in self.arcnames:
-            n += self.z.getinfo(name).file_size
-            if n:
-                self.progress_callback(n, size)
-            self.write_arcname(name)
-
         self.installed_size = size
+        progress = ProgressManager(
+                self.evt_mgr, source=self,
+                operation_id=uuid4(),
+                message="installing egg",
+                steps=size,
+                # ---
+                progress_type="installing", filename=self.fn,
+                disp_amount=human_bytes(self.installed_size),
+                super_id=getattr(self, 'super_id', None))
+        with progress:
+            for name in self.arcnames:
+                n += self.z.getinfo(name).file_size
+                self.write_arcname(name)
+                progress(step=n)
 
 
     def get_dst(self, arcname):
         if (not self.hook and arcname == 'EGG-INFO/PKG-INFO' and
-                      self.fpath.endswith('.egg')):
-            return join(self.site_packages, basename(self.fpath) + '-info')
+                      self.path.endswith('.egg')):
+            return join(self.site_packages, self.fn + '-info')
 
         for start, cond, dst_dir in [
             ('EGG-INFO/prefix/',  True,       self.prefix),
@@ -278,38 +291,49 @@ class EggInst(object):
             print "Error: Can't find meta data for:", self.cname
             return
 
+        if self.evt_mgr:
+            from encore.events.api import ProgressManager
+        else:
+            from console import ProgressManager
+
         self.read_meta()
         n = 0
-        nof = len(self.files) # number of files
-        self.progress_callback(0, self.installed_size)
-
+        progress = ProgressManager(
+                self.evt_mgr, source=self,
+                operation_id=uuid4(),
+                message="removing egg",
+                steps=len(self.files),
+                # ---
+                progress_type="removing", filename=self.fn,
+                disp_amount=human_bytes(self.installed_size),
+                super_id=getattr(self, 'super_id', None))
         self.install_app(remove=True)
         self.run('pre_egguninst.py')
 
-        for p in self.files:
-            n += 1
-            self.progress_callback(n, nof)
+        with progress:
+            for p in self.files:
+                n += 1
+                progress(step=n)
 
-            rm_rf(p)
-            if p.endswith('.py'):
-                rm_rf(p + 'c')
-        self.rm_dirs()
-        rm_rf(self.meta_dir)
-        if self.hook:
-            rm_empty_dir(self.pkg_dir)
-        else:
-            rm_empty_dir(self.egginfo_dir)
+                if self.hook and not p.startswith(self.pkgs_dir):
+                    continue
+
+                rm_rf(p)
+                if p.endswith('.py'):
+                    rm_rf(p + 'c')
+            self.rm_dirs()
+            rm_rf(self.meta_dir)
+            if self.hook:
+                rm_empty_dir(self.pkg_dir)
+            else:
+                rm_empty_dir(self.egginfo_dir)
 
 
-def get_installed_cnames(prefix=sys.prefix):
-    """
-    returns a sorted list of cnames of all installed packages
-    """
-    egg_info_dir = join(prefix, 'EGG-INFO')
-    if not isdir(egg_info_dir):
-        return []
-    pat = re.compile(r'([a-z0-9_.]+)$')
-    return sorted(fn for fn in os.listdir(egg_info_dir) if pat.match(fn))
+def read_meta(meta_dir):
+    meta_json = join(meta_dir, 'egginst.json')
+    if isfile(meta_json):
+        return json.load(open(meta_json))
+    return None
 
 
 def get_installed(prefix=sys.prefix):
@@ -319,12 +343,15 @@ def get_installed(prefix=sys.prefix):
     package.
     """
     egg_info_dir = join(prefix, 'EGG-INFO')
-    for cname in get_installed_cnames(prefix):
-        meta_txt = join(egg_info_dir, cname, '__egginst__.txt')
-        if not isfile(meta_txt):
+    if not isdir(egg_info_dir):
+        return
+    pat = re.compile(r'([a-z0-9_.]+)$')
+    for fn in sorted(os.listdir(egg_info_dir)):
+        if not pat.match(fn):
             continue
-        d = {}
-        execfile(meta_txt, d)
+        d = read_meta(join(egg_info_dir, fn))
+        if d is None:
+            continue
         yield d['egg_name']
 
 
@@ -358,18 +385,22 @@ def main():
 
     p.add_option("--hook",
                  action="store_true",
-                 help="don't install into site-packages (experimental)")
+                 help="don't install into site-packages (experimental)",
+                 metavar='PATH')
+
+    p.add_option("--pkgs-dir",
+                 action="store",
+                 help="packages directories (works only with --hook)",
+                 metavar='PATH')
 
     p.add_option('-r', "--remove",
                  action="store_true",
                  help="remove package(s), requires the egg or project name(s)")
 
     p.add_option('-v', "--verbose", action="store_true")
-    p.add_option('-n', "--dry-run", action="store_true")
     p.add_option('--version', action="store_true")
 
     opts, args = p.parse_args()
-
     if opts.version:
         from enstaller import __version__
         print "enstaller version:", __version__
@@ -383,19 +414,20 @@ def main():
         print_installed(prefix)
         return
 
-    for path in args:
-        ei = EggInst(path, prefix, opts.hook, opts.verbose, opts.noapp)
-        fn = basename(path)
-        if opts.remove:
-            pprint_fn_action(fn, 'removing')
-            if opts.dry_run:
-                continue
-            ei.remove()
+    if 0:
+        from encore.events.api import EventManager
+        from encore.terminal.api import ProgressDisplay
+        evt_mgr = EventManager()
+        display = ProgressDisplay(evt_mgr)
+    else:
+        evt_mgr = None
 
+    for path in args:
+        ei = EggInst(path, prefix, opts.hook, opts.pkgs_dir, evt_mgr,
+                     verbose=opts.verbose, noapp=opts.noapp)
+        if opts.remove:
+            ei.remove()
         else: # default is always install
-            pprint_fn_action(fn, 'installing')
-            if opts.dry_run:
-                continue
             ei.install()
 
 

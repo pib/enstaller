@@ -1,7 +1,8 @@
 import sys
 import os
 import shutil
-from os.path import isdir, isfile, islink
+import tempfile
+from os.path import basename, isdir, isfile, islink, join
 
 
 on_win = bool(sys.platform == 'win32')
@@ -12,37 +13,6 @@ if on_win:
 else:
     bin_dir_name = 'bin'
     rel_site_packages = 'lib/python%i.%i/site-packages' % sys.version_info[:2]
-
-
-def console_file_progress(so_far, total, state={}):
-    """
-    A progress callback to be used with write_data_from_url.
-
-    Displays a progress bar as the download progresses.
-    """
-    if so_far == 0:
-        sys.stdout.write('%9s [' % human_bytes(total))
-        sys.stdout.flush()
-        state['cur'] = 0
-
-    if float(so_far) / total * 64 >= state['cur']:
-        sys.stdout.write('.')
-        sys.stdout.flush()
-        state['cur'] += 1
-
-    if so_far == total:
-        sys.stdout.write('.' * (65 - state['cur']))
-        sys.stdout.write(']\n')
-        sys.stdout.flush()
-
-
-def pprint_fn_action(fn, action):
-    """
-    Pretty print the distribution name (filename) and an action, the width
-    of the output corresponds to the with of the progress bar used by the
-    function below.
-    """
-    print "%-56s %20s" % (fn, '[%s]' % action)
 
 
 def rm_empty_dir(path):
@@ -68,18 +38,39 @@ def rm_rf(path, verbose=False):
     elif isfile(path):
         if verbose:
             print "Removing: %r (file)" % path
-        if sys.platform == 'win32':
+        if on_win:
             try:
                 os.unlink(path)
-            except WindowsError:
-                pass
+            except (WindowsError, IOError):
+                os.rename(path, join(tempfile.mkdtemp(), basename(path)))
         else:
             os.unlink(path)
 
     elif isdir(path):
         if verbose:
             print "Removing: %r (directory)" % path
-        shutil.rmtree(path)
+        if on_win:
+            try:
+                shutil.rmtree(path)
+            except (WindowsError, IOError):
+                os.rename(path, join(tempfile.mkdtemp(), basename(path)))
+        else:
+            shutil.rmtree(path)
+
+
+def get_executable(prefix):
+    if on_win:
+        path = join(prefix, 'python.exe')
+        if isfile(path):
+            return path
+    else:
+        path = join(prefix, bin_dir_name, 'python')
+        if isfile(path):
+            from subprocess import Popen, PIPE
+            cmd = [path, '-c', 'import sys;print sys.executable']
+            p = Popen(cmd, stdout=PIPE)
+            return p.communicate()[0].strip()
+    return sys.executable
 
 
 def human_bytes(n):
@@ -88,9 +79,7 @@ def human_bytes(n):
     """
     if n < 1024:
         return '%i B' % n
-
     k = (n - 1) / 1024 + 1
     if k < 1024:
         return '%i KB' % k
-
     return '%.2f MB' % (float(n) / (2**20))
