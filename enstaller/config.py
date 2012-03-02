@@ -70,12 +70,8 @@ If you are not subscribed to EPD, just hit Return.
     username = raw_input('Username: ').strip()
     if not username:
         return None, None
-    for dummy in xrange(3):
-        password = getpass('Password: ')
-        password2 = getpass('Confirm password: ')
-        if password == password2:
-            return username, password
-    return None, None
+    return username, getpass('Password: ')
+
 
 RC_TMPL = """\
 # enstaller configuration file
