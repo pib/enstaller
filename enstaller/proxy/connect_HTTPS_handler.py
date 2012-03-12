@@ -59,7 +59,7 @@ class ConnectHTTPSHandler(urllib2.HTTPSHandler):
         conn = ProxyHTTPSConnection(req.host)
         conn._proxy_request = req
         conn._proxy_info = self.proxy_info
-        def get_connection(host):
+        def get_connection(host, timeout=None):
             conn._set_hostport(host, None)
             return conn
 
