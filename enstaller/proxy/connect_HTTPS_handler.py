@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2007-2008 by Enthought, Inc.
+# Copyright (c) 2007-2012 by Enthought, Inc.
 # All rights reserved.
 #
 # This software is provided without warranty under the terms of the BSD license
@@ -10,8 +10,6 @@
 # urllib2 handlers for proxying SSL web requests using the CONNECT method.
 #------------------------------------------------------------------------------
 
-
-import base64
 import httplib
 import socket
 import urllib2
@@ -23,14 +21,12 @@ class ProxyHTTPSConnection(ProxyHTTPConnection):
 
     default_port = 443
 
-    def __init__(self, host, port = None, key_file = None, cert_file = None,
-        strict = None):
+    def __init__(self, host, port=None, key_file=None, cert_file=None,
+                 strict=None):
 
         ProxyHTTPConnection.__init__(self, host, port)
         self.key_file = key_file
         self.cert_file = cert_file
-
-        return
 
 
     def connect(self):
@@ -41,8 +37,6 @@ class ProxyHTTPSConnection(ProxyHTTPConnection):
         ssl = socket.ssl(self.sock, self.key_file, self.cert_file)
         self.sock = httplib.FakeSocket(self.sock, ssl)
 
-        return
-
 
 class ConnectHTTPSHandler(urllib2.HTTPSHandler):
 
@@ -50,8 +44,6 @@ class ConnectHTTPSHandler(urllib2.HTTPSHandler):
 
         self.proxy_info = info
         urllib2.HTTPSHandler.__init__(self, debuglevel)
-
-        return
 
 
     def do_open(self, http_class, req):
@@ -72,4 +64,3 @@ class ConnectHTTPSHandler(urllib2.HTTPSHandler):
             return conn
 
         return urllib2.HTTPSHandler.do_open(self, get_connection, req)
-
