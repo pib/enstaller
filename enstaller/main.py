@@ -313,11 +313,6 @@ def main():
         config.print_config()
         return
 
-    if args.userpass:                             # --userpass
-        username, password = config.input_auth()
-        config.change_auth(username, password)
-        return
-
     if args.list:                                 # --list
         list_option(prefixes, args.hook, pat)
         return
@@ -345,6 +340,23 @@ def main():
 
     enpkg = Enpkg(remote, prefixes=prefixes, hook=args.hook,
                   evt_mgr=evt_mgr, verbose=args.verbose)
+
+    if args.userpass:                             # --userpass
+        auth = username, password = config.input_auth()
+        if remote is not None:
+            try:
+                print 'Verifying username and password...'
+                remote.connect(auth)
+            except KeyError as e:
+                print 'Invalid Username or Password'
+            except Exception as e:
+                print e.message
+            else:
+                config.change_auth(username, password)
+        else:
+            config.change_auth(username, password)
+        return
+
     if args.dry_run:
         def print_actions(actions):
             for item in actions:
