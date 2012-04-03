@@ -128,3 +128,5 @@ class RemoteHTTPIndexedStore(IndexedStore):
             return urllib2.urlopen(request)
         except urllib2.HTTPError as e:
             raise KeyError("%s: %s" % (e, url))
+        except urllib2.URLError as e:
+            raise Exception("Could not connect to %s" %(host,))
