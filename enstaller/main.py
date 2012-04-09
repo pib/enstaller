@@ -25,6 +25,7 @@ from egg_meta import split_eggname
 
 
 FMT = '%-20s %-20s %s'
+VB_FMT = '%(version)s-%(build)d'
 
 
 def env_option(prefixes):
@@ -72,7 +73,7 @@ def info_option(enpkg, name):
     print 'Package:', name
     versions = []
     for info in enpkg.info_list_name(name):
-        versions.append('%(version)s-%(build)d' % info)
+        versions.append(VB_FMT % info)
     print 'Available version: %s' % (', '.join(versions) or None)
     if versions:
         reqs = set(r for r in info['packages'])
@@ -87,8 +88,7 @@ def print_installed(prefix, hook=False, pat=None):
     for egg, info in ec.query():
         if pat and not pat.search(info['name']):
             continue
-        print FMT % (name_egg(egg), '%(version)s-%(build)d' % info,
-                     disp_store_info(info))
+        print FMT % (name_egg(egg), VB_FMT % info, disp_store_info(info))
 
 
 def list_option(prefixes, hook=False, pat=None):
@@ -111,7 +111,7 @@ def imports_option(enpkg, pat=None):
             if index:
                 info = index.values()[0]
                 loc = 'sys' if c.prefix == sys.prefix else 'user'
-        print FMT % (name, '%(version)s-%(build)d' % info, loc)
+        print FMT % (name, VB_FMT % info, loc)
 
 
 def search(enpkg, pat=None):
@@ -127,7 +127,7 @@ def search(enpkg, pat=None):
 
     installed = {}
     for key, info in enpkg.query_installed():
-        installed[info['name']] = '%(version)s-%(build)d' % info
+        installed[info['name']] = VB_FMT % info
 
     for name in sorted(names, key=string.lower):
         if pat and not pat.search(name):
@@ -135,7 +135,7 @@ def search(enpkg, pat=None):
         disp_name = names[name]
         installed_version = installed.get(name)
         for info in enpkg.info_list_name(name):
-            version = '%(version)s-%(build)d' % info
+            version = VB_FMT % info
             disp_ver = (('* ' if installed_version == version else '  ') +
                         version)
             print FMT % (disp_name, disp_ver,
@@ -154,9 +154,7 @@ def whats_new(enpkg):
             continue
         av_info = av_infos[-1]
         if comparable_info(av_info) > comparable_info(info):
-            print FMT % (name_egg(key),
-                         '%(version)s-%(build)d' % info,
-                         '%(version)s-%(build)d' % av_info)
+            print FMT % (name_egg(key), VB_FMT % info, VB_FMT % av_info)
             something_new = True
 
     if not something_new:
