@@ -1,3 +1,4 @@
+import math
 import os
 import sys
 import hashlib
@@ -43,10 +44,10 @@ class FetchAPI(object):
 
         n = 0
         h = hashlib.new('md5')
-        if size and size < 16384:
+        if size < 256:
             buffsize = 1
         else:
-            buffsize = 256
+            buffsize = 2 ** int(math.log(size / 256.0) / math.log(2.0) + 1)
 
         pp = path + '.part'
         if sys.platform == 'win32':
