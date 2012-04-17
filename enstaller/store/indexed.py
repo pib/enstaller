@@ -36,6 +36,12 @@ class IndexedStore(AbstractStore):
 
         for info in self._index.itervalues():
             info['store_location'] = self.info().get('root')
+            if 'type' not in info:
+                info['type'] = 'egg'
+            if 'python' not in info:
+                info['python'] = '2.7'
+            if 'packages' not in info:
+                info['packages'] = []
             # for testing only:
             #if info['name'] in ('fastnumpy', 'numexpr'):
             #    info['available'] = False
