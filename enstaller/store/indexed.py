@@ -2,7 +2,8 @@ import json
 import urlparse
 import urllib2
 from collections import defaultdict
-from os.path import basename
+from os import makedirs
+from os.path import basename, dirname, join, sep
 
 from base import AbstractStore
 
@@ -98,6 +99,44 @@ class LocalIndexedStore(IndexedStore):
             raise KeyError(str(e))
 
 
+class EtagHandler(urllib2.BaseHandler):
+    def __init__(self, cache_dir):
+        self._cache_dir = cache_dir
+        self._opener = urllib2.build_opener(self)
+
+    def _url_to_path(self, url):
+        parts = urlparse.urlparse(url)
+        file_path = join(self._cache_dir, 'etags', parts.netloc,
+                    parts.path.replace('/', sep))
+
+    def _lookup_etag(self, url):
+        etag_path = '.'.join((self._url_to_path(url), 'etag'))
+        try:
+            return open(etag_path, 'r').readline()
+        except IOError:
+            return None
+
+    def http_request(self, request):
+        etag = self._lookup_etag(request.get_full_url())
+        if etag:
+            request.add_header('If-None-Match', etag)
+        return request
+
+    def http_response(self, response):
+        etag = response.headers.get('Etag')
+        if etag:
+            data_path = _url_to_path(response.geturl())
+            etag_path = '.'.join((data_path, 'etag'))
+            makedirs(dirname(data_path))
+            open(data_path, 'wb').write(response.read())
+            open(etag_path, 'w').write(etag)
+            return open(data_path, 'rb')
+        else:
+            return response
+
+        FOR SOME reason, the http_request and/or http_response stuff is not getting called in here. Probably because the standard http handler is overriding?
+    
+
 class RemoteHTTPIndexedStore(IndexedStore):
 
     def __init__(self, url):
@@ -125,7 +164,10 @@ class RemoteHTTPIndexedStore(IndexedStore):
             request = urllib2.Request(url)
         request.add_header('User-Agent', 'enstaller')
         try:
-            return urllib2.urlopen(request)
+            if key == 'index.json':
+                return cached_get(request)
+            else:
+                return urllib2.urlopen(request)
         except urllib2.HTTPError as e:
             raise KeyError("%s: %s" % (e, url))
         except urllib2.URLError as e:
