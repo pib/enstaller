@@ -27,7 +27,7 @@ def create_joined_store(urls):
     return JoinedStore(stores)
 
 def get_default_kvs():
-    url = 'https://beta.enthought.com/webservice/kvs'
+    url = 'https://api.enthought.com/webservice/kvs'
     return RemoteHTTPIndexedStore(url)
 
 def req_from_anything(arg):
@@ -76,7 +76,7 @@ class Enpkg(object):
         at all).
     """
     def __init__(self, remote=None, userpass='<config>', prefixes=[sys.prefix],
-                 hook=False, evt_mgr=None, verbose=False):
+                 hook=False, evt_mgr=None, verbose=False, include_pypi=False):
         if remote is None:
             self.remote = get_default_kvs()
         else:
@@ -86,6 +86,7 @@ class Enpkg(object):
             self.userpass = config.get_auth()
         else:
             self.userpass = userpass
+        self.include_pypi = include_pypi
         self.prefixes = prefixes
         self.hook = hook
         self.evt_mgr = evt_mgr
@@ -112,7 +113,7 @@ class Enpkg(object):
     def _connect(self):
         if self._connected:
             return
-        self.remote.connect(self.userpass)
+        self.remote.connect(self.userpass, include_pypi=self.include_pypi)
         self._connected = True
 
     def query_remote(self, **kwargs):

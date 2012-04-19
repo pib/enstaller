@@ -9,13 +9,17 @@ from base import AbstractStore
 
 class IndexedStore(AbstractStore):
 
-    def connect(self, userpass=None):
+    def connect(self, userpass=None, include_pypi=False):
         self.userpass = userpass  # tuple(username, password)
         self._webservice = 'webservice/kvs' in self.root
         if self._webservice:
             import enstaller.plat as plat
 
-            fp = self.get_data('index.json?plat=' + plat.custom_plat)
+            index_url = 'index.json?plat=' + plat.custom_plat
+            if include_pypi:
+                index_url += '&pypi=true'
+
+            fp = self.get_data(index_url)
             if fp is None:
                 raise Exception("could not connect")
             self._index = {}
