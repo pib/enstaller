@@ -337,7 +337,7 @@ def main():
         remote = create_joined_store(urls)
 
     enpkg = Enpkg(remote, prefixes=prefixes, hook=args.hook,
-                  evt_mgr=evt_mgr, verbose=args.verbose, include_pypi=True)
+                  evt_mgr=evt_mgr, verbose=args.verbose)
 
     if args.userpass:                             # --userpass
         auth = username, password = config.input_auth()
