@@ -107,7 +107,6 @@ class EggInst(object):
         if not self.hook:
             scripts.fix_scripts(self)
             self.install_app()
-        self.run('post_egginst.py')
         self.write_meta()
 
         if self.hook:
@@ -117,6 +116,8 @@ class EggInst(object):
         if info.get('app'):
             import app_entry
             app_entry.create_entry(self, info)
+
+        self.run('post_egginst.py')
 
 
     def entry_points(self):
