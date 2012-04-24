@@ -36,6 +36,11 @@ def create_info(egg, extra_info=None):
     if extra_info:
         info.update(extra_info)
 
+    try:
+        del info['available']
+    except KeyError:
+        pass
+
     with open(join(egg.meta_dir, '_info.json'), 'w') as fo:
         json.dump(info, fo, indent=2, sort_keys=True)
 
