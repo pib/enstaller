@@ -1,6 +1,13 @@
 *~
 *.pyc
-*.egg-info
 build
 dist
 ilan.sh
+
+enstaller.egg-info/PKG-INFO
+enstaller.egg-info/SOURCES.txt
+enstaller.egg-info/dependency_links.txt
+enstaller.egg-info/entry_points.txt
+enstaller.egg-info/info.json
+enstaller.egg-info/spec/
+enstaller.egg-info/top_level.txt
