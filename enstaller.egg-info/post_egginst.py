@@ -34,8 +34,7 @@ def write_egginst(path, d):
 
 
 egg_pat = re.compile(r'([\w.]+)-([\w.]+)-(\d+)\.egg$')
-def write_info(path, d):
-    eggname = d['egg_name']
+def write_info(path, eggname):
     m = egg_pat.match(eggname)
     if m is None:
         return
@@ -52,22 +51,39 @@ def write_info(path, d):
         json.dump(info, f, indent=2, sort_keys=True)
 
 
+
+def get_eggname():
+    from enstaller import __version__
+    return 'enstaller-%s-1.egg' % __version__
+
+
 def main():
     egg_info_dir = join(sys.prefix, 'EGG-INFO')
     for fn in os.listdir(egg_info_dir):
         meta_dir = join(egg_info_dir, fn)
         if not isdir(meta_dir):
             continue
-        path1 = join(meta_dir, "__egginst__.txt")
+        path1 = join(meta_dir, '__egginst__.txt')
         if not isfile(path1):
             continue
-        path2 = join(meta_dir, "egginst.json")
-        path3 = join(meta_dir, "_info.json")
+        path2 = join(meta_dir, 'egginst.json')
+        path3 = join(meta_dir, '_info.json')
         if isfile(path2) and isfile(path3):
             continue
         data = read_old(path1)
         write_egginst(path2, data)
-        write_info(path3, data)
+        write_info(path3, data['egg_name'])
+
+    # create files for enstaller itself if necessary
+    meta_dir = join(egg_info_dir, 'enstaller')
+    path2 = join(meta_dir, 'egginst.json')
+    if not isfile(path2):
+        write_egginst(path2, dict(
+                egg_name=get_eggname(), prefix=sys.prefix,
+                installed_size=-1, rel_files=[]))
+    path3 = join(meta_dir, '_info.json')
+    if not isfile(path3):
+        write_info(path3, get_eggname())
 
 
 if __name__ == '__main__':
