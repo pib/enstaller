@@ -340,7 +340,11 @@ class Enpkg(object):
 
     def query(self, **kwargs):
         index = dict(self.query_remote(**kwargs))
-        index.update(self.query_installed(**kwargs))
+        for key, info in self.query_installed(**kwargs):
+            if key in index:
+                index[key].update(info)
+            else:
+                index[key] = info
         return index.iteritems()
 
     def fetch(self, egg, force=False):
