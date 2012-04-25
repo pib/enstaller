@@ -37,11 +37,8 @@ home_config_path = abs_expanduser("~/" + config_fn)
 system_config_path = join(sys.prefix, config_fn)
 
 pypi_url = 'http://www.enthought.com/repo/pypi/eggs/'
-info_url = 'http://www.enthought.com/epd/index-info.bz2'
-upgrade_epd_url = 'http://www.enthought.com/epd/upgrade'
 
 default = dict(
-    info_url=info_url,
     prefix=sys.prefix,
     proxy=None,
     noapp=False,
@@ -103,12 +100,6 @@ RC_TMPL = """\
 # r'file://C:\\repository\\' or 'file://C:\\\\repository\\\\'
 IndexedRepos = [
 %(repo_section)s]
-
-# The following variable is optional and, if provided, point to a URL which
-# contains an index file with additional package information, such as the
-# package home-page, license type, description.  The information is displayed
-# by the --info option.
-#info_url = 'http://www.enthought.com/epd/index-info.bz2'
 
 # Install prefix (enpkg --prefix and --sys-prefix options overwrite this).
 # When this variable is not provided, it will default to the value of
@@ -297,7 +288,7 @@ def print_config():
     print "config file:", get_path()
     print
     print "settings:"
-    for k in 'info_url', 'prefix', 'local', 'noapp', 'proxy':
+    for k in 'prefix', 'local', 'noapp', 'proxy':
         print "    %s = %r" % (k, get(k))
     print "    IndexedRepos:"
     for repo in get('IndexedRepos'):
