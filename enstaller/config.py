@@ -11,10 +11,11 @@ from enstaller import __version__
 from utils import PY_VER, abs_expanduser, fill_url
 import plat
 
+
 try:
     import keyring
     import keyring.backend
-    # Don't use keyring backends that require console input or just do
+    # don't use keyring backends that require console input or just do
     # more or less the same thing we're already doing
     keyring.backend._all_keyring = [keyring.backend.OSXKeychain(),
                                     keyring.backend.GnomeKeyring(),
@@ -24,7 +25,9 @@ try:
                                     keyring.backend.WinVaultKeyring()]
     if keyring.get_keyring().supported() < 0:
         keyring = None
-except ImportError:
+except (ImportError, KeyError):
+    # the KeyError happens on Windows when the environment variable
+    # 'USERPROFILE' is not set
     keyring = None
 
 KEYRING_SERVICE_NAME = 'Enthought.com'
