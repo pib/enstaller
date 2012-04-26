@@ -26,9 +26,12 @@ def create_joined_store(urls):
             raise Exception("cannot create store: %r" % url)
     return JoinedStore(stores)
 
+def get_default_url():
+    import plat
+    return 'https://api.enthought.com/eggs/%s/' % plat.custom_plat
+
 def get_default_kvs():
-    url = 'https://beta.enthought.com/webservice/kvs'
-    return RemoteHTTPIndexedStore(url)
+    return RemoteHTTPIndexedStore(get_default_url())
 
 def req_from_anything(arg):
     if isinstance(arg, Req):
