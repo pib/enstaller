@@ -18,6 +18,7 @@ packages   list of dependency packages, e.g. ['numpy 1.6.1', 'scipy'],
 python     the Python version the package is build for, defaults to '2.7'
 type       defaults to 'egg'
 available  boolean which indicated whether the file (egg) is available,
+           i.e. whether one is privileged to download the file,
            defaults to True
 
 
