@@ -19,3 +19,9 @@ python     the Python version the package is build for, defaults to '2.7'
 type       defaults to 'egg'
 available  boolean which indicated whether the file (egg) is available,
            defaults to True
+
+
+Note that these are the only keys which enstaller cares about.
+One might add other ones, which the Enpkg query methods will respect
+and pass along, but the behaviour of enstaller itself is not
+affected by their values.
