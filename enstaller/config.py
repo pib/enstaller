@@ -9,7 +9,6 @@ from os.path import isfile, join
 
 from enstaller import __version__
 from utils import PY_VER, abs_expanduser, fill_url
-import plat
 
 
 try:
@@ -36,8 +35,6 @@ config_fn = ".enstaller4rc"
 home_config_path = abs_expanduser("~/" + config_fn)
 system_config_path = join(sys.prefix, config_fn)
 
-pypi_url = 'http://www.enthought.com/repo/pypi/eggs/'
-
 default = dict(
     prefix=sys.prefix,
     proxy=None,
@@ -46,7 +43,7 @@ default = dict(
     EPD_auth=None,
     EPD_userpass=None,
     use_webservice=True,
-    IndexedRepos=[pypi_url + plat.subdir + '/'],
+    IndexedRepos=[],
 )
 
 
