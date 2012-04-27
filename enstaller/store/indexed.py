@@ -18,20 +18,14 @@ class IndexedStore(AbstractStore):
 
         for info in self._index.itervalues():
             info['store_location'] = self.info().get('root')
-            if 'type' not in info:
-                info['type'] = 'egg'
-            if 'python' not in info:
-                info['python'] = '2.7'
-            if 'packages' not in info:
-                info['packages'] = []
+            info.setdefault('type', 'egg')
+            info.setdefault('python', '2.7')
+            info.setdefault('packages', [])
 
         # maps names to keys
         self._groups = defaultdict(list)
         for key, info in self._index.iteritems():
-            try:
-                self._groups[info['name']].append(key)
-            except KeyError:
-                pass
+            self._groups[info['name']].append(key)
 
     def get_index(self):
         fp = self.get_data('index.json')
