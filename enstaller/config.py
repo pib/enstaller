@@ -45,6 +45,7 @@ default = dict(
     local=join(sys.prefix, 'LOCAL-REPO'),
     EPD_auth=None,
     EPD_userpass=None,
+    use_webservice=True,
     IndexedRepos=[pypi_url + plat.subdir + '/'],
 )
 
@@ -263,7 +264,7 @@ def read():
         return read.cache
 
     path = get_path()
-    read.cache = {}
+    read.cache = default
     if path is None:
         return read.cache
 
@@ -287,13 +288,13 @@ def print_config():
     print "sys.prefix:", sys.prefix
     print "platform:", platform.platform()
     print "architecture:", platform.architecture()[0]
-    print "use_webservice:", get('use_webservice', True)
+    print "use_webservice:", get('use_webservice')
     print "config file:", get_path()
     print
     print "settings:"
     for k in 'prefix', 'local', 'noapp', 'proxy':
         print "    %s = %r" % (k, get(k))
-    print "    IndexedRepos:"
+    print "    IndexedRepos:", '(not used)' if get('use_webservice') else ''
     for repo in get('IndexedRepos'):
         print '        %r' % repo
 
