@@ -330,7 +330,7 @@ def main():
     else:
         evt_mgr = None
 
-    if config.get_path() is None or config.get('use_webservice'):
+    if config.get_path() is None or config.get('use_webservice', True):
         remote = None # Enpkg will create the default
     else:
         urls = [fill_url(u) for u in config.get('IndexedRepos')]

@@ -85,6 +85,13 @@ RC_TMPL = """\
 # This file was created by initially running the enpkg command.
 
 %(auth_section)s
+
+# use_webservice refers to using 'https://api.enthought.com/eggs/',
+# the default is True, i.e. the webservice URL is used for fetching eggs.
+# Uncommenting changes this behaviour, to use the explicit IndexedRepos
+# listed below.
+#use_webservice = False
+
 # The enpkg command is searching for eggs in the list 'IndexedRepos'.
 # When enpkg is searching for an egg, it tries to find it in the order
 # of this list, and selects the first one that matches, ignoring
