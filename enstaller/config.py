@@ -292,6 +292,7 @@ def print_config():
     print "sys.prefix:", sys.prefix
     print "platform:", platform.platform()
     print "architecture:", platform.architecture()[0]
+    print "use_webservice:", get('use_webservice', True)
     print "config file:", get_path()
     print
     print "settings:"
