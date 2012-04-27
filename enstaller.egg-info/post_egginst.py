@@ -23,9 +23,8 @@ def write_egginst(path, d):
     d['files'] = []
     for f in d['rel_files'] + [path]:
         p = abspath(join(sys.prefix, f))
-        d['files'].append(
-            p.replace(sys.prefix, '.').replace('\\', '/')
-            if p.startswith(sys.prefix) else p)
+        d['files'].append(p.replace(sys.prefix, '.').replace('\\', '/')
+                          if p.startswith(sys.prefix) else p)
     del d['rel_files']
     d['prefix'] = sys.prefix
 

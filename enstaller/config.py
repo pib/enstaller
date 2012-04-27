@@ -97,16 +97,16 @@ RC_TMPL = """\
 # of this list, and selects the first one that matches, ignoring
 # repositories below.  Therefore the order of this list matters.
 #
-# Placeholders '{ARCH}' get substituted by 'amd64' or 'x86', depending
-# on the architecture of the current interpreter.
-#
-# Notice also that only indexed repositories, i.e. HTTP directories which
-# contain a file 'index-depend.bz2' (next to the eggs), can be listed here.
 # For local repositories, the index file is optional.  Remember that on
 # Windows systems the backslaches in the directory path need to escaped, e.g.:
 # r'file://C:\\repository\\' or 'file://C:\\\\repository\\\\'
 IndexedRepos = [
-%(repo_section)s]
+#  'https://www.enthought.com/repo/ets/eggs/{SUBDIR}/',
+  'https://www.enthought.com/repo/epd/GPL-eggs/{SUBDIR}/',
+  'https://www.enthought.com/repo/epd/eggs/{SUBDIR}/',
+# The Enthought PyPI build mirror:
+  'http://www.enthought.com/repo/pypi/eggs/{SUBDIR}/',
+]
 
 # Install prefix (enpkg --prefix and --sys-prefix options overwrite this).
 # When this variable is not provided, it will default to the value of
@@ -128,11 +128,6 @@ def write(username=None, password=None, proxy=None):
     """
     write the config file
     """
-    try:
-        from custom_tools import repo_section
-    except ImportError:
-        repo_section = ''
-
     # If user is 'root', then always create the config file in sys.prefix,
     # otherwise in the user's HOME directory.
     if sys.platform != 'win32' and os.getuid() == 0:
