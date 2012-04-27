@@ -1,4 +1,4 @@
-2012-??-??   4.5.0:
+2012-04-27   4.5.0:
 -------------------
   * refactor to separate enpkg backend from frontend
   * add ability to see which versions are installed when using the
