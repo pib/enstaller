@@ -3,12 +3,23 @@ import sys
 import re
 from os.path import abspath, basename, join, isdir, isfile, islink
 
-from egginst.utils import on_win, rm_rf, bin_dir_name
+from egginst.utils import on_win, rm_rf
 
 
 verbose = False
-executable = sys.executable
 hashbang_pat = re.compile(r'#!.+$', re.M)
+
+
+def get_executable(pythonw=False, with_quotes=False):
+    res = sys.executable
+    if on_win:
+        # sys.executable may actually be pythonw.exe in order to avoid
+        # popping up a cmd shell during install.
+        p = re.compile(r'pythonw?\.exe', re.I)
+        res = p.sub('pythonw.exe' if pythonw else 'python.exe', res)
+    if with_quotes:
+        res = '"%s"' % res
+    return res
 
 
 def write_exe(dst, script_type='console_scripts'):
@@ -70,7 +81,7 @@ import subprocess
 src = %(src)r
 
 sys.exit(subprocess.call([src] + sys.argv[1:]))
-''' % dict(python=executable, src=src))
+''' % dict(python=get_executable(), src=src))
     fo.close()
     return dst, dst_script
 
@@ -115,12 +126,6 @@ def write_script(path, entry_pt, egg_name):
 
     assert entry_pt.count(':') == 1
     module, func = entry_pt.strip().split(':')
-    python = executable
-    if on_win:
-        if path.endswith('pyw'):
-            p = re.compile('python\.exe$', re.I)
-            python = p.sub('pythonw.exe', python)
-        python = '"%s"' % python
 
     rm_rf(path)
     fo = open(path, 'w')
@@ -135,7 +140,9 @@ if __name__ == '__main__':
     from %(module)s import %(func)s
 
     sys.exit(%(func)s())
-''' % locals())
+''' % dict(python=get_executable(pythonw=path.endswith('.pyw'),
+                                 with_quotes=on_win),
+           egg_name=egg_name, module=module, func=func))
     fo.close()
     os.chmod(path, 0755)
 
@@ -181,9 +188,7 @@ def fix_script(path):
     if not (m and 'python' in m.group().lower()):
         return
 
-    python = executable
-    if on_win:
-        python = '"%s"' % python
+    python = get_executable(with_quotes=on_win)
     new_data = hashbang_pat.sub('#!' + python.replace('\\', '\\\\'),
                                 data, count=1)
     if new_data == data:
