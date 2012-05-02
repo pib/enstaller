@@ -22,6 +22,7 @@ try:
                                     keyring.backend.Win32CryptoKeyring(),
                                     keyring.backend.Win32CryptoRegistry(),
                                     keyring.backend.WinVaultKeyring()]
+    keyring.core.init_backend()
     if keyring.get_keyring().supported() < 0:
         keyring = None
 except (ImportError, KeyError):
