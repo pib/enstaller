@@ -281,18 +281,8 @@ class Enpkg(object):
                              (req.name, ', '.join(versions)))
         return [('remove', index.keys()[0])]
 
-    def revert_actions(self, rev_in):
-        """
-        Calculate the actions necessary to revert to a given state, the
-        argument may be one of:
-          * revision number (negative numbers allowed)
-          * datetime in ISO format, i.e. YYYY-mm-dd HH:MM:SS
-          * simple strings like '1 day ago', see parse_dt module
-        """
-        if self.hook:
-            raise NotImplementedError
-        h = History(self.prefixes[0])
-        h.update()
+    def _get_state(self, h, rev_in):
+        assert isinstance(rev_in, (str, unicode, int, long))
         try:
             rev = int(rev_in)
         except ValueError:
@@ -304,13 +294,31 @@ class Enpkg(object):
 
         print "reverting to: %r" % rev
         try:
-            state = h.get_state(rev)
+            return h.get_state(rev)
         except IndexError:
             raise EnpkgError("Error: no such revision: %r" % rev)
 
+    def revert_actions(self, arg):
+        """
+        Calculate the actions necessary to revert to a given state, the
+        argument may be one of:
+          * complete set of eggs
+          * revision number (negative numbers allowed)
+          * datetime in ISO format, i.e. YYYY-mm-dd HH:MM:SS
+          * simple strings like '1 day ago', see parse_dt module
+        """
+        if self.hook:
+            raise NotImplementedError
+        h = History(self.prefixes[0])
+        h.update()
+        if isinstance(arg, set):
+            state = arg
+        else:
+            state = self._get_state(h, arg)
+
         curr = h.get_state()
         if state == curr:
-            print "Nothing to revert"
+            print "Nothing to do"
             return []
 
         res = []
