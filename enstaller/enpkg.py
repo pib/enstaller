@@ -302,7 +302,7 @@ class Enpkg(object):
         """
         Calculate the actions necessary to revert to a given state, the
         argument may be one of:
-          * complete set of eggs
+          * complete set of eggs, i.e. a set of egg file names
           * revision number (negative numbers allowed)
           * datetime in ISO format, i.e. YYYY-mm-dd HH:MM:SS
           * simple strings like '1 day ago', see parse_dt module
