@@ -21,7 +21,7 @@ from utils import abs_expanduser, fill_url
 from eggcollect import EggCollection
 from enpkg import Enpkg, EnpkgError, create_joined_store
 from resolve import Req, comparable_info
-from egg_meta import split_eggname
+from egg_meta import is_valid_eggname, split_eggname
 
 
 FMT = '%-20s %-20s %s'
@@ -99,12 +99,16 @@ def list_option(prefixes, hook=False, pat=None):
 
 
 def parse_list(fn):
-    pat = re.compile(r'\s*([\w.]+)\s+([\w.]+-\d+)')
+    pat = re.compile(r'([\w.]+)\s+([\w.]+-\d+)')
     res = set()
     for line in open(fn):
+        line = line.strip()
         m = pat.match(line)
         if m:
             res.add(m.expand(r'\1-\2.egg'))
+            continue
+        if is_valid_eggname(line):
+            res.add(line)
     return res
 
 
