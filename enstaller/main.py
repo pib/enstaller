@@ -99,7 +99,7 @@ def list_option(prefixes, hook=False, pat=None):
 
 
 def parse_list(fn):
-    pat = re.compile(r'([\w.]+)\s+([\w.]+-\d+)')
+    pat = re.compile(r'\s*([\w.]+)\s+([\w.]+-\d+)')
     res = set()
     for line in open(fn):
         m = pat.match(line)

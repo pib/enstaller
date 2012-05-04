@@ -51,7 +51,10 @@ class EggCollection(AbstractEggCollection):
         self.pkgs_dir = join(self.prefix, 'pkgs')
 
     def find(self, egg):
-        n, v, b = split_eggname(egg)
+        try:
+            n, v, b = split_eggname(egg)
+        except AssertionError:
+            return None
         if self.hook:
             path = join(self.pkgs_dir,
                         '%s-%s-%d' % (n.lower(), v, b), 'EGG-INFO')
@@ -96,7 +99,6 @@ class EggCollection(AbstractEggCollection):
         ei.install(extra_info)
 
     def remove(self, egg):
-        assert self.find(egg), egg
         ei = egginst.EggInst(egg,
                              prefix=self.prefix, hook=self.hook,
                              evt_mgr=self.evt_mgr,
